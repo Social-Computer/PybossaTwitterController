@@ -28,26 +28,28 @@ public class Main {
 	 * @param taskContent
 	 *            the content of the tweet to be published
 	 */
-	public void sendTask(String taskId, String taskContent) {
+	public Boolean sendTaskToTwitter(String taskId, String taskContent) {
 		Twitter twitter = TwitterFactory.getSingleton();
 		Status status;
+		Boolean result;
 		try {
 			String post = taskContent + " #" + taskId;
 			if (post.length() < 140) {
 				status = twitter.updateStatus(post);
-				if (ids.contains(status.getId())) {
-					logger.info("Successfully posting a task ["
-							+ status.getText() + "]." + status.getId());
-				}
+				logger.info("Successfully posting a task [" + status.getText() + "]." + status.getId());
+				result = true;
 			} else {
-				logger.error("Post \"" + post
-						+ "\" is longer than 140 characters");
+				logger.error("Post \"" + post + "\" is longer than 140 characters");
+				result = false;
 			}
 		} catch (TwitterException e) {
 			logger.error(e);
+			return false;
 		} catch (Exception e) {
 			logger.error(e);
+			return false;
 		}
+		return result;
 
 	}
 
@@ -64,13 +66,11 @@ public class Main {
 		try {
 			user = twitter.verifyCredentials();
 			List<Status> statuses = twitter.getMentionsTimeline();
-			System.out.println("Showing @" + user.getScreenName()
-					+ "'s mentions.");
+			System.out.println("Showing @" + user.getScreenName() + "'s mentions.");
 			for (Status status : statuses) {
 
 				replies.add(status.getText());
-				logger.info("@" + status.getUser().getScreenName() + " - "
-						+ status.getText() + " id is: "
+				logger.info("@" + status.getUser().getScreenName() + " - " + status.getText() + " id is: "
 						+ status.getInReplyToStatusId());
 			}
 			if (!replies.isEmpty()) {
@@ -135,45 +135,29 @@ public class Main {
 
 			// Transltion account
 			if (i == 1) {
-				cb.setDebugEnabled(true)
-						.setOAuthConsumerKey("ZSouoRP3t2bLlznRn38LoABBY")
-						.setOAuthConsumerSecret(
-								"x0sZsH9JR7oR5OjnEG2RO9Vbq74T4GuoYVd1TiUuhxxiddbZe9")
-						.setOAuthAccessToken(
-								"4895555638-q6ZVtqdcRIXgHCKgrN5qnSyQTy5xwL3ZcUrs1Rp")
-						.setOAuthAccessTokenSecret(
-								"hxS9HSsIqUTyFEYoQxdSHQ8zPj31GMQ7zUwhlUwYQnO2K");
+				cb.setDebugEnabled(true).setOAuthConsumerKey("ZSouoRP3t2bLlznRn38LoABBY")
+						.setOAuthConsumerSecret("x0sZsH9JR7oR5OjnEG2RO9Vbq74T4GuoYVd1TiUuhxxiddbZe9")
+						.setOAuthAccessToken("4895555638-q6ZVtqdcRIXgHCKgrN5qnSyQTy5xwL3ZcUrs1Rp")
+						.setOAuthAccessTokenSecret("hxS9HSsIqUTyFEYoQxdSHQ8zPj31GMQ7zUwhlUwYQnO2K");
 
 				// Verfying account
 			} else if (i == 2) {
-				cb.setDebugEnabled(true)
-						.setOAuthConsumerKey("*********************")
-						.setOAuthConsumerSecret(
-								"******************************************")
-						.setOAuthAccessToken(
-								"**************************************************")
-						.setOAuthAccessTokenSecret(
-								"******************************************");
+				cb.setDebugEnabled(true).setOAuthConsumerKey("*********************")
+						.setOAuthConsumerSecret("******************************************")
+						.setOAuthAccessToken("**************************************************")
+						.setOAuthAccessTokenSecret("******************************************");
 
 			} else if (i == 3) {
-				cb.setDebugEnabled(true)
-						.setOAuthConsumerKey("*********************")
-						.setOAuthConsumerSecret(
-								"******************************************")
-						.setOAuthAccessToken(
-								"**************************************************")
-						.setOAuthAccessTokenSecret(
-								"******************************************");
+				cb.setDebugEnabled(true).setOAuthConsumerKey("*********************")
+						.setOAuthConsumerSecret("******************************************")
+						.setOAuthAccessToken("**************************************************")
+						.setOAuthAccessTokenSecret("******************************************");
 
 			} else if (i == 4) {
-				cb.setDebugEnabled(true)
-						.setOAuthConsumerKey("*********************")
-						.setOAuthConsumerSecret(
-								"******************************************")
-						.setOAuthAccessToken(
-								"**************************************************")
-						.setOAuthAccessTokenSecret(
-								"******************************************");
+				cb.setDebugEnabled(true).setOAuthConsumerKey("*********************")
+						.setOAuthConsumerSecret("******************************************")
+						.setOAuthAccessToken("**************************************************")
+						.setOAuthAccessTokenSecret("******************************************");
 
 			} else {
 				return null;
@@ -182,8 +166,7 @@ public class Main {
 			TwitterFactory tf = new TwitterFactory(cb.build());
 			twitter = tf.getInstance();
 
-			logger.debug("The twitter account " + twitter.getScreenName()
-					+ " is being set!");
+			logger.debug("The twitter account " + twitter.getScreenName() + " is being set!");
 		} catch (IllegalStateException e) {
 			e.printStackTrace();
 			logger.error(e);

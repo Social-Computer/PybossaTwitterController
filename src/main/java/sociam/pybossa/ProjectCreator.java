@@ -3,6 +3,8 @@ package sociam.pybossa;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
+import org.json.simple.JSONObject;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -19,7 +21,7 @@ public class ProjectCreator {
 
 	public static void main(String[] args) {
 
-		String jsonData = "{\"name\":\"myproject\",\"short_name\":\"myproject\",\"description\":\"foo\"} ";
+		String jsonData = BuildJsonPorject("test2", "test2", "test2");
 		String url = host + projectDir + api_key;
 		createProject(url, jsonData);
 
@@ -51,22 +53,18 @@ public class ProjectCreator {
 			request.setEntity(params);
 
 			HttpResponse response = httpClient.execute(request);
-			if (response.getStatusLine().getStatusCode() == 200
-					|| response.getStatusLine().getStatusCode() == 204) {
+			if (response.getStatusLine().getStatusCode() == 200 || response.getStatusLine().getStatusCode() == 204) {
 
-				BufferedReader br = new BufferedReader(new InputStreamReader(
-						(response.getEntity().getContent())));
+				BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
 
 				String output;
-				logger.debug("Output from Server ...."
-						+ response.getStatusLine().getStatusCode() + "\n");
+				logger.debug("Output from Server ...." + response.getStatusLine().getStatusCode() + "\n");
 				while ((output = br.readLine()) != null) {
 					logger.debug(output);
 				}
 				return true;
 			} else {
-				logger.error("Failed : HTTP error code : "
-						+ response.getStatusLine().getStatusCode());
+				logger.error("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
 				return false;
 			}
 		} catch (Exception ex) {
@@ -74,6 +72,17 @@ public class ProjectCreator {
 			return false;
 		}
 
+	}
+
+	public static String BuildJsonPorject(String name, String shortName, String description) {
+
+		JSONObject app = new JSONObject();
+
+		app.put("name", name);
+		app.put("short_name", shortName);
+		app.put("description", description);
+
+		return app.toJSONString();
 	}
 
 }
