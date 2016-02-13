@@ -10,6 +10,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
 public class TaskCreator {
 
@@ -21,7 +22,12 @@ public class TaskCreator {
 
 	public static void main(String[] args) {
 		BasicConfigurator.configure();
-		String jsonData = "{\"info\": {\"text\": \"#Zika News: Stop The Zika Virus https://t.co/tYqAYlbPlc #PathogenPosse\"}, \"n_answers\": 30, \"quorum\": 0, \"calibration\": 0, \"project_id\": 11, \"priority_0\": 0.0}";
+		String jsonData = BuildJsonTaskContent("#Zika News: Stop The Zika Virus https://t.co/tYqAYlbPlc #PathogenPosse",
+				"30", "0", "0", "24", "0.0");
+		// String jsonData = "{\"info\": {\"text\": \"#Zika News: Stop The Zika
+		// Virus https://t.co/tYqAYlbPlc #PathogenPosse\"}, \"n_answers\": 30,
+		// \"quorum\": 0, \"calibration\": 0, \"project_id\": 11,
+		// \"priority_0\": 0.0}";
 		String url = host + projectDir + api_key;
 		createProject(url, jsonData);
 
@@ -60,4 +66,37 @@ public class TaskCreator {
 		}
 
 	}
+
+	/**
+	 * It returns a json string for task creation from a given task details
+	 * 
+	 * @param text
+	 *            the task content
+	 * @param n_answers
+	 * @param quorum
+	 * @param calibration
+	 * @param project_id
+	 *            The project ID
+	 * @param priority_0
+	 * @return Json string
+	 */
+	@SuppressWarnings("unchecked")
+	private static String BuildJsonTaskContent(String text, String n_answers, String quorum, String calibration,
+			String project_id, String priority_0) {
+
+		JSONObject app = new JSONObject();
+
+		app.put("text", text);
+		JSONObject app2 = new JSONObject();
+		app2.put("info", app);
+		app2.put("n_answers", n_answers);
+		app2.put("quorum", quorum);
+		app2.put("calibration", calibration);
+		app2.put("project_id", project_id);
+		app2.put("priority_0", priority_0);
+		System.out.println(app2.toString());
+
+		return app2.toJSONString();
+	}
+
 }
