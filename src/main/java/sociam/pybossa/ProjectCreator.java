@@ -23,7 +23,7 @@ public class ProjectCreator {
 	public static void main(String[] args) {
 		BasicConfigurator.configure();
 
-		String jsonData = BuildJsonPorject("test6", "test6", "test6");
+		String jsonData = BuildJsonPorject("test8", "test8", "test8");
 		String url = host + projectDir + api_key;
 		createProject(url, jsonData);
 
@@ -143,7 +143,7 @@ public class ProjectCreator {
 		app.put("name", name);
 		app.put("short_name", shortName);
 		app.put("description", description);
-		app.put("created", true);
+		// app.put("created", true);
 		app.put("allow_anonymous_contributors", true);
 		// TODO: publishing through the api is not allowed - we leave it to be
 		// done manually!

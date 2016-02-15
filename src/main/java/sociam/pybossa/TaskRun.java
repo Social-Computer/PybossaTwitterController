@@ -1,7 +1,10 @@
 package sociam.pybossa;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -12,25 +15,58 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
-public class TaskCreator {
+public class TaskRun {
 
-	final static Logger logger = Logger.getLogger(TaskCreator.class);
+	final static Logger logger = Logger.getLogger(TaskRun.class);
 
 	public static String host = "http://recoin.cloudapp.net:5000";
-	public static String projectDir = "/api/task";
+	public static String projectDir = "/api/taskrun";
 	public static String api_key = "?api_key=acc193bd-6930-486e-9a21-c80005cbbfd2";
 
 	public static void main(String[] args) {
 		BasicConfigurator.configure();
-		String jsonData = BuildJsonTaskContent("#Zika News: what is this https://t.co/tYqAYlbPlc #PathogenPosse",
-				"30", "0", "0", "26", "0.0");
+		String jsonData = BuildJsonTaskContent("no","119", "25");
 		// String jsonData = "{\"info\": {\"text\": \"#Zika News: Stop The Zika
 		// Virus https://t.co/tYqAYlbPlc #PathogenPosse\"}, \"n_answers\": 30,
 		// \"quorum\": 0, \"calibration\": 0, \"project_id\": 11,
 		// \"priority_0\": 0.0}";
-		String url = host + projectDir + api_key;
+		String url = host + projectDir ;
+		getReqest();
+
 		createProject(url, jsonData);
 
+	}
+	
+	public static void getReqest() {
+		String url = "http://recoin.cloudapp.net:5000/api/project/25/newtask";
+		
+		HttpURLConnection con;
+		try {
+			URL obj = new URL(url);
+			con = (HttpURLConnection) obj.openConnection();
+			// optional default is GET
+			con.setRequestMethod("GET");
+			int responseCode = con.getResponseCode();
+			System.out.println("\nSending 'GET' request to URL : " + url);
+			System.out.println("Response Code : " + responseCode);
+			BufferedReader in = new BufferedReader(
+			        new InputStreamReader(con.getInputStream()));
+			String inputLine;
+			StringBuffer response = new StringBuffer();
+
+			while ((inputLine = in.readLine()) != null) {
+				response.append(inputLine);
+			}
+			in.close();
+
+			//print result
+			System.out.println(response.toString());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		
 	}
 
 	public static Boolean createProject(String url, String jsonData) {
@@ -81,19 +117,14 @@ public class TaskCreator {
 	 * @return Json string
 	 */
 	@SuppressWarnings("unchecked")
-	private static String BuildJsonTaskContent(String text, String n_answers, String quorum, String calibration,
-			String project_id, String priority_0) {
+	private static String BuildJsonTaskContent(String answer, String task_id, String project_id) {
 
-		JSONObject app = new JSONObject();
-		app.put("text", text);
 		JSONObject app2 = new JSONObject();
-		app2.put("info", app);
-		app2.put("n_answers", n_answers);
-		app2.put("quorum", quorum);
-		app2.put("calibration", calibration);
-		app2.put("project_id", project_id);
-		app2.put("priority_0", priority_0);
+		app2.put("project_id", 25);
 
+		app2.put("info", answer);
+		app2.put("task_id", 119);
+		app2.put("user_ip", "80.44.145.144");
 		return app2.toJSONString();
 	}
 
