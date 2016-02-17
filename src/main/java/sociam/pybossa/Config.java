@@ -13,8 +13,10 @@ public class Config {
 	
 	public static final String mongoHost;
 	public static final int mongoPort;
-	public static final String databaseName;
+	public static final String binsDatabaseName;
+	public static final String projectsDatabaseName;
 	public static final String taskCollection;
+	public static final String projectCollection;
 
 	static {
 		Properties p = new Properties();
@@ -32,8 +34,10 @@ public class Config {
 		
 		mongoHost = p.getProperty("mongoHost");
 		mongoPort = Integer.valueOf(p.getProperty("mongoPort"));
-		databaseName = p.getProperty("databaseName");
+		binsDatabaseName = p.getProperty("binsDatabaseName");
+		projectsDatabaseName = p.getProperty("projectsDatabaseName");
 		taskCollection = p.getProperty("taskCollection");
+		projectCollection = p.getProperty("projectCollection");
 
 	}
 

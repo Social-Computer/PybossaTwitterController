@@ -17,8 +17,8 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
-public class ProjectCreator {
-	final static Logger logger = Logger.getLogger(ProjectCreator.class);
+public class TestProjectCreator {
+	final static Logger logger = Logger.getLogger(TestProjectCreator.class);
 
 	public static void main(String[] args) {
 		BasicConfigurator.configure();
