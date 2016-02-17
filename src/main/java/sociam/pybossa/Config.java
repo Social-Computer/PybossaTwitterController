@@ -9,7 +9,7 @@ public class Config {
 	public static final String taskDir;
 	public static final String projectDir;
 	public static final String api_key;
-	public static final String project_validation_templetePath;
+	public static final String project_validation_templatePath;
 	
 	public static final String mongoHost;
 	public static final int mongoPort;
@@ -28,7 +28,7 @@ public class Config {
 		taskDir = p.getProperty("taskDir");
 		projectDir = p.getProperty("projectDir");
 		api_key = p.getProperty("api_key");
-		project_validation_templetePath = p.getProperty("project_validation_templetePath");
+		project_validation_templatePath = p.getProperty("project_validation_templatePath");
 		
 		mongoHost = p.getProperty("mongoHost");
 		mongoPort = Integer.valueOf(p.getProperty("mongoPort"));
