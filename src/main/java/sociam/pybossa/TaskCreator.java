@@ -24,32 +24,22 @@ public class TaskCreator {
 
 	final static Logger logger = Logger.getLogger(TaskCreator.class);
 
-	public static String host = "http://recoin.cloudapp.net:5000";
-	public static String projectDir = "/api/task";
-	public static String api_key = "?api_key=acc193bd-6930-486e-9a21-c80005cbbfd2";
+	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+	final static SimpleDateFormat PyBossaformatter = new SimpleDateFormat("yyyy-mm-dd'T'hh:mm:ss.SSSSSS");
 
-	static final String mongoHost = "localhost";
-	static final int port = 27017;
-	static final String databaseName = "RECOIN_bins";
-	static final String collectionName = "tasks";
-	final static MongoClient mongoClient = new MongoClient(mongoHost, port);
-	final static MongoDatabase database = mongoClient.getDatabase(databaseName);
-
-	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss");
-	final static SimpleDateFormat PyBossaformatter = new SimpleDateFormat(
-			"yyyy-mm-dd'T'hh:mm:ss.SSSSSS");
+	static MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+	static MongoDatabase database = mongoClient.getDatabase(Config.databaseName);
 
 	public static void main(String[] args) {
 		BasicConfigurator.configure();
 		JSONObject jsonData = BuildJsonTaskContent(
-				"#Zika NewsTests5555: what is this https://t.co/tYqAYlbPlc #PathogenPosse",
-				"30", "0", "0", "26", "0.0");
+				"#Zika NewsTests1111: what is this https://t.co/tYqAYlbPlc #PathogenPosse", "30", "0", "0", "26",
+				"0.0");
 		// String jsonData = "{\"info\": {\"text\": \"#Zika News: Stop The Zika
 		// Virus https://t.co/tYqAYlbPlc #PathogenPosse\"}, \"n_answers\": 30,
 		// \"quorum\": 0, \"calibration\": 0, \"project_id\": 11,
 		// \"priority_0\": 0.0}";
-		String url = host + projectDir + api_key;
+		String url = Config.PyBossahost + Config.taskDir + Config.api_key;
 		JSONObject response = createTask(url, jsonData);
 		System.out.println(response.toString());
 		System.out.println(insertTaskIntoPyBossa(response, false));
@@ -70,21 +60,17 @@ public class TaskCreator {
 			request.setEntity(params);
 
 			HttpResponse response = httpClient.execute(request);
-			if (response.getStatusLine().getStatusCode() == 200
-					|| response.getStatusLine().getStatusCode() == 204) {
-				BufferedReader br = new BufferedReader(new InputStreamReader(
-						(response.getEntity().getContent())));
+			if (response.getStatusLine().getStatusCode() == 200 || response.getStatusLine().getStatusCode() == 204) {
+				BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
 				String output;
-				logger.debug("Output from Server ...."
-						+ response.getStatusLine().getStatusCode() + "\n");
+				logger.debug("Output from Server ...." + response.getStatusLine().getStatusCode() + "\n");
 				while ((output = br.readLine()) != null) {
 					logger.debug(output);
 					jsonResult = new JSONObject(output);
 				}
 				return jsonResult;
 			} else {
-				logger.error("Failed : HTTP error code : "
-						+ response.getStatusLine().getStatusCode());
+				logger.error("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
 				return null;
 			}
 		} catch (Exception ex) {
@@ -107,8 +93,7 @@ public class TaskCreator {
 	 * @param priority_0
 	 * @return Json string
 	 */
-	private static JSONObject BuildJsonTaskContent(String text,
-			String n_answers, String quorum, String calibration,
+	private static JSONObject BuildJsonTaskContent(String text, String n_answers, String quorum, String calibration,
 			String project_id, String priority_0) {
 
 		JSONObject app = new JSONObject();
@@ -133,10 +118,9 @@ public class TaskCreator {
 			String targettedFormat = MongoDBformatter.format(publishedAt);
 			Integer project_id = response.getInt("project_id");
 			JSONObject info = response.getJSONObject("info");
-			String task_text = info.getString("text"); 
+			String task_text = info.getString("text");
 			logger.debug("Inserting a task into MongoDB");
-			if (pushTask(pybossa_task_id, targettedFormat, project_id,
-					isPushed, task_text)) {
+			if (pushTask(pybossa_task_id, targettedFormat, project_id, isPushed, task_text)) {
 				return true;
 			} else {
 				return false;
@@ -148,26 +132,19 @@ public class TaskCreator {
 		return true;
 	}
 
-	private static boolean pushTask(Integer pybossa_task_id,
-			String publishedAt, Integer project_id, Boolean isPushed,
+	private static boolean pushTask(Integer pybossa_task_id, String publishedAt, Integer project_id, Boolean isPushed,
 			String task_text) {
 
 		try {
-			if (publishedAt != null && project_id != null && isPushed != null
-					&& task_text != null) {
+			if (publishedAt != null && project_id != null && isPushed != null && task_text != null) {
 
-				FindIterable<Document> iterable = database.getCollection(
-						collectionName).find(
-						new Document("project_id", project_id).append(
-								"task_text", task_text));
+				FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
+						.find(new Document("project_id", project_id).append("task_text", task_text));
 				if (iterable.first() == null) {
-					database.getCollection(collectionName).insertOne(
-							new Document()
-									.append("pybossa_task_id", pybossa_task_id)
-									.append("publishedAt", publishedAt)
-									.append("project_id", project_id)
-									.append("isPushed", isPushed)
-									.append("task_text", task_text));
+					database.getCollection(Config.taskCollection)
+							.insertOne(new Document().append("pybossa_task_id", pybossa_task_id)
+									.append("publishedAt", publishedAt).append("project_id", project_id)
+									.append("isPushed", isPushed).append("task_text", task_text));
 					logger.info("One task is inserted");
 
 				} else {
@@ -177,10 +154,9 @@ public class TaskCreator {
 			}
 			return true;
 		} catch (Exception e) {
-			logger.error("Error with inserting the task " + "pybossa_task_id "
-					+ pybossa_task_id + "publishedAt " + publishedAt
-					+ "project_id " + project_id + "isPushed " + isPushed
-					+ "task_text " + task_text + "\n" + e);
+			logger.error("Error with inserting the task " + "pybossa_task_id " + pybossa_task_id + "publishedAt "
+					+ publishedAt + "project_id " + project_id + "isPushed " + isPushed + "task_text " + task_text
+					+ "\n" + e);
 			return false;
 		}
 
