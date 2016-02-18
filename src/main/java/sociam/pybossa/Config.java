@@ -10,13 +10,16 @@ public class Config {
 	public static final String projectDir;
 	public static final String api_key;
 	public static final String project_validation_templatePath;
-	
+
 	public static final String mongoHost;
 	public static final int mongoPort;
 	public static final String binsDatabaseName;
 	public static final String projectsDatabaseName;
 	public static final String taskCollection;
 	public static final String projectCollection;
+
+	public static final String TaskCreatorTrigger;
+	public static final String ProjectCreatorTrigger;
 
 	static {
 		Properties p = new Properties();
@@ -31,13 +34,16 @@ public class Config {
 		projectDir = p.getProperty("projectDir");
 		api_key = p.getProperty("api_key");
 		project_validation_templatePath = p.getProperty("project_validation_templatePath");
-		
+
 		mongoHost = p.getProperty("mongoHost");
 		mongoPort = Integer.valueOf(p.getProperty("mongoPort"));
 		binsDatabaseName = p.getProperty("binsDatabaseName");
 		projectsDatabaseName = p.getProperty("projectsDatabaseName");
 		taskCollection = p.getProperty("taskCollection");
 		projectCollection = p.getProperty("projectCollection");
+
+		TaskCreatorTrigger = p.getProperty("TaskCreatorTrigger");
+		ProjectCreatorTrigger = p.getProperty("ProjectCreatorTrigger");
 
 	}
 

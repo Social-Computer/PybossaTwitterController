@@ -1,4 +1,4 @@
-package sociam.pybossa;
+package sociam.pybossa.tests;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -22,6 +22,8 @@ import com.mongodb.Block;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
+
+import sociam.pybossa.Config;
 
 public class TestTaskCreator2 {
 

@@ -16,6 +16,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.json.JSONObject;
@@ -33,8 +34,20 @@ public class ProjectCreator {
 	static String url = Config.PyBossahost + Config.projectDir + Config.api_key;
 
 	public static void main(String[] args) {
-		BasicConfigurator.configure();
+		PropertyConfigurator.configure("log4j.properties");
 
+		logger.info("ProjectCreator will be readped every " + Config.ProjectCreatorTrigger + " ms");
+		try {
+			run();
+			logger.info("Sleeping for " + Config.ProjectCreatorTrigger + " ms");
+			Thread.sleep(Integer.valueOf(Config.ProjectCreatorTrigger));
+		} catch (InterruptedException e) {
+			logger.error("Error " + e);
+		}
+
+	}
+
+	public static void run() {
 		HashSet<Document> projectsAsdocs = checkMongoForUnStartedProjects();
 
 		if (!projectsAsdocs.isEmpty()) {

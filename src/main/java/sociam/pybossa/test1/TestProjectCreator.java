@@ -1,4 +1,4 @@
-package sociam.pybossa;
+package sociam.pybossa.test1;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,6 +16,8 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
+
+import sociam.pybossa.Config;
 
 public class TestProjectCreator {
 	final static Logger logger = Logger.getLogger(TestProjectCreator.class);

@@ -15,14 +15,14 @@ import com.mongodb.client.result.UpdateResult;
 
 import sociam.pybossa.Config;
 
-public class TestUpdateProject {
+public class TestUpdateBin {
 	static MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
-	static MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+	static MongoDatabase database = mongoClient.getDatabase(Config.binsDatabaseName);
 
 	public static void main(String[] args) {
 		
-		FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
-				.find(new Document("project_name", "rt"));
+		FindIterable<Document> iterable = database.getCollection("workers")
+				.find(new Document("_source", "twitter"));
 
 		if (iterable.first() != null) {
 			iterable.forEach(new Block<Document>() {
@@ -32,8 +32,8 @@ public class TestUpdateProject {
 					ObjectId id =  document.getObjectId("_id");
 					System.out.println(id);
 					UpdateResult result = database.getCollection(Config.projectCollection).updateOne(
-							new Document("project_started", "true"),
-							new Document("$set", new Document("project_started", "true")));
+							new Document("_id", id),
+							new Document().append("$set",new Document("field2", "new")));
 					if (result.wasAcknowledged()) {
 						if (result.getMatchedCount() > 0) {
 							System.out.println("fould a match " + result.getMatchedCount());

@@ -1,4 +1,4 @@
-package sociam.pybossa;
+package sociam.pybossa.mongodb;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -11,6 +11,8 @@ import com.mongodb.Block;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
+
+import sociam.pybossa.Config;
 
 public class TestBins {
 	static MongoClient mongoClient = new MongoClient("recoin.cloudapp.net",

@@ -1,4 +1,4 @@
-package sociam.pybossa;
+package sociam.pybossa.tests;
 
 import java.io.BufferedReader;
 import java.io.IOException;
