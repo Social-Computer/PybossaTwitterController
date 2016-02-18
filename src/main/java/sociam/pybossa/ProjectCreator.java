@@ -14,7 +14,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.bson.Document;
@@ -38,9 +37,11 @@ public class ProjectCreator {
 
 		logger.info("ProjectCreator will be readped every " + Config.ProjectCreatorTrigger + " ms");
 		try {
-			run();
-			logger.info("Sleeping for " + Config.ProjectCreatorTrigger + " ms");
-			Thread.sleep(Integer.valueOf(Config.ProjectCreatorTrigger));
+			while (true) {
+				run();
+				logger.info("Sleeping for " + Config.ProjectCreatorTrigger + " ms");
+				Thread.sleep(Integer.valueOf(Config.ProjectCreatorTrigger));
+			}
 		} catch (InterruptedException e) {
 			logger.error("Error " + e);
 		}

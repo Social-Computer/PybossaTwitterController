@@ -47,9 +47,11 @@ public class TaskCreator {
 		PropertyConfigurator.configure("log4j.properties");
 		logger.info("TaskCreator will be readped every " + Config.TaskCreatorTrigger + " ms");
 		try {
-			run();
-			logger.info("Sleeping for " + Config.TaskCreatorTrigger + " ms");
-			Thread.sleep(Integer.valueOf(Config.TaskCreatorTrigger));
+			while (true) {
+				run();
+				logger.info("Sleeping for " + Config.TaskCreatorTrigger + " ms");
+				Thread.sleep(Integer.valueOf(Config.TaskCreatorTrigger));
+			}
 		} catch (InterruptedException e) {
 
 			logger.error("Error " + e);
