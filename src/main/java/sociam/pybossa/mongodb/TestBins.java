@@ -15,6 +15,8 @@ import com.mongodb.client.MongoDatabase;
 import sociam.pybossa.Config;
 
 public class TestBins {
+	
+	static HashSet<JSONObject> jsons = new LinkedHashSet<JSONObject>();
 	static MongoClient mongoClient = new MongoClient("recoin.cloudapp.net",
 			Config.mongoPort);
 
@@ -33,7 +35,7 @@ public class TestBins {
 	}
 	private static HashSet<JSONObject> getStartedProjects() {
 
-		HashSet<JSONObject> jsons = new LinkedHashSet<JSONObject>();
+		
 		FindIterable<Document> iterable = database.getCollection(
 				Config.projectCollection).find(
 				new Document("project_started", "false"));

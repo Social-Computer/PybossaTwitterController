@@ -22,7 +22,7 @@ public class TestUpdateProjectMain {
 	public static void main(String[] args) {
 
 		UpdateResult result = database.getCollection(Config.projectCollection).updateMany(
-				new Document("project_name", "acquisition"),
+				new Document("project_name", "healthnostics"),
 				new Document().append("$set", new Document("project_started", "false")));
 		System.out.println(result.toString());
 

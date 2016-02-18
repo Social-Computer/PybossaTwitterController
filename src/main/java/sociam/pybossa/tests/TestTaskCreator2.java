@@ -113,8 +113,9 @@ public class TestTaskCreator2 {
 
 	}
 
+	static HashSet<JSONObject> jsons2 = new LinkedHashSet<JSONObject>();
 	private static HashSet<JSONObject> getBinsFromMongoDB(String collectionName) {
-		HashSet<JSONObject> jsons = new LinkedHashSet<JSONObject>();
+		jsons2 = new LinkedHashSet<JSONObject>();
 		FindIterable<Document> iterable = binsDatabase.getCollection(
 				collectionName).find();
 		if (iterable.first() != null) {
@@ -122,19 +123,20 @@ public class TestTaskCreator2 {
 				@Override
 				public void apply(final Document document) {
 					JSONObject app2 = new JSONObject(document);
-					jsons.add(app2);
+					jsons2.add(app2);
 				}
 			});
-			return jsons;
+			return jsons2;
 		} else {
 
 		}
-		return jsons;
+		return jsons2;
 	}
 
+	static HashSet<JSONObject> jsons = new LinkedHashSet<JSONObject>();
 	private static HashSet<JSONObject> getStartedProjects() {
 
-		HashSet<JSONObject> jsons = new LinkedHashSet<JSONObject>();
+		 jsons = new LinkedHashSet<JSONObject>();
 		FindIterable<Document> iterable = database.getCollection(
 				Config.projectCollection).find(
 				new Document("project_started", true));

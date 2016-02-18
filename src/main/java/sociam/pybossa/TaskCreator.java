@@ -152,42 +152,43 @@ public class TaskCreator {
 		return false;
 	}
 
+	static HashSet<Document> tweetsjsons = new LinkedHashSet<Document>();
+
 	private static HashSet<Document> getTweetsFromBinInMongoDB(String collectionName) {
-		HashSet<Document> jsons = new LinkedHashSet<Document>();
+		tweetsjsons = new LinkedHashSet<Document>();
 		FindIterable<Document> iterable = binsDatabase.getCollection(collectionName).find();
 		if (iterable.first() != null) {
 			iterable.forEach(new Block<Document>() {
 				@Override
 				public void apply(final Document document) {
-					jsons.add(document);
+					tweetsjsons.add(document);
 				}
 			});
-			return jsons;
+			return tweetsjsons;
 		} else {
 
 		}
-		return jsons;
+		return tweetsjsons;
 	}
+
+	static HashSet<JSONObject> startedProjectsJsons = new LinkedHashSet<JSONObject>();
 
 	private static HashSet<JSONObject> getStartedProjects() {
 
-		HashSet<JSONObject> jsons = new LinkedHashSet<JSONObject>();
+		startedProjectsJsons = new LinkedHashSet<JSONObject>();
 		FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
 				.find(new Document("project_started", "true"));
-
 		if (iterable.first() != null) {
 			iterable.forEach(new Block<Document>() {
 				@Override
 				public void apply(final Document document) {
 					JSONObject app2 = new JSONObject(document);
-					jsons.add(app2);
+					startedProjectsJsons.add(app2);
 				}
 			});
-			return jsons;
-		} else {
-
+			return startedProjectsJsons;
 		}
-		return jsons;
+		return startedProjectsJsons;
 	}
 
 	private static JSONObject inserTaskIntoPyBossa(String url, JSONObject jsonData) {

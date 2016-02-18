@@ -21,7 +21,7 @@ import com.mongodb.client.MongoDatabase;
  *
  */
 public class TaskPerformer {
-
+	static HashSet<JSONObject> jsons = new LinkedHashSet<JSONObject>();
 	final static Logger logger = Logger.getLogger(TaskPerformer.class);
 
 	static MongoClient mongoClient = new MongoClient(Config.mongoHost,
@@ -36,7 +36,7 @@ public class TaskPerformer {
 	}
 
 	public static HashSet<JSONObject> getTasksFromMongoDB() {
-		HashSet<JSONObject> jsons = new LinkedHashSet<JSONObject>();
+		
 		FindIterable<Document> iterable = database.getCollection(
 				Config.taskCollection).find(new Document("isPushed", false));
 		if (iterable.first() != null) {

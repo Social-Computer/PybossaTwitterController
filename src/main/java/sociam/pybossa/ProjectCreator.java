@@ -94,9 +94,10 @@ public class ProjectCreator {
 		return false;
 	}
 
-	private static HashSet<Document> checkMongoForUnStartedProjects() {
+	static HashSet<Document> jsons = new LinkedHashSet<Document>();
 
-		HashSet<Document> jsons = new LinkedHashSet<Document>();
+	private static HashSet<Document> checkMongoForUnStartedProjects() {
+		jsons = new LinkedHashSet<Document>();
 		FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
 				.find(new Document("project_started", "false"));
 
