@@ -143,54 +143,69 @@ public class TaskCreator {
 	// For encoding issue that makes the text changed after inserting it into
 	// PyBossa
 	private static Boolean updateBinString(ObjectId _id, String text_encoded, String binItem) {
-		UpdateResult result = binsDatabase.getCollection(binItem).updateOne(new Document("_id", _id),
-				new Document().append("$set", new Document("text_encoded", text_encoded)));
-		logger.debug(result.toString());
-		if (result.wasAcknowledged()) {
-			if (result.getMatchedCount() > 0) {
-				return true;
+		try {
+			UpdateResult result = binsDatabase.getCollection(binItem).updateOne(new Document("_id", _id),
+					new Document().append("$set", new Document("text_encoded", text_encoded)));
+			logger.debug(result.toString());
+			if (result.wasAcknowledged()) {
+				if (result.getMatchedCount() > 0) {
+					return true;
+				}
 			}
+			return false;
+		} catch (Exception e) {
+			logger.error("Error " + e);
+			return false;
 		}
-		return false;
 	}
 
 	static HashSet<Document> tweetsjsons = new LinkedHashSet<Document>();
 
 	private static HashSet<Document> getTweetsFromBinInMongoDB(String collectionName) {
-		tweetsjsons = new LinkedHashSet<Document>();
-		FindIterable<Document> iterable = binsDatabase.getCollection(collectionName).find();
-		if (iterable.first() != null) {
-			iterable.forEach(new Block<Document>() {
-				@Override
-				public void apply(final Document document) {
-					tweetsjsons.add(document);
-				}
-			});
-			return tweetsjsons;
-		} else {
 
+		tweetsjsons = new LinkedHashSet<Document>();
+		try {
+
+			FindIterable<Document> iterable = binsDatabase.getCollection(collectionName).find();
+			if (iterable.first() != null) {
+				iterable.forEach(new Block<Document>() {
+					@Override
+					public void apply(final Document document) {
+						tweetsjsons.add(document);
+					}
+				});
+				return tweetsjsons;
+			}
+			return tweetsjsons;
+		} catch (Exception e) {
+			logger.error("Error " + e);
+			return tweetsjsons;
 		}
-		return tweetsjsons;
 	}
 
 	static HashSet<JSONObject> startedProjectsJsons = new LinkedHashSet<JSONObject>();
 
 	private static HashSet<JSONObject> getStartedProjects() {
-
 		startedProjectsJsons = new LinkedHashSet<JSONObject>();
-		FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
-				.find(new Document("project_started", "true"));
-		if (iterable.first() != null) {
-			iterable.forEach(new Block<Document>() {
-				@Override
-				public void apply(final Document document) {
-					JSONObject app2 = new JSONObject(document);
-					startedProjectsJsons.add(app2);
-				}
-			});
+		try {
+
+			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
+					.find(new Document("project_started", "true"));
+			if (iterable.first() != null) {
+				iterable.forEach(new Block<Document>() {
+					@Override
+					public void apply(final Document document) {
+						JSONObject app2 = new JSONObject(document);
+						startedProjectsJsons.add(app2);
+					}
+				});
+				return startedProjectsJsons;
+			}
+			return startedProjectsJsons;
+		} catch (Exception e) {
+			logger.error("Error " + e);
 			return startedProjectsJsons;
 		}
-		return startedProjectsJsons;
 	}
 
 	private static JSONObject inserTaskIntoPyBossa(String url, JSONObject jsonData) {
@@ -279,9 +294,9 @@ public class TaskCreator {
 			}
 		} catch (ParseException e) {
 			logger.error("Error " + e);
+			return false;
 		}
 
-		return true;
 	}
 
 	private static boolean pushTaskToMongoDB(Integer pybossa_task_id, String publishedAt, Integer project_id,
