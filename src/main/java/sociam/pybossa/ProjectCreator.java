@@ -73,7 +73,6 @@ public class ProjectCreator {
 				} else {
 					logger.error("Porject with the name " + project_name + " couldn't be inserted into PyBossa");
 				}
-				break;
 			}
 		} else {
 			logger.debug("There are no new projects to be inserted into PyBossa!");
