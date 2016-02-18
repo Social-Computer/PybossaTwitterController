@@ -52,9 +52,9 @@ public class ProjectCreator {
 		HashSet<Document> projectsAsdocs = checkMongoForUnStartedProjects();
 
 		if (projectsAsdocs != null) {
+			logger.info("There are " + projectsAsdocs.size()
+					+ " projects need to be inserted into PyBossa and then updated within MongoDB");
 			if (!projectsAsdocs.isEmpty()) {
-				logger.info("There are " + projectsAsdocs.size()
-						+ " projects need to be inserted into PyBossa and then updated within MongoDB");
 				for (Document document : projectsAsdocs) {
 					String project_name = document.getString("project_name");
 					ObjectId _id = document.getObjectId("_id");

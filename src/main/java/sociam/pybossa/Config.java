@@ -21,6 +21,8 @@ public class Config {
 	public static final String TaskCreatorTrigger;
 	public static final String ProjectCreatorTrigger;
 
+	public static final String TasksPerProject;
+
 	static {
 		Properties p = new Properties();
 		try (FileInputStream stream = new FileInputStream(new File("config.properties"))) {
@@ -44,6 +46,8 @@ public class Config {
 
 		TaskCreatorTrigger = p.getProperty("TaskCreatorTrigger");
 		ProjectCreatorTrigger = p.getProperty("ProjectCreatorTrigger");
+
+		TasksPerProject = p.getProperty("TasksPerProject");
 
 	}
 

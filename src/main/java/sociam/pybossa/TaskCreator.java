@@ -53,7 +53,6 @@ public class TaskCreator {
 				Thread.sleep(Integer.valueOf(Config.TaskCreatorTrigger));
 			}
 		} catch (InterruptedException e) {
-
 			logger.error("Error " + e);
 		}
 
@@ -62,82 +61,94 @@ public class TaskCreator {
 	public static void run() {
 		// Check for started projects
 		HashSet<JSONObject> projectsAsJsons = getStartedProjects();
-		logger.info("There are " + projectsAsJsons.size()
-				+ " projects that have tasks ready to be inserted into PyBossa, then to MongoDB");
-		if (!projectsAsJsons.isEmpty()) {
+		if (projectsAsJsons != null) {
+			logger.info("There are " + projectsAsJsons.size()
+					+ " projects that have tasks ready to be inserted into PyBossa, then to MongoDB");
+			if (!projectsAsJsons.isEmpty()) {
 
-			// Get project name and id for these started projects
-			for (JSONObject jsonObject : projectsAsJsons) {
-				JSONArray bin_id = jsonObject.getJSONArray("bin_ids");
-				int project_id = jsonObject.getInt("project_id");
+				// Get project name and id for these started projects
+				for (JSONObject jsonObject : projectsAsJsons) {
+					JSONArray bin_id = jsonObject.getJSONArray("bin_ids");
+					int project_id = jsonObject.getInt("project_id");
 
-				// TODO: don't retrieve ones which have already been pushed to
-				// crowd and not completed by crowd, from Ramine
-				for (Object object : bin_id) {
-					String binItem = (String) object;
-					// for each started project, get their bins
-					HashSet<Document> tweets = getTweetsFromBinInMongoDB(binItem);
-					ArrayList<String> tasksTexts = getAllTasksTextsFromPyBossa(project_id);
-					HashSet<String> originalBinText = new HashSet<>();
-					for (Document tweet : tweets) {
+					// TODO: don't retrieve ones which have already been pushed
+					// to
+					// crowd and not completed by crowd, from Ramine
+					for (Object object : bin_id) {
+						String binItem = (String) object;
+						// for each started project, get their bins
+						HashSet<Document> tweets = getTweetsFromBinInMongoDB(binItem);
+						ArrayList<String> tasksTexts = getAllTasksTextsFromPyBossa(project_id);
+						HashSet<String> originalBinText = new HashSet<>();
+						int tasksPerProjectCounter = 0;
+						int tasksPerProjectlimit = Integer.valueOf(Config.TasksPerProject);
+						logger.info("There are \"" + tweets.size() + "\" tweets for projectID " + project_id);
+						for (Document tweet : tweets) {
+							if (tasksPerProjectCounter > tasksPerProjectlimit) {
+								logger.info("tasksPerProjectlimit was reached " + tasksPerProjectCounter);
+								break;
+							}
 
-						// for each bin, get the text/tweet
-						String text = tweet.getString("text");
-						if (!originalBinText.contains(text)) {
-							originalBinText.add(text);
-							String text_encoded = tweet.getString("text_encoded");
+							// for each bin, get the text/tweet
+							String text = tweet.getString("text");
+							if (!originalBinText.contains(text)) {
+								originalBinText.add(text);
+								String text_encoded = tweet.getString("text_encoded");
 
-							ObjectId _id = tweet.getObjectId("_id");
-							if (tasksTexts != null) {
-								if (!tasksTexts.contains(text_encoded)) {
+								ObjectId _id = tweet.getObjectId("_id");
+								if (tasksTexts != null) {
+									if (!tasksTexts.contains(text_encoded)) {
 
-									// Build the PyBossa json for insertion of a
-									// task
-									JSONObject PyBossaTaskJsonToBeInserted = BuildJsonTaskContent(text, "30", "0", "0",
-											project_id, "0.0");
-									if (PyBossaTaskJsonToBeInserted != null) {
-										// Insert the PyBossa json into PyBossa
-										JSONObject pybossaResponse = inserTaskIntoPyBossa(url,
-												PyBossaTaskJsonToBeInserted);
-										if (pybossaResponse != null) {
-											JSONObject info = pybossaResponse.getJSONObject("info");
-											String task_text = info.getString("text");
-											tasksTexts.add(task_text);
+										// Build the PyBossa json for insertion
+										// of a
+										// task
+										JSONObject PyBossaTaskJsonToBeInserted = BuildJsonTaskContent(text, "30", "0",
+												"0", project_id, "0.0");
+										if (PyBossaTaskJsonToBeInserted != null) {
+											// Insert the PyBossa json into
+											// PyBossa
+											JSONObject pybossaResponse = inserTaskIntoPyBossa(url,
+													PyBossaTaskJsonToBeInserted);
+											if (pybossaResponse != null) {
+												JSONObject info = pybossaResponse.getJSONObject("info");
+												String task_text = info.getString("text");
+												tasksTexts.add(task_text);
 
-											// Insert the resonse of PyBossa
-											// into
-											// MongoDB
-											if (insertTaskIntoMongoDB(pybossaResponse, false)) {
-												logger.debug("task with pybossaResponse " + pybossaResponse.toString());
-												if (updateBinString(_id, task_text, binItem)) {
-													logger.debug("Bin with _id " + _id + " was updated");
+												// Insert the resonse of PyBossa
+												// into
+												// MongoDB
+												if (insertTaskIntoMongoDB(pybossaResponse, false)) {
+													logger.debug(
+															"task with pybossaResponse " + pybossaResponse.toString());
+													if (updateBinString(_id, task_text, binItem)) {
+														logger.debug("Bin with _id " + _id + " was updated");
+													} else {
+														logger.error("Bin with _id " + _id + "  was not updated ");
+													}
 												} else {
-													logger.error("Bin with _id " + _id + "  was not updated ");
+													logger.error("Task was not inserted Into MongoDB");
 												}
 											} else {
-												logger.error("Task was not inserted Into MongoDB");
+												logger.error("pybossaResponse was null");
 											}
 										} else {
-											logger.error("pybossaResponse was null");
+											logger.error("PyBossaTaskJsonToBeInserted was null");
 										}
 									} else {
-										logger.error("PyBossaTaskJsonToBeInserted was null");
+										logger.error("task " + text + " in Project " + project_id
+												+ " is already in PyBossa!!");
 									}
-								} else {
-									logger.error(
-											"task " + text + " in Project " + project_id + " is already in PyBossa!!");
 								}
+							} else {
+								logger.error("Tweet is already processed " + tweet.toString());
 							}
-						} else {
-							logger.error("Tweet is already processed " + tweet.toString());
 						}
 					}
 				}
+			} else {
+				logger.debug("There are no ready projects' tasks to be inserted into PyBossa!");
 			}
-		} else {
-			logger.debug("There are no ready projects' tasks to be inserted into PyBossa!");
 		}
-
 	}
 
 	// For encoding issue that makes the text changed after inserting it into
@@ -204,7 +215,7 @@ public class TaskCreator {
 			return startedProjectsJsons;
 		} catch (Exception e) {
 			logger.error("Error " + e);
-			return startedProjectsJsons;
+			return null;
 		}
 	}
 
@@ -312,7 +323,7 @@ public class TaskCreator {
 							.insertOne(new Document().append("pybossa_task_id", pybossa_task_id)
 									.append("publishedAt", publishedAt).append("project_id", project_id)
 									.append("isPushed", isPushedToTwitter).append("task_text", task_text));
-					logger.info("One task is inserted");
+					logger.debug("One task is inserted into MongoDB");
 
 				} else {
 					logger.error("task is already in the collection!!");
