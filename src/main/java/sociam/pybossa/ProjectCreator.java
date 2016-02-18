@@ -51,32 +51,34 @@ public class ProjectCreator {
 	public static void run() {
 		HashSet<Document> projectsAsdocs = checkMongoForUnStartedProjects();
 
-		if (!projectsAsdocs.isEmpty()) {
-			logger.info("There are " + projectsAsdocs.size()
-					+ " projects need to be inserted into PyBossa and then updated within MongoDB");
-			for (Document document : projectsAsdocs) {
-				String project_name = document.getString("project_name");
-				ObjectId _id = document.getObjectId("_id");
-				JSONObject jsonData = BuildJsonPorject(project_name, project_name, project_name,
-						Config.project_validation_templatePath);
-				JSONObject PyBossaResponse = createProjectInPyBossa(url, jsonData);
-				if (PyBossaResponse != null) {
-					logger.debug("Project: " + project_name + " was sucessfully inserted into PyBossa");
-					logger.debug(PyBossaResponse.toString());
-					int project_id = PyBossaResponse.getInt("id");
-					Boolean wasUpdated = updateProjectIntoMongoDB(_id, project_id, true);
-					if (wasUpdated) {
-						logger.debug("Project " + project_name + " was sucessfully updated to have projectID: "
-								+ project_id + " and project_started=true");
+		if (projectsAsdocs != null) {
+			if (!projectsAsdocs.isEmpty()) {
+				logger.info("There are " + projectsAsdocs.size()
+						+ " projects need to be inserted into PyBossa and then updated within MongoDB");
+				for (Document document : projectsAsdocs) {
+					String project_name = document.getString("project_name");
+					ObjectId _id = document.getObjectId("_id");
+					JSONObject jsonData = BuildJsonPorject(project_name, project_name, project_name,
+							Config.project_validation_templatePath);
+					JSONObject PyBossaResponse = createProjectInPyBossa(url, jsonData);
+					if (PyBossaResponse != null) {
+						logger.debug("Project: " + project_name + " was sucessfully inserted into PyBossa");
+						logger.debug(PyBossaResponse.toString());
+						int project_id = PyBossaResponse.getInt("id");
+						Boolean wasUpdated = updateProjectIntoMongoDB(_id, project_id, true);
+						if (wasUpdated) {
+							logger.debug("Project " + project_name + " was sucessfully updated to have projectID: "
+									+ project_id + " and project_started=true");
+						} else {
+							logger.error("Could't update project " + project_name + " in MongoDB");
+						}
 					} else {
-						logger.error("Could't update project " + project_name + " in MongoDB");
+						logger.error("Porject with the name " + project_name + " couldn't be inserted into PyBossa");
 					}
-				} else {
-					logger.error("Porject with the name " + project_name + " couldn't be inserted into PyBossa");
 				}
+			} else {
+				logger.debug("There are no new projects to be inserted into PyBossa!");
 			}
-		} else {
-			logger.debug("There are no new projects to be inserted into PyBossa!");
 		}
 	}
 
@@ -97,21 +99,25 @@ public class ProjectCreator {
 	static HashSet<Document> jsons = new LinkedHashSet<Document>();
 
 	private static HashSet<Document> checkMongoForUnStartedProjects() {
-		jsons = new LinkedHashSet<Document>();
-		FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
-				.find(new Document("project_started", "false"));
+		try {
+			jsons = new LinkedHashSet<Document>();
+			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
+					.find(new Document("project_started", "false"));
 
-		if (iterable.first() != null) {
-			iterable.forEach(new Block<Document>() {
-				@Override
-				public void apply(final Document document) {
-					jsons.add(document);
-				}
-			});
+			if (iterable.first() != null) {
+				iterable.forEach(new Block<Document>() {
+					@Override
+					public void apply(final Document document) {
+						jsons.add(document);
+					}
+				});
+				return jsons;
+			}
 			return jsons;
+		} catch (Exception e) {
+			logger.error("Error " + e);
+			return null;
 		}
-		return jsons;
-
 	}
 
 	/**
