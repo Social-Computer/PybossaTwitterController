@@ -1,13 +1,20 @@
 package sociam.pybossa;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 
+import static org.apache.commons.lang3.StringEscapeUtils.escapeHtml4;
+
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -28,18 +35,13 @@ public class TaskCreator {
 
 	final static Logger logger = Logger.getLogger(TaskCreator.class);
 
-	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat(
-			"yyyy-MM-dd'T'HH:mm:ss");
-	final static SimpleDateFormat PyBossaformatter = new SimpleDateFormat(
-			"yyyy-mm-dd'T'hh:mm:ss.SSSSSS");
+	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+	final static SimpleDateFormat PyBossaformatter = new SimpleDateFormat("yyyy-mm-dd'T'hh:mm:ss.SSSSSS");
 
-	static MongoClient mongoClient = new MongoClient(Config.mongoHost,
-			Config.mongoPort);
-	static MongoDatabase database = mongoClient
-			.getDatabase(Config.projectsDatabaseName);
+	static MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+	static MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 
-	static MongoDatabase binsDatabase = mongoClient
-			.getDatabase(Config.binsDatabaseName);
+	static MongoDatabase binsDatabase = mongoClient.getDatabase(Config.binsDatabaseName);
 	static String url = Config.PyBossahost + Config.taskDir + Config.api_key;
 
 	public static void main(String[] args) {
@@ -47,6 +49,8 @@ public class TaskCreator {
 
 		// Check for started projects
 		HashSet<JSONObject> projectsAsJsons = getStartedProjects();
+		logger.info("There are " + projectsAsJsons.size()
+				+ " projects that have tasks ready to be inserted into PyBossa, then to MongoDB");
 		if (!projectsAsJsons.isEmpty()) {
 
 			// Get project name and id for these started projects
@@ -60,39 +64,54 @@ public class TaskCreator {
 					String binItem = (String) object;
 					// for each started project, get their bins
 					HashSet<JSONObject> binsAsJsons = getBinsFromMongoDB(binItem);
+					ArrayList<String> tasksTexts = getAllTasksTextsFromPyBossa(project_id);
+					System.out.println("Size " + tasksTexts.size());
 					for (JSONObject oneBin : binsAsJsons) {
 
 						// for each bin, get the text/tweet
 						String text = oneBin.getString("text");
 
-						// Build the PyBossa json for insertion of a task
-						JSONObject PyBossaTaskJsonToBeInserted = BuildJsonTaskContent(
-								text, "30", "0", "0", project_id, "0.0");
-						if (PyBossaTaskJsonToBeInserted != null) {
-							// Insert the PyBossa json into PyBossa
-							JSONObject pybossaResponse = inserTaskIntoPyBossa(
-									url, PyBossaTaskJsonToBeInserted);
+						System.out.println(tasksTexts.get(0));
+						String escaped = StringEscapeUtils.unescapeJson(tasksTexts.get(0));
+						System.out.println(escaped);
+						System.out.println(text);
+						String escaped2 = StringEscapeUtils.unescapeJson(text);
+						System.out.println(escaped2);
+						if (!tasksTexts.contains(text)) {
 
-							if (pybossaResponse != null) {
+							// Build the PyBossa json for insertion of a task
+							JSONObject PyBossaTaskJsonToBeInserted = BuildJsonTaskContent(text, "30", "0", "0",
+									project_id, "0.0");
+							if (PyBossaTaskJsonToBeInserted != null) {
+								// Insert the PyBossa json into PyBossa
+								JSONObject pybossaResponse = inserTaskIntoPyBossa(url, PyBossaTaskJsonToBeInserted);
 
-								// Insert the resonse of PyBossa into MongoDB
-								insertTaskIntoMongoDB(pybossaResponse, false);
+								if (pybossaResponse != null) {
+
+									// Insert the resonse of PyBossa into
+									// MongoDB
+									insertTaskIntoMongoDB(pybossaResponse, false);
+								} else {
+									logger.error("pybossaResponse was null");
+								}
 							} else {
-								logger.error("pybossaResponse was null");
+								logger.error("PyBossaTaskJsonToBeInserted was null");
 							}
+							break;
 						} else {
-							logger.error("PyBossaTaskJsonToBeInserted was null");
+							logger.error("task " + text + " in Project " + project_id + " is already in PyBossa!!");
 						}
 					}
 				}
 			}
+		} else {
+			logger.debug("There are no ready projects' tasks to be inserted into PyBossa!");
 		}
 	}
 
 	private static HashSet<JSONObject> getBinsFromMongoDB(String collectionName) {
 		HashSet<JSONObject> jsons = new LinkedHashSet<JSONObject>();
-		FindIterable<Document> iterable = binsDatabase.getCollection(
-				collectionName).find();
+		FindIterable<Document> iterable = binsDatabase.getCollection(collectionName).find();
 		if (iterable.first() != null) {
 			iterable.forEach(new Block<Document>() {
 				@Override
@@ -111,9 +130,8 @@ public class TaskCreator {
 	private static HashSet<JSONObject> getStartedProjects() {
 
 		HashSet<JSONObject> jsons = new LinkedHashSet<JSONObject>();
-		FindIterable<Document> iterable = database.getCollection(
-				Config.projectCollection).find(
-				new Document("project_started", true));
+		FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
+				.find(new Document("project_started", "true"));
 
 		if (iterable.first() != null) {
 			iterable.forEach(new Block<Document>() {
@@ -130,8 +148,7 @@ public class TaskCreator {
 		return jsons;
 	}
 
-	private static JSONObject inserTaskIntoPyBossa(String url,
-			JSONObject jsonData) {
+	private static JSONObject inserTaskIntoPyBossa(String url, JSONObject jsonData) {
 		JSONObject jsonResult = null;
 		HttpClient httpClient = HttpClientBuilder.create().build();
 
@@ -146,21 +163,17 @@ public class TaskCreator {
 			request.setEntity(params);
 
 			HttpResponse response = httpClient.execute(request);
-			if (response.getStatusLine().getStatusCode() == 200
-					|| response.getStatusLine().getStatusCode() == 204) {
-				BufferedReader br = new BufferedReader(new InputStreamReader(
-						(response.getEntity().getContent())));
+			if (response.getStatusLine().getStatusCode() == 200 || response.getStatusLine().getStatusCode() == 204) {
+				BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
 				String output;
-				logger.debug("Output from Server ...."
-						+ response.getStatusLine().getStatusCode() + "\n");
+				logger.debug("Output from Server ...." + response.getStatusLine().getStatusCode() + "\n");
 				while ((output = br.readLine()) != null) {
 					logger.debug(output);
 					jsonResult = new JSONObject(output);
 				}
 				return jsonResult;
 			} else {
-				logger.error("Failed : HTTP error code : "
-						+ response.getStatusLine().getStatusCode());
+				logger.error("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
 				return null;
 			}
 		} catch (Exception ex) {
@@ -183,8 +196,7 @@ public class TaskCreator {
 	 * @param priority_0
 	 * @return Json string
 	 */
-	private static JSONObject BuildJsonTaskContent(String text,
-			String n_answers, String quorum, String calibration,
+	private static JSONObject BuildJsonTaskContent(String text, String n_answers, String quorum, String calibration,
 			int project_id, String priority_0) {
 		try {
 			JSONObject app = new JSONObject();
@@ -204,8 +216,7 @@ public class TaskCreator {
 
 	}
 
-	private static Boolean insertTaskIntoMongoDB(JSONObject response,
-			Boolean isPushed) {
+	private static Boolean insertTaskIntoMongoDB(JSONObject response, Boolean isPushed) {
 
 		try {
 			Integer pybossa_task_id = response.getInt("id");
@@ -216,8 +227,7 @@ public class TaskCreator {
 			JSONObject info = response.getJSONObject("info");
 			String task_text = info.getString("text");
 			logger.debug("Inserting a task into MongoDB");
-			if (pushTask(pybossa_task_id, targettedFormat, project_id,
-					isPushed, task_text)) {
+			if (pushTaskToMongoDB(pybossa_task_id, targettedFormat, project_id, isPushed, task_text)) {
 				return true;
 			} else {
 				return false;
@@ -229,26 +239,19 @@ public class TaskCreator {
 		return true;
 	}
 
-	private static boolean pushTask(Integer pybossa_task_id,
-			String publishedAt, Integer project_id, Boolean isPushed,
-			String task_text) {
+	private static boolean pushTaskToMongoDB(Integer pybossa_task_id, String publishedAt, Integer project_id,
+			Boolean isPushed, String task_text) {
 
 		try {
-			if (publishedAt != null && project_id != null && isPushed != null
-					&& task_text != null) {
+			if (publishedAt != null && project_id != null && isPushed != null && task_text != null) {
 
-				FindIterable<Document> iterable = database.getCollection(
-						Config.taskCollection).find(
-						new Document("project_id", project_id).append(
-								"task_text", task_text));
+				FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
+						.find(new Document("project_id", project_id).append("task_text", task_text));
 				if (iterable.first() == null) {
-					database.getCollection(Config.taskCollection).insertOne(
-							new Document()
-									.append("pybossa_task_id", pybossa_task_id)
-									.append("publishedAt", publishedAt)
-									.append("project_id", project_id)
-									.append("isPushed", isPushed)
-									.append("task_text", task_text));
+					database.getCollection(Config.taskCollection)
+							.insertOne(new Document().append("pybossa_task_id", pybossa_task_id)
+									.append("publishedAt", publishedAt).append("project_id", project_id)
+									.append("isPushed", isPushed).append("task_text", task_text));
 					logger.info("One task is inserted");
 
 				} else {
@@ -258,11 +261,49 @@ public class TaskCreator {
 			}
 			return true;
 		} catch (Exception e) {
-			logger.error("Error with inserting the task " + "pybossa_task_id "
-					+ pybossa_task_id + "publishedAt " + publishedAt
-					+ "project_id " + project_id + "isPushed " + isPushed
-					+ "task_text " + task_text + "\n" + e);
+			logger.error("Error with inserting the task " + "pybossa_task_id " + pybossa_task_id + "publishedAt "
+					+ publishedAt + "project_id " + project_id + "isPushed " + isPushed + "task_text " + task_text
+					+ "\n" + e);
 			return false;
+		}
+
+	}
+
+	private static ArrayList<String> getAllTasksTextsFromPyBossa(int project_id) {
+
+		String url = Config.PyBossahost + Config.taskDir + "?project_id=" + project_id;
+
+		ArrayList<String> texts = new ArrayList<>();
+
+		HttpURLConnection con;
+		try {
+			URL obj = new URL(url);
+			con = (HttpURLConnection) obj.openConnection();
+			con.setRequestMethod("GET");
+			int responseCode = con.getResponseCode();
+			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+			String inputLine;
+			StringBuffer response = new StringBuffer();
+
+			while ((inputLine = in.readLine()) != null) {
+				response.append(inputLine);
+			}
+			in.close();
+
+			// print result
+			JSONArray jsonData = new JSONArray(response.toString());
+			for (Object object : jsonData) {
+				JSONObject json = new JSONObject(object.toString());
+				JSONObject info = json.getJSONObject("info");
+				System.out.println("textis " + info.getString("text"));
+				String text = info.getString("text");
+				texts.add(text);
+			}
+
+			return texts;
+		} catch (IOException e) {
+			logger.error(e);
+			return null;
 		}
 
 	}

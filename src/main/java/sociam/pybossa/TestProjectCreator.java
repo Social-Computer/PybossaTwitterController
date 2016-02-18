@@ -23,7 +23,7 @@ public class TestProjectCreator {
 	public static void main(String[] args) {
 		BasicConfigurator.configure();
 
-		JSONObject jsonData = BuildJsonPorject("test13", "test13", "test13", Config.project_validation_templatePath);
+		JSONObject jsonData = BuildJsonPorject("test15", "test15", "test15", Config.project_validation_templatePath);
 		String url = Config.PyBossahost + Config.projectDir + Config.api_key;
 		createProject(url, jsonData);
 
