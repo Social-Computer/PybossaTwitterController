@@ -82,7 +82,7 @@ public class TaskCreator {
 								.valueOf(Config.TasksPerProject);
 						ArrayList<String> tasksTexts = getAllTasksTextsFromPyBossa(project_id);
 						if (tasksTexts.size() > tasksPerProjectlimit) {
-							if (updateProjectToReadyInMongoDB(project_id)) {
+							if (updateProjectToInsertedInMongoDB(project_id)) {
 								logger.debug("Project with id " + project_id
 										+ " has already got "
 										+ tasksPerProjectlimit + " tasks");
@@ -93,7 +93,7 @@ public class TaskCreator {
 						if (tasksPerProjectCounter > tasksPerProjectlimit) {
 							logger.info("tasksPerProjectlimit was reached "
 									+ tasksPerProjectCounter);
-							if (updateProjectToReadyInMongoDB(project_id)) {
+							if (updateProjectToInsertedInMongoDB(project_id)) {
 								logger.debug("changing to another project");
 								break;
 							}
@@ -196,13 +196,13 @@ public class TaskCreator {
 		}
 	}
 
-	private static Boolean updateProjectToReadyInMongoDB(int project_id) {
+	private static Boolean updateProjectToInsertedInMongoDB(int project_id) {
 		try {
 			UpdateResult result = database.getCollection(
 					Config.projectCollection).updateOne(
 					new Document("project_id", project_id),
 					new Document().append("$set", new Document(
-							"project_status", "ready")));
+							"project_status", "inserted")));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {

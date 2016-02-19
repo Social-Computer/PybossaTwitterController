@@ -108,7 +108,7 @@ public class ProjectCreator {
 		UpdateResult result = database.getCollection(Config.projectCollection)
 				.updateOne(
 						new Document("_id", _id),
-						new Document("$set", new Document("project_started",
+						new Document("$set", new Document("project_status",
 								project_status)
 								.append("project_id", project_id)));
 		logger.debug(result.toString());
