@@ -23,7 +23,7 @@ public class TestDeleteField {
 
 		
 		UpdateResult result = database.getCollection(Config.projectCollection).updateMany(new Document(),
-				new Document().append("$unset", new Document("project_completed", "")));
+				new Document().append("$unset", new Document("project_started", "ready")));
 		System.out.println(result.toString());
 
 		

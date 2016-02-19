@@ -202,7 +202,7 @@ public class TaskCreator {
 					Config.projectCollection).updateOne(
 					new Document("project_id", project_id),
 					new Document().append("$set", new Document(
-							"project_status", "inserted")));
+							"project_status", "ready")));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
