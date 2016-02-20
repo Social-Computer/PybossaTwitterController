@@ -122,7 +122,7 @@ public class TaskPerformer {
 			Date date = new Date();
 			String lastPushAt = MongoDBformatter.format(date);
 			UpdateResult result = database.getCollection(
-					Config.projectCollection).updateOne(
+					Config.taskCollection).updateOne(
 					new Document("_id", _id),
 					new Document().append("$set",
 							new Document("isPushed", true).append("lastPushAt",
