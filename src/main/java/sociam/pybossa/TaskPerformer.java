@@ -39,6 +39,8 @@ public class TaskPerformer {
 	static MongoDatabase database = mongoClient
 			.getDatabase(Config.projectsDatabaseName);
 
+	static Boolean wasPushed = false;
+
 	public static void main(String[] args) {
 		PropertyConfigurator.configure("log4j.properties");
 		logger.info("TaskPerformer will be repeated every "
@@ -85,6 +87,7 @@ public class TaskPerformer {
 						if (updateTaskToPushedInMongoDB(_id)) {
 							logger.info("Task with text " + task_text
 									+ " has been sucessfully pushed to Twitter");
+							wasPushed = true;
 						} else {
 							logger.error("Error with updating "
 									+ Config.taskCollection + " for the _id "
@@ -96,9 +99,14 @@ public class TaskPerformer {
 					}
 					// TODO: add lastPushAt when updating tasks
 
-					logger.debug("waiting for " + Config.TaskPerformerPushRate
-							+ " ms before pushing another tweet");
-					Thread.sleep(Integer.valueOf(Config.TaskPerformerPushRate));
+					if (wasPushed) {
+						wasPushed = false;
+						logger.debug("waiting for "
+								+ Config.TaskPerformerPushRate
+								+ " ms before pushing another tweet");
+						Thread.sleep(Integer
+								.valueOf(Config.TaskPerformerPushRate));
+					}
 				}
 			}
 		} catch (Exception e) {
@@ -169,7 +177,8 @@ public class TaskPerformer {
 				return true;
 			} else {
 				logger.error("Post \"" + post
-						+ "\" is longer than 140 characters. It has: " + (post.length()));
+						+ "\" is longer than 140 characters. It has: "
+						+ (post.length()));
 				return false;
 			}
 		} catch (Exception e) {
