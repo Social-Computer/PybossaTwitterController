@@ -95,13 +95,11 @@ public class TaskCollector {
 						}
 
 						String orgTweetText = orgTweet.getString("text");
-						System.out.println("here " + orgTweetText);
 						Pattern pattern = Pattern.compile("(#t[0-9]+)");
 						Matcher matcher = pattern.matcher(orgTweetText);
 						String taskID = "";
 						if (matcher.find()) {
 							taskID = matcher.group(1).replaceAll("#t", "");
-							System.out.println(taskID);
 							Document doc = getTaskFromMongoDB(Integer
 									.valueOf(taskID));
 							if (doc != null) {
