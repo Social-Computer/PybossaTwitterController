@@ -39,7 +39,7 @@ import twitter4j.conf.ConfigurationBuilder;
 
 public class TaskCollector {
 
-	final static Logger logger = Logger.getLogger(TaskPerformer.class);
+	final static Logger logger = Logger.getLogger(TaskCollector.class);
 	static MongoClient mongoClient = new MongoClient(Config.mongoHost,
 			Config.mongoPort);
 	static MongoDatabase database = mongoClient
