@@ -53,7 +53,7 @@ public class TaskPerformer {
 				Thread.sleep(Integer.valueOf(Config.TaskPerformerTrigger));
 			}
 		} catch (InterruptedException e) {
-			logger.error("Error " + e);
+			logger.error("Error " , e);
 		}
 	}
 
@@ -110,7 +110,7 @@ public class TaskPerformer {
 				}
 			}
 		} catch (Exception e) {
-			logger.error("Error " + e);
+			logger.error("Error " , e);
 		}
 	}
 
@@ -125,7 +125,7 @@ public class TaskPerformer {
 			return currentDate.before(convertedDate);
 
 		} catch (Exception e) {
-			logger.error("Error " + e);
+			logger.error("Error " , e);
 			return false;
 		}
 	}
@@ -151,7 +151,7 @@ public class TaskPerformer {
 			}
 			return false;
 		} catch (Exception e) {
-			logger.error("Error " + e);
+			logger.error("Error " , e);
 			return false;
 		}
 	}
@@ -208,7 +208,7 @@ public class TaskPerformer {
 			}
 			return NotPushedTasksjsons;
 		} catch (Exception e) {
-			logger.error("Error " + e);
+			logger.error("Error " , e);
 			return null;
 		}
 	}

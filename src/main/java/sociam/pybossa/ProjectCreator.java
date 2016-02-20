@@ -49,7 +49,7 @@ public class ProjectCreator {
 				Thread.sleep(Integer.valueOf(Config.ProjectCreatorTrigger));
 			}
 		} catch (InterruptedException e) {
-			logger.error("Error " + e);
+			logger.error("Error " , e);
 		}
 
 	}
@@ -100,7 +100,7 @@ public class ProjectCreator {
 				}
 			}
 		} catch (Exception e) {
-			logger.error("Error " + e);
+			logger.error("Error " , e);
 		}
 	}
 
@@ -142,7 +142,7 @@ public class ProjectCreator {
 			}
 			return jsons;
 		} catch (Exception e) {
-			logger.error("Error " + e);
+			logger.error("Error " , e);
 			return null;
 		}
 	}

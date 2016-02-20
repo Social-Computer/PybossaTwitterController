@@ -63,7 +63,7 @@ public class TaskCollector {
 				Thread.sleep(Integer.valueOf(Config.TaskCollectorTrigger));
 			}
 		} catch (InterruptedException e) {
-			logger.error("Error " + e);
+			logger.error("Error ", e);
 		}
 
 	}
@@ -103,10 +103,9 @@ public class TaskCollector {
 							Document doc = getTaskFromMongoDB(Integer
 									.valueOf(taskID));
 							if (doc != null) {
-								String project_id = doc.getString("project_id");
+								int project_id = doc.getInteger("project_id");
 								insertTaskRun(taskResponse,
-										Integer.valueOf(taskID),
-										Integer.valueOf(project_id));
+										Integer.valueOf(taskID), project_id);
 
 							} else {
 								logger.error("Couldn't find task with ID "
@@ -126,7 +125,7 @@ public class TaskCollector {
 			}
 
 		} catch (Exception e) {
-			logger.error("Error " + e);
+			logger.error("Error ", e);
 		}
 	}
 
@@ -176,7 +175,7 @@ public class TaskCollector {
 				return false;
 			}
 		} catch (Exception e) {
-			logger.error("Error " + e);
+			logger.error("Error ", e);
 			return false;
 		}
 
@@ -295,7 +294,7 @@ public class TaskCollector {
 			}
 
 		} catch (IOException e) {
-			logger.error("Error " + e);
+			logger.error("Error ", e);
 			return false;
 
 		}
@@ -335,7 +334,7 @@ public class TaskCollector {
 					eq("pybossa_task_id", pybossa_task_id)).first();
 			return myDoc;
 		} catch (Exception e) {
-			logger.error("Error " + e);
+			logger.error("Error ", e);
 			return null;
 		}
 
@@ -353,7 +352,7 @@ public class TaskCollector {
 				return json;
 			}
 		} catch (TwitterException e) {
-			logger.error("Error " + e);
+			logger.error("Error ", e);
 			return null;
 		}
 	}

@@ -61,7 +61,7 @@ public class TaskCreator {
 				Thread.sleep(Integer.valueOf(Config.TaskCreatorTrigger));
 			}
 		} catch (InterruptedException e) {
-			logger.error("Error " + e);
+			logger.error("Error " , e);
 		}
 
 	}
@@ -216,7 +216,7 @@ public class TaskCreator {
 			}
 			return false;
 		} catch (Exception e) {
-			logger.error("Error " + e);
+			logger.error("Error " , e);
 			return false;
 		}
 	}
@@ -239,7 +239,7 @@ public class TaskCreator {
 			}
 			return false;
 		} catch (Exception e) {
-			logger.error("Error " + e);
+			logger.error("Error " , e);
 			return false;
 		}
 	}
@@ -265,7 +265,7 @@ public class TaskCreator {
 			}
 			return tweetsjsons;
 		} catch (Exception e) {
-			logger.error("Error " + e);
+			logger.error("Error " , e);
 			return tweetsjsons;
 		}
 	}
@@ -291,7 +291,7 @@ public class TaskCreator {
 			}
 			return startedProjectsJsons;
 		} catch (Exception e) {
-			logger.error("Error " + e);
+			logger.error("Error " , e);
 			return null;
 		}
 	}
@@ -364,7 +364,7 @@ public class TaskCreator {
 			app2.put("priority_0", priority_0);
 			return app2;
 		} catch (Exception e) {
-			logger.error("Error " + e);
+			logger.error("Error " , e);
 			return null;
 		}
 
@@ -391,7 +391,7 @@ public class TaskCreator {
 				return false;
 			}
 		} catch (Exception e) {
-			logger.error("Error " + e);
+			logger.error("Error " , e);
 			return false;
 		}
 
@@ -469,7 +469,7 @@ public class TaskCreator {
 
 			return texts;
 		} catch (IOException e) {
-			logger.error("Error " + e);
+			logger.error("Error " , e);
 			return null;
 		}
 
