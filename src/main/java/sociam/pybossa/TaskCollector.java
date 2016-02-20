@@ -71,8 +71,11 @@ public class TaskCollector {
 	public static void run() {
 		try {
 			Twitter twitter = setTwitterAccount(1);
+			logger.debug("Getting time line from Twitter");
 			ArrayList<JSONObject> ResponsesFromTwitter = getTimeLineAsJsons(twitter);
 			if (ResponsesFromTwitter != null) {
+				logger.debug("There are " + ResponsesFromTwitter.size()
+						+ " tweets to be processed");
 				for (JSONObject jsonObject : ResponsesFromTwitter) {
 
 					if (!jsonObject.isNull("in_reply_to_status_id_str")) {
@@ -122,6 +125,8 @@ public class TaskCollector {
 					}
 
 				}
+			} else {
+				logger.info("Time line was null");
 			}
 
 		} catch (Exception e) {
@@ -253,6 +258,7 @@ public class TaskCollector {
 			} else {
 				logger.error("Failed : HTTP error code : "
 						+ response.getStatusLine().getStatusCode());
+				logger.error(response.toString());
 				return null;
 			}
 		} catch (Exception ex) {
@@ -449,9 +455,9 @@ public class TaskCollector {
 					+ " is being set!");
 		} catch (IllegalStateException e) {
 			e.printStackTrace();
-			logger.error(e);
+			logger.error("Error", e);
 		} catch (TwitterException e) {
-			logger.error(e);
+			logger.error("Errore", e);
 		}
 		return twitter;
 
