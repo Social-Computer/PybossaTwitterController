@@ -11,6 +11,7 @@ import org.apache.log4j.PropertyConfigurator;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
+import sociam.pybossa.config.Config;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterFactory;

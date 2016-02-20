@@ -2,7 +2,7 @@ package sociam.pybossa.mongodb;
 
 import org.bson.Document;
 
-import sociam.pybossa.Config;
+import sociam.pybossa.config.Config;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;

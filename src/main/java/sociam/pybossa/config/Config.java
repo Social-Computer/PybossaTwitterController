@@ -1,4 +1,4 @@
-package sociam.pybossa;
+package sociam.pybossa.config;
 
 import java.io.File;
 import java.io.FileInputStream;

@@ -13,7 +13,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.UpdateResult;
 
-import sociam.pybossa.Config;
+import sociam.pybossa.config.Config;
 
 public class TestUpdateAndInsert {
 	static MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);

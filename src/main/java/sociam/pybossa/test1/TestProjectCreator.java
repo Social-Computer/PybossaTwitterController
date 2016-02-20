@@ -17,7 +17,7 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
-import sociam.pybossa.Config;
+import sociam.pybossa.config.Config;
 
 public class TestProjectCreator {
 	final static Logger logger = Logger.getLogger(TestProjectCreator.class);

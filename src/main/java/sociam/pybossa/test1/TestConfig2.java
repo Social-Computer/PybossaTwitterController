@@ -2,7 +2,7 @@ package sociam.pybossa.test1;
 
 import java.io.IOException;
 
-import sociam.pybossa.Config;
+import sociam.pybossa.config.Config;
 
 public class TestConfig2 {
 

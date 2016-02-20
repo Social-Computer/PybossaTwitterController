@@ -23,7 +23,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
 
-import sociam.pybossa.Config;
+import sociam.pybossa.config.Config;
 
 public class TestTaskCreator2 {
 

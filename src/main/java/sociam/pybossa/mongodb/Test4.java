@@ -5,7 +5,7 @@ import java.util.LinkedHashSet;
 
 import org.bson.Document;
 
-import sociam.pybossa.Config;
+import sociam.pybossa.config.Config;
 
 import com.mongodb.Block;
 import com.mongodb.MongoClient;

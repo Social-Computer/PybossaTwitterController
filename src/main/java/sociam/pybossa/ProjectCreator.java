@@ -20,6 +20,8 @@ import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.json.JSONObject;
 
+import sociam.pybossa.config.Config;
+
 import com.mongodb.Block;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;

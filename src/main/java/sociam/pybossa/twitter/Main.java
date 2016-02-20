@@ -176,4 +176,36 @@ public class Main {
 		return twitter;
 
 	}
+	/**
+	 * This method returns a list of strings contains all mentions by a user.
+	 * 
+	 * @param User
+	 *            a twitter User object.
+	 * @return a list of strings that contains the replies or null if empty
+	 */
+	private static ArrayList<String> getListOfTweetsByUser(Twitter twitter) {
+		twitter = new TwitterFactory().getInstance();
+		ArrayList<String> replies = new ArrayList<String>();
+		try {
+			User user = twitter.verifyCredentials();
+			List<Status> statuses = twitter.getMentionsTimeline();
+			System.out.println("Showing @" + user.getScreenName()
+					+ "'s mentions.");
+			for (Status status : statuses) {
+
+				replies.add(status.getText());
+				logger.info("@" + status.getUser().getScreenName() + " - "
+						+ status.getText() + " id is: "
+						+ status.getInReplyToStatusId());
+			}
+			if (!replies.isEmpty()) {
+				return replies;
+			} else {
+				return null;
+			}
+		} catch (TwitterException te) {
+			logger.error("Failed to get timeline: " + te.getMessage());
+			return null;
+		}
+	}
 }
