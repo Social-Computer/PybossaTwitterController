@@ -76,7 +76,12 @@ public class TaskPerformer {
 					}
 
 					ObjectId _id = document.getObjectId("_id");
-					if (sendTaskToTwitter(task_text)) {
+					int pybossa_task_id = document
+							.getInteger("pybossa_task_id");
+					String task_textPlusTaskTag = task_text + " #t"
+							+ pybossa_task_id;
+
+					if (sendTaskToTwitter(task_textPlusTaskTag)) {
 						if (updateTaskToPushedInMongoDB(_id)) {
 							logger.info("Task with text " + task_text
 									+ " has been sucessfully pushed to Twitter");
@@ -121,11 +126,11 @@ public class TaskPerformer {
 		try {
 			Date date = new Date();
 			String lastPushAt = MongoDBformatter.format(date);
-			UpdateResult result = database.getCollection(
-					Config.taskCollection).updateOne(
-					new Document("_id", _id),
-					new Document().append("$set",
-							new Document("isPushed", true).append("lastPushAt",
+			UpdateResult result = database.getCollection(Config.taskCollection)
+					.updateOne(
+							new Document("_id", _id),
+							new Document().append("$set", new Document(
+									"isPushed", true).append("lastPushAt",
 									lastPushAt)));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
@@ -164,7 +169,7 @@ public class TaskPerformer {
 				return true;
 			} else {
 				logger.error("Post \"" + post
-						+ "\" is longer than 140 characters");
+						+ "\" is longer than 140 characters. It has: " + (post.length()));
 				return false;
 			}
 		} catch (Exception e) {
