@@ -77,8 +77,10 @@ public class TaskCollector {
 				logger.debug("There are " + ResponsesFromTwitter.size()
 						+ " tweets to be processed");
 				for (JSONObject jsonObject : ResponsesFromTwitter) {
+					logger.debug("for");
 
 					if (!jsonObject.isNull("in_reply_to_status_id_str")) {
+						logger.debug("in_reply_to_status_id_str");
 						String in_reply_to_status_id_str = jsonObject
 								.getString("in_reply_to_status_id_str");
 						String reply = jsonObject.getString("text");
@@ -86,6 +88,18 @@ public class TaskCollector {
 								.getString("in_reply_to_screen_name");
 						String taskResponse = reply.replaceAll("@"
 								+ in_reply_to_screen_name, "");
+
+						// store the reply id
+						String id_str = jsonObject.getString("id_str");
+
+						// store the use screen name
+						JSONObject userJson = jsonObject.getJSONObject("user");
+
+						// store the replier user name
+						// TODO: not working
+						logger.debug("Screen " + userJson.toString());
+						String screen_name = userJson.getString("screen_name");
+						logger.debug("Screen namw " + screen_name);
 
 						JSONObject orgTweet = getTweetByID(
 								String.valueOf(in_reply_to_status_id_str),
@@ -97,6 +111,8 @@ public class TaskCollector {
 									twitter);
 						}
 
+						logger.debug("reply" + orgTweet.toString());
+						logger.debug("while");
 						String orgTweetText = orgTweet.getString("text");
 						Pattern pattern = Pattern.compile("(#t[0-9]+)");
 						Matcher matcher = pattern.matcher(orgTweetText);
@@ -107,8 +123,10 @@ public class TaskCollector {
 									.valueOf(taskID));
 							if (doc != null) {
 								int project_id = doc.getInteger("project_id");
+								logger.debug("taskResponse " + taskResponse);
 								insertTaskRun(taskResponse,
-										Integer.valueOf(taskID), project_id);
+										Integer.valueOf(taskID), project_id,
+										id_str, screen_name);
 
 							} else {
 								logger.error("Couldn't find task with ID "
@@ -135,7 +153,7 @@ public class TaskCollector {
 	}
 
 	private static Boolean insertTaskRun(String text, int task_id,
-			int project_id) {
+			int project_id, String id_str, String screen_name) {
 
 		JSONObject jsonData = BuildJsonTaskRunContent(text, task_id, project_id);
 		if (getReqest(project_id)) {
@@ -143,7 +161,7 @@ public class TaskCollector {
 			JSONObject PyBossaResponse = insertTaskRunIntoPyBossa(url, jsonData);
 			if (PyBossaResponse != null) {
 				logger.debug("Task run was successfully inserted into PyBossa");
-				if (insertTaskRunIntoMongoDB(PyBossaResponse)) {
+				if (insertTaskRunIntoMongoDB(jsonData, id_str, screen_name)) {
 					logger.debug("Task run was successfully inserted into MongoDB");
 					return true;
 				} else {
@@ -160,21 +178,21 @@ public class TaskCollector {
 
 	}
 
-	private static Boolean insertTaskRunIntoMongoDB(JSONObject PyBossaResponse) {
+	private static Boolean insertTaskRunIntoMongoDB(JSONObject jsonData,
+			String id_str, String screen_name) {
 
 		try {
-			Integer pybossa_task_run_id = PyBossaResponse.getInt("id");
+			// Integer pybossa_task_run_id = PyBossaResponse.getInt("id");
 			// String created_String = response.getString("created");
 			// Date publishedAt = PyBossaformatter.parse(created_String);
 			Date date = new Date();
 			String insertedAt = MongoDBformatter.format(date);
-			Integer project_id = PyBossaResponse.getInt("project_id");
-			Integer task_id = PyBossaResponse.getInt("task_id");
-			JSONObject info = PyBossaResponse.getJSONObject("info");
-			String task_run_text = info.getString("text");
+			Integer project_id = jsonData.getInt("project_id");
+			Integer task_id = jsonData.getInt("task_id");
+			String task_run_text = jsonData.getString("info");
 			logger.debug("Inserting a task into MongoDB");
-			if (pushTaskRunToMongoDB(pybossa_task_run_id, insertedAt,
-					project_id, task_id, task_run_text)) {
+			if (pushTaskRunToMongoDB(insertedAt, project_id, task_id,
+					task_run_text, id_str, screen_name)) {
 				return true;
 			} else {
 				return false;
@@ -186,42 +204,38 @@ public class TaskCollector {
 
 	}
 
-	private static boolean pushTaskRunToMongoDB(Integer pybossa_task_run_id,
-			String publishedAt, Integer project_id, Integer task_id,
-			String task_text) {
+	private static boolean pushTaskRunToMongoDB(String publishedAt,
+			Integer project_id, Integer task_id, String task_text,
+			String id_str, String screen_name) {
 
 		try {
-			if (publishedAt != null && project_id != null && task_text != null) {
-
-				FindIterable<Document> iterable = database.getCollection(
-						Config.taskCollection)
-						.find(new Document("pybossa_task_run_id",
-								pybossa_task_run_id));
+			if (publishedAt != null && project_id != null && task_text != null
+					&& id_str != null && screen_name != null) {
+				FindIterable<Document> iterable = database
+						.getCollection(Config.taskRunCollection)
+						.find(new Document("id_str", id_str)).limit(1);
 				if (iterable.first() == null) {
 					database.getCollection(Config.taskRunCollection).insertOne(
-							new Document()
-									.append("pybossa_task_run_id",
-											pybossa_task_run_id)
-									.append("publishedAt", publishedAt)
+							new Document().append("publishedAt", publishedAt)
 									.append("project_id", project_id)
 									.append("task_id", task_id)
-									.append("task_text", task_text));
-					logger.debug("One task is inserted into MongoDB");
+									.append("task_text", task_text)
+									.append("id_str", id_str)
+									.append("screen_name", screen_name));
+					logger.debug("One task run is inserted into MongoDB");
 					return true;
 				} else {
-					logger.error("task run is already in the collection!!");
+					logger.error("The task run is already stored in MongoDB!");
 					return false;
 				}
-
 			} else {
 				return false;
 			}
 
 		} catch (Exception e) {
-			logger.error("Error with inserting the task run "
-					+ "pybossa_task_run_id " + pybossa_task_run_id
-					+ "publishedAt " + publishedAt + "project_id " + project_id
-					+ "isPushed " + task_id + "task_id " + task_text + "\n" + e);
+			logger.error("Error with inserting the task run " + "publishedAt "
+					+ publishedAt + "project_id " + project_id + "isPushed "
+					+ task_id + "task_id " + task_text + "\n" + e);
 			return false;
 		}
 
@@ -230,6 +244,7 @@ public class TaskCollector {
 	private static JSONObject insertTaskRunIntoPyBossa(String url,
 			JSONObject jsonData) {
 		JSONObject jsonResult = null;
+		logger.debug("jsonData " + jsonData);
 		HttpClient httpClient = HttpClientBuilder.create().build();
 
 		try {
@@ -324,10 +339,10 @@ public class TaskCollector {
 			int task_id, int project_id) {
 
 		JSONObject app2 = new JSONObject();
-		app2.put("project_id", 25);
+		app2.put("project_id", project_id);
 
 		app2.put("info", answer);
-		app2.put("task_id", 119);
+		app2.put("task_id", task_id);
 		app2.put("user_ip", "80.44.145.144");
 		return app2;
 	}

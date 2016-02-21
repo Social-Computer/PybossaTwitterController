@@ -25,7 +25,7 @@ public class TaskRun {
 
 	public static void main(String[] args) {
 		BasicConfigurator.configure();
-		JSONObject jsonData = BuildJsonTaskContent("no", "48411", "5878");
+		JSONObject jsonData = BuildJsonTaskContent("no", "111468", "5892");
 		// String jsonData = "{\"info\": {\"text\": \"#Zika News: Stop The Zika
 		// Virus https://t.co/tYqAYlbPlc #PathogenPosse\"}, \"n_answers\": 30,
 		// \"quorum\": 0, \"calibration\": 0, \"project_id\": 11,
@@ -38,7 +38,7 @@ public class TaskRun {
 	}
 
 	public static void getReqest() {
-		String url = "http://recoin.cloudapp.net:5000/api/project/25/newtask";
+		String url = "http://recoin.cloudapp.net:5000/api/project/5892/newtask";
 
 		HttpURLConnection con;
 		try {
@@ -93,6 +93,7 @@ public class TaskRun {
 				while ((output = br.readLine()) != null) {
 					logger.debug(output);
 					jsonResult = new JSONObject(output);
+					System.out.println(jsonResult.toString());
 				}
 				return jsonResult;
 			} else {
@@ -124,10 +125,10 @@ public class TaskRun {
 			String task_id, String project_id) {
 
 		JSONObject app2 = new JSONObject();
-		app2.put("project_id", 25);
+		app2.put("project_id", project_id);
 
 		app2.put("info", answer);
-		app2.put("task_id", 119);
+		app2.put("task_id", task_id);
 		app2.put("user_ip", "80.44.145.144");
 		return app2;
 	}

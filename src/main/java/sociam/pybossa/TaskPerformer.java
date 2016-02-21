@@ -172,8 +172,8 @@ public class TaskPerformer {
 			String post = taskContent;
 			if (post.length() < 140) {
 				status = twitter.updateStatus(post);
-				logger.debug("Successfully posting a task [" + status.getText()
-						+ "]." + status.getId());
+				logger.debug("Successfully posting a task '" + status.getText()
+						+ "'." + status.getId());
 				return true;
 			} else {
 				logger.error("Post \"" + post

@@ -24,6 +24,10 @@ public class TestUpdateProjectMain {
 		UpdateResult result = database.getCollection(Config.projectCollection).updateMany(new Document(),
 				new Document().append("$set", new Document("project_status", "empty")));
 		System.out.println(result.toString());
+		
+		UpdateResult result2 = database.getCollection(Config.projectCollection).updateMany(new Document(),
+				new Document().append("$set", new Document("project_id", "")));
+		System.out.println(result2.toString());
 
 	}
 
