@@ -8,6 +8,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,6 +25,7 @@ import org.apache.log4j.PropertyConfigurator;
 import org.bson.Document;
 import org.json.JSONObject;
 
+import com.mongodb.Block;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
@@ -49,6 +51,9 @@ public class TaskCollector {
 			"yyyy-MM-dd HH:mm:ss");
 	final static SimpleDateFormat PyBossaformatter = new SimpleDateFormat(
 			"yyyy-mm-dd'T'hh:mm:ss.SSSSSS");
+
+	// caching tasksIDs
+	static HashSet<Integer> cachedTaskIDs = new HashSet<Integer>();
 
 	public static void main(String[] args) {
 
@@ -77,7 +82,6 @@ public class TaskCollector {
 				logger.debug("There are " + ResponsesFromTwitter.size()
 						+ " tweets to be processed");
 				for (JSONObject jsonObject : ResponsesFromTwitter) {
-					logger.debug("for");
 
 					if (!jsonObject.isNull("in_reply_to_status_id_str")) {
 						logger.debug("in_reply_to_status_id_str");
@@ -97,9 +101,7 @@ public class TaskCollector {
 
 						// store the replier user name
 						// TODO: not working
-						logger.debug("Screen " + userJson.toString());
 						String screen_name = userJson.getString("screen_name");
-						logger.debug("Screen namw " + screen_name);
 
 						JSONObject orgTweet = getTweetByID(
 								String.valueOf(in_reply_to_status_id_str),
@@ -111,26 +113,33 @@ public class TaskCollector {
 									twitter);
 						}
 
-						logger.debug("reply" + orgTweet.toString());
-						logger.debug("while");
 						String orgTweetText = orgTweet.getString("text");
 						Pattern pattern = Pattern.compile("(#t[0-9]+)");
 						Matcher matcher = pattern.matcher(orgTweetText);
 						String taskID = "";
 						if (matcher.find()) {
 							taskID = matcher.group(1).replaceAll("#t", "");
-							Document doc = getTaskFromMongoDB(Integer
-									.valueOf(taskID));
-							if (doc != null) {
-								int project_id = doc.getInteger("project_id");
-								logger.debug("taskResponse " + taskResponse);
-								insertTaskRun(taskResponse,
-										Integer.valueOf(taskID), project_id,
-										id_str, screen_name);
-
+							Integer intTaskID = Integer.valueOf(taskID);
+							// cache taskIDs
+							if (!cachedTaskIDs.contains(intTaskID)) {
+								cachedTaskIDs.add(intTaskID);
+								Document doc = getTaskFromMongoDB(Integer
+										.valueOf(taskID));
+								if (doc != null) {
+									int project_id = doc
+											.getInteger("project_id");
+									insertTaskRun(taskResponse,
+											Integer.valueOf(taskID),
+											project_id, id_str, screen_name);
+								} else {
+									logger.error("Couldn't find task with ID "
+											+ taskID);
+								}
 							} else {
-								logger.error("Couldn't find task with ID "
-										+ taskID);
+								logger.debug("Task ID was found in the cache");
+								insertTaskRun(taskResponse,
+										Integer.valueOf(taskID), intTaskID,
+										id_str, screen_name);
 							}
 
 						} else {
@@ -349,10 +358,23 @@ public class TaskCollector {
 
 	private static Document getTaskFromMongoDB(int pybossa_task_id) {
 		try {
-			MongoCollection<Document> collection = database
-					.getCollection(Config.taskCollection);
-			Document myDoc = collection.find(
-					eq("pybossa_task_id", pybossa_task_id)).first();
+			// MongoCollection<Document> collection = database
+			// .getCollection(Config.taskCollection);
+			// Document myDoc = collection.find(
+			// eq("pybossa_task_id", pybossa_task_id)).limit(1);
+
+			Document iterable = database
+					.getCollection(Config.taskCollection)
+					.findOne(new Document("pybossa_task_id", pybossa_task_id))
+					;
+			iterable.forEach(new Block<Document>() {
+			    @Override
+			    public void apply(final Document document) {
+			        System.out.println(document);
+			    }
+			});
+			
+
 			return myDoc;
 		} catch (Exception e) {
 			logger.error("Error ", e);
