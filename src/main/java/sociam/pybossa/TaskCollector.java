@@ -42,15 +42,11 @@ import twitter4j.conf.ConfigurationBuilder;
 public class TaskCollector {
 
 	final static Logger logger = Logger.getLogger(TaskCollector.class);
-	static MongoClient mongoClient = new MongoClient(Config.mongoHost,
-			Config.mongoPort);
-	static MongoDatabase database = mongoClient
-			.getDatabase(Config.projectsDatabaseName);
+	static MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+	static MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 
-	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat(
-			"yyyy-MM-dd HH:mm:ss");
-	final static SimpleDateFormat PyBossaformatter = new SimpleDateFormat(
-			"yyyy-mm-dd'T'hh:mm:ss.SSSSSS");
+	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	final static SimpleDateFormat PyBossaformatter = new SimpleDateFormat("yyyy-mm-dd'T'hh:mm:ss.SSSSSS");
 
 	// caching tasksIDs
 	static HashSet<Integer> cachedTaskIDs = new HashSet<Integer>();
@@ -58,13 +54,11 @@ public class TaskCollector {
 	public static void main(String[] args) {
 
 		PropertyConfigurator.configure("log4j.properties");
-		logger.info("TaskCollector will be repeated every "
-				+ Config.TaskCollectorTrigger + " ms");
+		logger.info("TaskCollector will be repeated every " + Config.TaskCollectorTrigger + " ms");
 		try {
 			while (true) {
 				run();
-				logger.info("Sleeping for " + Config.TaskCollectorTrigger
-						+ " ms");
+				logger.info("Sleeping for " + Config.TaskCollectorTrigger + " ms");
 				Thread.sleep(Integer.valueOf(Config.TaskCollectorTrigger));
 			}
 		} catch (InterruptedException e) {
@@ -79,19 +73,15 @@ public class TaskCollector {
 			logger.debug("Getting time line from Twitter");
 			ArrayList<JSONObject> ResponsesFromTwitter = getTimeLineAsJsons(twitter);
 			if (ResponsesFromTwitter != null) {
-				logger.debug("There are " + ResponsesFromTwitter.size()
-						+ " tweets to be processed");
+				logger.debug("There are " + ResponsesFromTwitter.size() + " tweets to be processed");
 				for (JSONObject jsonObject : ResponsesFromTwitter) {
 
 					if (!jsonObject.isNull("in_reply_to_status_id_str")) {
-						logger.debug("in_reply_to_status_id_str");
-						String in_reply_to_status_id_str = jsonObject
-								.getString("in_reply_to_status_id_str");
+						logger.debug("Found a reply tweet");
+						String in_reply_to_status_id_str = jsonObject.getString("in_reply_to_status_id_str");
 						String reply = jsonObject.getString("text");
-						String in_reply_to_screen_name = jsonObject
-								.getString("in_reply_to_screen_name");
-						String taskResponse = reply.replaceAll("@"
-								+ in_reply_to_screen_name, "");
+						String in_reply_to_screen_name = jsonObject.getString("in_reply_to_screen_name");
+						String taskResponse = reply.replaceAll("@" + in_reply_to_screen_name, "");
 
 						// store the reply id
 						String id_str = jsonObject.getString("id_str");
@@ -103,14 +93,11 @@ public class TaskCollector {
 						// TODO: not working
 						String screen_name = userJson.getString("screen_name");
 
-						JSONObject orgTweet = getTweetByID(
-								String.valueOf(in_reply_to_status_id_str),
-								twitter);
+						JSONObject orgTweet = getTweetByID(String.valueOf(in_reply_to_status_id_str), twitter);
 						// loop through tweets till you find the orginal tweet
+						logger.debug("Looking for the original tweet for the reply");
 						while (!orgTweet.isNull("in_reply_to_status_id_str")) {
-							orgTweet = getTweetByID(
-									orgTweet.getString("in_reply_to_status_id_str"),
-									twitter);
+							orgTweet = getTweetByID(orgTweet.getString("in_reply_to_status_id_str"), twitter);
 						}
 
 						String orgTweetText = orgTweet.getString("text");
@@ -118,33 +105,29 @@ public class TaskCollector {
 						Matcher matcher = pattern.matcher(orgTweetText);
 						String taskID = "";
 						if (matcher.find()) {
+							logger.debug("Found a taskID in the orginal tweet");
 							taskID = matcher.group(1).replaceAll("#t", "");
 							Integer intTaskID = Integer.valueOf(taskID);
 							// cache taskIDs
 							if (!cachedTaskIDs.contains(intTaskID)) {
+								logger.debug("TaskID is not in the cache");
 								cachedTaskIDs.add(intTaskID);
-								Document doc = getTaskFromMongoDB(Integer
-										.valueOf(taskID));
+								Document doc = getTaskFromMongoDB(Integer.valueOf(taskID));
 								if (doc != null) {
-									int project_id = doc
-											.getInteger("project_id");
-									insertTaskRun(taskResponse,
-											Integer.valueOf(taskID),
-											project_id, id_str, screen_name);
+									int project_id = doc.getInteger("project_id");
+									logger.debug("Retriving Task id from Collection: " + Config.taskCollection);
+									insertTaskRun(taskResponse, Integer.valueOf(taskID), project_id, id_str,
+											screen_name);
 								} else {
-									logger.error("Couldn't find task with ID "
-											+ taskID);
+									logger.error("Couldn't find task with ID " + taskID);
 								}
 							} else {
 								logger.debug("Task ID was found in the cache");
-								insertTaskRun(taskResponse,
-										Integer.valueOf(taskID), intTaskID,
-										id_str, screen_name);
+								insertTaskRun(taskResponse, Integer.valueOf(taskID), intTaskID, id_str, screen_name);
 							}
 
 						} else {
-							logger.error("reply: \\"
-									+ reply
+							logger.error("reply: \\" + reply
 									+ " was not being identified with an associated task in the original text: \\"
 									+ orgTweetText);
 						}
@@ -161,8 +144,7 @@ public class TaskCollector {
 		}
 	}
 
-	private static Boolean insertTaskRun(String text, int task_id,
-			int project_id, String id_str, String screen_name) {
+	private static Boolean insertTaskRun(String text, int task_id, int project_id, String id_str, String screen_name) {
 
 		JSONObject jsonData = BuildJsonTaskRunContent(text, task_id, project_id);
 		if (getReqest(project_id)) {
@@ -187,8 +169,7 @@ public class TaskCollector {
 
 	}
 
-	private static Boolean insertTaskRunIntoMongoDB(JSONObject jsonData,
-			String id_str, String screen_name) {
+	private static Boolean insertTaskRunIntoMongoDB(JSONObject jsonData, String id_str, String screen_name) {
 
 		try {
 			// Integer pybossa_task_run_id = PyBossaResponse.getInt("id");
@@ -200,8 +181,7 @@ public class TaskCollector {
 			Integer task_id = jsonData.getInt("task_id");
 			String task_run_text = jsonData.getString("info");
 			logger.debug("Inserting a task into MongoDB");
-			if (pushTaskRunToMongoDB(insertedAt, project_id, task_id,
-					task_run_text, id_str, screen_name)) {
+			if (pushTaskRunToMongoDB(insertedAt, project_id, task_id, task_run_text, id_str, screen_name)) {
 				return true;
 			} else {
 				return false;
@@ -213,23 +193,18 @@ public class TaskCollector {
 
 	}
 
-	private static boolean pushTaskRunToMongoDB(String publishedAt,
-			Integer project_id, Integer task_id, String task_text,
-			String id_str, String screen_name) {
+	private static boolean pushTaskRunToMongoDB(String publishedAt, Integer project_id, Integer task_id,
+			String task_text, String id_str, String screen_name) {
 
 		try {
-			if (publishedAt != null && project_id != null && task_text != null
-					&& id_str != null && screen_name != null) {
-				FindIterable<Document> iterable = database
-						.getCollection(Config.taskRunCollection)
+			if (publishedAt != null && project_id != null && task_text != null && id_str != null
+					&& screen_name != null) {
+				FindIterable<Document> iterable = database.getCollection(Config.taskRunCollection)
 						.find(new Document("id_str", id_str)).limit(1);
 				if (iterable.first() == null) {
 					database.getCollection(Config.taskRunCollection).insertOne(
-							new Document().append("publishedAt", publishedAt)
-									.append("project_id", project_id)
-									.append("task_id", task_id)
-									.append("task_text", task_text)
-									.append("id_str", id_str)
+							new Document().append("publishedAt", publishedAt).append("project_id", project_id)
+									.append("task_id", task_id).append("task_text", task_text).append("id_str", id_str)
 									.append("screen_name", screen_name));
 					logger.debug("One task run is inserted into MongoDB");
 					return true;
@@ -242,16 +217,14 @@ public class TaskCollector {
 			}
 
 		} catch (Exception e) {
-			logger.error("Error with inserting the task run " + "publishedAt "
-					+ publishedAt + "project_id " + project_id + "isPushed "
-					+ task_id + "task_id " + task_text + "\n" + e);
+			logger.error("Error with inserting the task run " + "publishedAt " + publishedAt + "project_id "
+					+ project_id + "isPushed " + task_id + "task_id " + task_text + "\n" + e);
 			return false;
 		}
 
 	}
 
-	private static JSONObject insertTaskRunIntoPyBossa(String url,
-			JSONObject jsonData) {
+	private static JSONObject insertTaskRunIntoPyBossa(String url, JSONObject jsonData) {
 		JSONObject jsonResult = null;
 		logger.debug("jsonData " + jsonData);
 		HttpClient httpClient = HttpClientBuilder.create().build();
@@ -267,21 +240,17 @@ public class TaskCollector {
 			request.setEntity(params);
 
 			HttpResponse response = httpClient.execute(request);
-			if (response.getStatusLine().getStatusCode() == 200
-					|| response.getStatusLine().getStatusCode() == 204) {
-				BufferedReader br = new BufferedReader(new InputStreamReader(
-						(response.getEntity().getContent())));
+			if (response.getStatusLine().getStatusCode() == 200 || response.getStatusLine().getStatusCode() == 204) {
+				BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
 				String output;
-				logger.debug("Output from Server ...."
-						+ response.getStatusLine().getStatusCode() + "\n");
+				logger.debug("Output from Server ...." + response.getStatusLine().getStatusCode() + "\n");
 				while ((output = br.readLine()) != null) {
 					logger.debug(output);
 					jsonResult = new JSONObject(output);
 				}
 				return jsonResult;
 			} else {
-				logger.error("Failed : HTTP error code : "
-						+ response.getStatusLine().getStatusCode());
+				logger.error("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
 				logger.error(response.toString());
 				return null;
 			}
@@ -293,8 +262,7 @@ public class TaskCollector {
 	}
 
 	public static Boolean getReqest(int project_id) {
-		String url = Config.PyBossahost + Config.projectDir + "/" + project_id
-				+ "/newtask";
+		String url = Config.PyBossahost + Config.projectDir + "/" + project_id + "/newtask";
 
 		HttpURLConnection con;
 		try {
@@ -306,8 +274,7 @@ public class TaskCollector {
 			// System.out.println("\nSending 'GET' request to URL : " + url);
 			// System.out.println("Response Code : " + responseCode);
 
-			BufferedReader in = new BufferedReader(new InputStreamReader(
-					con.getInputStream()));
+			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
 			String inputLine;
 			StringBuffer response = new StringBuffer();
 
@@ -344,8 +311,7 @@ public class TaskCollector {
 	 * @param priority_0
 	 * @return Json string
 	 */
-	private static JSONObject BuildJsonTaskRunContent(String answer,
-			int task_id, int project_id) {
+	private static JSONObject BuildJsonTaskRunContent(String answer, int task_id, int project_id) {
 
 		JSONObject app2 = new JSONObject();
 		app2.put("project_id", project_id);
@@ -356,6 +322,8 @@ public class TaskCollector {
 		return app2;
 	}
 
+	static Document doc = new Document();
+
 	private static Document getTaskFromMongoDB(int pybossa_task_id) {
 		try {
 			// MongoCollection<Document> collection = database
@@ -363,19 +331,17 @@ public class TaskCollector {
 			// Document myDoc = collection.find(
 			// eq("pybossa_task_id", pybossa_task_id)).limit(1);
 
-			Document iterable = database
-					.getCollection(Config.taskCollection)
-					.findOne(new Document("pybossa_task_id", pybossa_task_id))
-					;
+			FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
+					.find(new Document("pybossa_task_id", pybossa_task_id)).limit(1);
+			;
 			iterable.forEach(new Block<Document>() {
-			    @Override
-			    public void apply(final Document document) {
-			        System.out.println(document);
-			    }
+				@Override
+				public void apply(final Document document) {
+					doc = document;
+				}
 			});
-			
 
-			return myDoc;
+			return doc;
 		} catch (Exception e) {
 			logger.error("Error ", e);
 			return null;
@@ -441,45 +407,29 @@ public class TaskCollector {
 
 			// Transltion account
 			if (i == 1) {
-				cb.setDebugEnabled(true)
-						.setOAuthConsumerKey("ZSouoRP3t2bLlznRn38LoABBY")
-						.setOAuthConsumerSecret(
-								"x0sZsH9JR7oR5OjnEG2RO9Vbq74T4GuoYVd1TiUuhxxiddbZe9")
-						.setOAuthAccessToken(
-								"4895555638-q6ZVtqdcRIXgHCKgrN5qnSyQTy5xwL3ZcUrs1Rp")
-						.setOAuthAccessTokenSecret(
-								"hxS9HSsIqUTyFEYoQxdSHQ8zPj31GMQ7zUwhlUwYQnO2K");
+				cb.setDebugEnabled(true).setOAuthConsumerKey("ZSouoRP3t2bLlznRn38LoABBY")
+						.setOAuthConsumerSecret("x0sZsH9JR7oR5OjnEG2RO9Vbq74T4GuoYVd1TiUuhxxiddbZe9")
+						.setOAuthAccessToken("4895555638-q6ZVtqdcRIXgHCKgrN5qnSyQTy5xwL3ZcUrs1Rp")
+						.setOAuthAccessTokenSecret("hxS9HSsIqUTyFEYoQxdSHQ8zPj31GMQ7zUwhlUwYQnO2K");
 
 				// Verfying account
 			} else if (i == 2) {
-				cb.setDebugEnabled(true)
-						.setOAuthConsumerKey("*********************")
-						.setOAuthConsumerSecret(
-								"******************************************")
-						.setOAuthAccessToken(
-								"**************************************************")
-						.setOAuthAccessTokenSecret(
-								"******************************************");
+				cb.setDebugEnabled(true).setOAuthConsumerKey("*********************")
+						.setOAuthConsumerSecret("******************************************")
+						.setOAuthAccessToken("**************************************************")
+						.setOAuthAccessTokenSecret("******************************************");
 
 			} else if (i == 3) {
-				cb.setDebugEnabled(true)
-						.setOAuthConsumerKey("*********************")
-						.setOAuthConsumerSecret(
-								"******************************************")
-						.setOAuthAccessToken(
-								"**************************************************")
-						.setOAuthAccessTokenSecret(
-								"******************************************");
+				cb.setDebugEnabled(true).setOAuthConsumerKey("*********************")
+						.setOAuthConsumerSecret("******************************************")
+						.setOAuthAccessToken("**************************************************")
+						.setOAuthAccessTokenSecret("******************************************");
 
 			} else if (i == 4) {
-				cb.setDebugEnabled(true)
-						.setOAuthConsumerKey("*********************")
-						.setOAuthConsumerSecret(
-								"******************************************")
-						.setOAuthAccessToken(
-								"**************************************************")
-						.setOAuthAccessTokenSecret(
-								"******************************************");
+				cb.setDebugEnabled(true).setOAuthConsumerKey("*********************")
+						.setOAuthConsumerSecret("******************************************")
+						.setOAuthAccessToken("**************************************************")
+						.setOAuthAccessTokenSecret("******************************************");
 
 			} else {
 				return null;
@@ -488,8 +438,7 @@ public class TaskCollector {
 			TwitterFactory tf = new TwitterFactory(cb.build());
 			twitter = tf.getInstance();
 
-			logger.debug("The twitter account " + twitter.getScreenName()
-					+ " is being set!");
+			logger.debug("The twitter account " + twitter.getScreenName() + " is being set!");
 		} catch (IllegalStateException e) {
 			e.printStackTrace();
 			logger.error("Error", e);
