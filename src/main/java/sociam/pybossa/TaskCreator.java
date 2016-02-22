@@ -253,7 +253,7 @@ public class TaskCreator {
 		try {
 
 			FindIterable<Document> iterable = binsDatabase.getCollection(
-					collectionName).find();
+					collectionName).find().limit(200);
 			if (iterable.first() != null) {
 				iterable.forEach(new Block<Document>() {
 					@Override
