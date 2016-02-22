@@ -104,22 +104,18 @@ public class ProjectCreator {
 		return false;
 	}
 
-	static HashSet<Document> jsons = new LinkedHashSet<Document>();
+	// static HashSet<Document> jsons = new LinkedHashSet<Document>();
 
 	private static HashSet<Document> checkMongoForEmptyProjects() {
 		try {
-			jsons = new LinkedHashSet<Document>();
+			HashSet<Document> jsons = new LinkedHashSet<Document>();
 			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
 					.find(new Document("project_status", "empty"));
 
 			if (iterable.first() != null) {
-				iterable.forEach(new Block<Document>() {
-					@Override
-					public void apply(final Document document) {
-						jsons.add(document);
-					}
-				});
-				return jsons;
+				for (Document document : iterable) {
+					jsons.add(document);
+				}
 			}
 			return jsons;
 		} catch (Exception e) {

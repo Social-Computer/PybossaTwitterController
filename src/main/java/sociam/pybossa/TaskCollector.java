@@ -331,8 +331,6 @@ public class TaskCollector {
 		return app2;
 	}
 
-	static Document doc = new Document();
-
 	private static Document getTaskFromMongoDB(int pybossa_task_id) {
 		try {
 			// MongoCollection<Document> collection = database
@@ -341,16 +339,11 @@ public class TaskCollector {
 			// eq("pybossa_task_id", pybossa_task_id)).limit(1);
 
 			FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
-					.find(new Document("pybossa_task_id", pybossa_task_id)).limit(1);
-			
-			iterable.forEach(new Block<Document>() {
-				@Override
-				public void apply(final Document document) {
-					doc = document;
-				}
-			});
+					.find(new Document("pybossa_task_id", pybossa_task_id));
 
-			return doc;
+			Document document = iterable.first();
+
+			return document;
 		} catch (Exception e) {
 			logger.error("Error ", e);
 			return null;

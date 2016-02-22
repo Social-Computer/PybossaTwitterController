@@ -11,6 +11,14 @@ public class DeleteTweets {
 
 	public static void main(String[] args) throws InterruptedException {
 
+		Boolean res = removeTweets();
+		if (res == false) {
+			removeTweets();
+		}
+
+	}
+
+	public static Boolean removeTweets() {
 		Twitter twitter = TwitterAccount.setTwitterAccount(1);
 		try {
 			List<Status> statuses = twitter.getHomeTimeline();
@@ -19,15 +27,25 @@ public class DeleteTweets {
 					long id = status.getId();
 					twitter.destroyStatus(id);
 					System.out.println("deleted");
-					Thread.sleep(5000);
+					Thread.sleep(3000);
 				}
 				statuses = twitter.getHomeTimeline();
 			}
 
+			return true;
 		} catch (TwitterException e) {
 			e.printStackTrace();
+			try {
+				Thread.sleep(60000);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			return false;
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
 		}
-
 	}
-
 }

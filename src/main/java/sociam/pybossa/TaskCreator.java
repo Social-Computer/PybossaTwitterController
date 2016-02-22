@@ -75,15 +75,19 @@ public class TaskCreator {
 						int project_id = jsonObject.getInt("project_id");
 						int tasksPerProjectlimit = Integer.valueOf(Config.TasksPerProject);
 						ArrayList<String> tasksTexts = getAllTasksTextsFromPyBossa(project_id);
-						if (tasksTexts.size() > tasksPerProjectlimit) {
-							logger.debug("Project with id " + project_id + " has already got " + tasksPerProjectlimit
-									+ " tasks");
-							updateProjectToInsertedInMongoDB(project_id);
-							logger.debug("changing to another project");
+						if (tasksTexts != null) {
+							if (tasksTexts.size() >= tasksPerProjectlimit) {
+								logger.debug("Project with id " + project_id + " has already got "
+										+ tasksPerProjectlimit + " tasks");
+								updateProjectToInsertedInMongoDB(project_id);
+								logger.debug("changing to another project");
+								break;
+							}
+						} else {
 							break;
 						}
-						int tasksPerProjectCounter = 0;
-						if (tasksPerProjectCounter > tasksPerProjectlimit) {
+						int tasksPerProjectCounter = tasksTexts.size();
+						if (tasksPerProjectCounter >= tasksPerProjectlimit) {
 							logger.info("tasksPerProjectlimit was reached " + tasksPerProjectCounter);
 							updateProjectToInsertedInMongoDB(project_id);
 							logger.debug("changing to another project");
@@ -102,8 +106,10 @@ public class TaskCreator {
 							logger.info("There are \"" + tweets.size() + "\" tweets for projectID " + project_id);
 							for (Document tweet : tweets) {
 
+								logger.debug("Processing a new task");
 								// for each bin, get the text/tweet
 								String text = tweet.getString("text");
+								logger.debug("tweet text " + text);
 								if (!originalBinText.contains(text)) {
 									originalBinText.add(text);
 									String text_encoded = tweet.getString("text_encoded");
@@ -170,7 +176,7 @@ public class TaskCreator {
 		Exception e)
 
 		{
-			logger.error("Erro " + e);
+			logger.error("Error ", e);
 		}
 
 	}
@@ -213,22 +219,19 @@ public class TaskCreator {
 		}
 	}
 
-	static HashSet<Document> tweetsjsons = new LinkedHashSet<Document>();
+	// static HashSet<Document> tweetsjsons = new LinkedHashSet<Document>();
 
 	private static HashSet<Document> getTweetsFromBinInMongoDB(String collectionName) {
 
-		tweetsjsons = new LinkedHashSet<Document>();
+		HashSet<Document> tweetsjsons = new LinkedHashSet<Document>();
 		try {
 
 			FindIterable<Document> iterable = binsDatabase.getCollection(collectionName).find().limit(200);
 			if (iterable.first() != null) {
-				iterable.forEach(new Block<Document>() {
-					@Override
-					public void apply(final Document document) {
-						tweetsjsons.add(document);
-					}
-				});
-				return tweetsjsons;
+				for (Document document : iterable) {
+					// JSONObject app2 = new JSONObject(document);
+					tweetsjsons.add(document);
+				}
 			}
 			return tweetsjsons;
 		} catch (Exception e) {
@@ -237,24 +240,32 @@ public class TaskCreator {
 		}
 	}
 
-	static HashSet<JSONObject> startedProjectsJsons = new LinkedHashSet<JSONObject>();
+	// static HashSet<JSONObject> startedProjectsJsons = new
+	// LinkedHashSet<JSONObject>();
 
 	private static HashSet<JSONObject> getReadyProjects() {
-		startedProjectsJsons = new LinkedHashSet<JSONObject>();
+		logger.debug("getting projects from collection " + Config.projectCollection);
+		HashSet<JSONObject> startedProjectsJsons = new HashSet<JSONObject>();
 		try {
 
 			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
 					.find(new Document("project_status", "ready"));
 			if (iterable.first() != null) {
-				iterable.forEach(new Block<Document>() {
-					@Override
-					public void apply(final Document document) {
-						JSONObject app2 = new JSONObject(document);
-						startedProjectsJsons.add(app2);
-					}
-				});
-				return startedProjectsJsons;
+				for (Document document : iterable) {
+					JSONObject app2 = new JSONObject(document);
+					startedProjectsJsons.add(app2);
+				}
+
+				// iterable.forEach(new Block<Document>() {
+				// @Override
+				// public void apply(final Document document) {
+				// JSONObject app2 = new JSONObject(document);
+				// startedProjectsJsons.add(app2);
+				// }
+				// });
+				// return startedProjectsJsons;
 			}
+
 			return startedProjectsJsons;
 		} catch (Exception e) {
 			logger.error("Error ", e);
@@ -288,6 +299,7 @@ public class TaskCreator {
 				return jsonResult;
 			} else {
 				logger.error("PyBossa response failed : HTTP error code : " + response.getStatusLine().getStatusCode());
+				logger.error("response " + response);
 				return null;
 			}
 		} catch (Exception ex) {
@@ -387,7 +399,8 @@ public class TaskCreator {
 
 	private static ArrayList<String> getAllTasksTextsFromPyBossa(int project_id) {
 
-		String url = Config.PyBossahost + Config.taskDir + "?project_id=" + project_id;
+		String url = Config.PyBossahost + Config.taskDir + "?project_id=" + project_id + "&limit="
+				+ Config.TasksPerProject;
 
 		ArrayList<String> texts = new ArrayList<>();
 
@@ -415,6 +428,7 @@ public class TaskCreator {
 				texts.add(text);
 			}
 
+			logger.info("text size " + texts.size());
 			return texts;
 		} catch (IOException e) {
 			logger.error("Error ", e);

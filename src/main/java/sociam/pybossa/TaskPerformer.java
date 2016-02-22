@@ -168,22 +168,17 @@ public class TaskPerformer {
 
 	}
 
-	static HashSet<Document> NotPushedTasksjsons = new LinkedHashSet<Document>();
+	// static HashSet<Document> NotPushedTasksjsons = new
+	// LinkedHashSet<Document>();
 
 	public static HashSet<Document> getTasksFromMongoDB() {
-		NotPushedTasksjsons = new LinkedHashSet<Document>();
+		HashSet<Document> NotPushedTasksjsons = new LinkedHashSet<Document>();
 		try {
 			FindIterable<Document> iterable = database.getCollection(Config.taskCollection).find(new Document());
 			if (iterable.first() != null) {
-				iterable.forEach(new Block<Document>() {
-					@Override
-					public void apply(final Document document) {
-						NotPushedTasksjsons.add(document);
-					}
-				});
-				return NotPushedTasksjsons;
-			} else {
-
+				for (Document document : iterable) {
+					NotPushedTasksjsons.add(document);
+				}
 			}
 			return NotPushedTasksjsons;
 		} catch (Exception e) {
