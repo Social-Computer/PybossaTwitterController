@@ -226,7 +226,8 @@ public class TaskCreator {
 		HashSet<Document> tweetsjsons = new LinkedHashSet<Document>();
 		try {
 
-			FindIterable<Document> iterable = binsDatabase.getCollection(collectionName).find().limit(200);
+			FindIterable<Document> iterable = binsDatabase.getCollection(collectionName).find()
+					.limit(Integer.valueOf(Config.TasksPerProject) * 2);
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
 					// JSONObject app2 = new JSONObject(document);
@@ -279,11 +280,11 @@ public class TaskCreator {
 
 		try {
 			HttpPost request = new HttpPost(url);
-			StringEntity params = new StringEntity(jsonData.toString());
+			StringEntity params = new StringEntity(jsonData.toString(), "utf-8");
 			params.setContentType("application/json");
 			request.addHeader("content-type", "application/json");
 			request.addHeader("Accept", "*/*");
-			request.addHeader("Accept-Encoding", "gzip,deflate,sdch");
+			request.addHeader("Accept-Encoding", "gzip,deflate,sdch,utf-8");
 			request.addHeader("Accept-Language", "en-US,en;q=0.8");
 			request.setEntity(params);
 

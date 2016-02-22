@@ -140,7 +140,7 @@ public class ProjectCreator {
 		HttpClient httpClient = HttpClientBuilder.create().build();
 		try {
 			HttpPost request = new HttpPost(url);
-			StringEntity params = new StringEntity(jsonData.toString());
+			StringEntity params = new StringEntity(jsonData.toString(), "utf-8");
 			params.setContentType("application/json");
 			request.addHeader("content-type", "application/json");
 			request.addHeader("Accept", "*/*");
