@@ -8,12 +8,10 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.mongodb.client.model.Filters.*;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -28,16 +26,13 @@ import org.json.JSONObject;
 import com.mongodb.Block;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
 import sociam.pybossa.config.Config;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
-import twitter4j.TwitterFactory;
 import twitter4j.TwitterObjectFactory;
-import twitter4j.conf.ConfigurationBuilder;
 
 public class TaskCollector {
 
@@ -49,11 +44,14 @@ public class TaskCollector {
 	final static SimpleDateFormat PyBossaformatter = new SimpleDateFormat("yyyy-mm-dd'T'hh:mm:ss.SSSSSS");
 
 	// caching tasksIDs
-	static HashSet<Integer> cachedTaskIDs = new HashSet<Integer>();
+	static HashMap<Integer, Integer> cachedTaskIDsAndProjectsIDs = new HashMap<>();
+
+	static Twitter twitter;
 
 	public static void main(String[] args) {
 
 		PropertyConfigurator.configure("log4j.properties");
+		twitter = TwitterAccount.setTwitterAccount(1);
 		logger.info("TaskCollector will be repeated every " + Config.TaskCollectorTrigger + " ms");
 		try {
 			while (true) {
@@ -69,13 +67,14 @@ public class TaskCollector {
 
 	public static void run() {
 		try {
-			Twitter twitter = setTwitterAccount(1);
+
 			logger.debug("Getting time line from Twitter");
 			ArrayList<JSONObject> ResponsesFromTwitter = getTimeLineAsJsons(twitter);
 			if (ResponsesFromTwitter != null) {
 				logger.debug("There are " + ResponsesFromTwitter.size() + " tweets to be processed");
 				for (JSONObject jsonObject : ResponsesFromTwitter) {
 
+					logger.debug("Processing a new twitter object ");
 					if (!jsonObject.isNull("in_reply_to_status_id_str")) {
 						logger.debug("Found a reply tweet");
 						String in_reply_to_status_id_str = jsonObject.getString("in_reply_to_status_id_str");
@@ -90,15 +89,14 @@ public class TaskCollector {
 						JSONObject userJson = jsonObject.getJSONObject("user");
 
 						// store the replier user name
-						// TODO: not working
 						String screen_name = userJson.getString("screen_name");
-
+						logger.debug("Looking for the original tweet for the reply");
 						JSONObject orgTweet = getTweetByID(String.valueOf(in_reply_to_status_id_str), twitter);
 						// loop through tweets till you find the orginal tweet
-						logger.debug("Looking for the original tweet for the reply");
 						while (!orgTweet.isNull("in_reply_to_status_id_str")) {
 							orgTweet = getTweetByID(orgTweet.getString("in_reply_to_status_id_str"), twitter);
 						}
+						logger.debug("Original tweet was found");
 
 						String orgTweetText = orgTweet.getString("text");
 						Pattern pattern = Pattern.compile("(#t[0-9]+)");
@@ -109,21 +107,25 @@ public class TaskCollector {
 							taskID = matcher.group(1).replaceAll("#t", "");
 							Integer intTaskID = Integer.valueOf(taskID);
 							// cache taskIDs
-							if (!cachedTaskIDs.contains(intTaskID)) {
+							if (!cachedTaskIDsAndProjectsIDs.containsKey(intTaskID)) {
 								logger.debug("TaskID is not in the cache");
-								cachedTaskIDs.add(intTaskID);
-								Document doc = getTaskFromMongoDB(Integer.valueOf(taskID));
+								logger.debug("Retriving Task id from Collection: " + Config.taskCollection);
+								Document doc = getTaskFromMongoDB(intTaskID);
 								if (doc != null) {
 									int project_id = doc.getInteger("project_id");
-									logger.debug("Retriving Task id from Collection: " + Config.taskCollection);
-									insertTaskRun(taskResponse, Integer.valueOf(taskID), project_id, id_str,
-											screen_name);
+									cachedTaskIDsAndProjectsIDs.put(intTaskID, project_id);
+									if (insertTaskRun(taskResponse, intTaskID, project_id, id_str, screen_name)) {
+										logger.debug("Rask run was completely processed");
+									} else {
+										logger.error("Failed to process the task run");
+									}
 								} else {
 									logger.error("Couldn't find task with ID " + taskID);
 								}
 							} else {
 								logger.debug("Task ID was found in the cache");
-								insertTaskRun(taskResponse, Integer.valueOf(taskID), intTaskID, id_str, screen_name);
+								insertTaskRun(taskResponse, intTaskID, cachedTaskIDsAndProjectsIDs.get(intTaskID),
+										id_str, screen_name);
 							}
 
 						} else {
@@ -147,23 +149,28 @@ public class TaskCollector {
 	private static Boolean insertTaskRun(String text, int task_id, int project_id, String id_str, String screen_name) {
 
 		JSONObject jsonData = BuildJsonTaskRunContent(text, task_id, project_id);
-		if (getReqest(project_id)) {
-			String url = Config.PyBossahost + Config.taskRunDir;
-			JSONObject PyBossaResponse = insertTaskRunIntoPyBossa(url, jsonData);
-			if (PyBossaResponse != null) {
-				logger.debug("Task run was successfully inserted into PyBossa");
-				if (insertTaskRunIntoMongoDB(jsonData, id_str, screen_name)) {
-					logger.debug("Task run was successfully inserted into MongoDB");
+		logger.debug("Inserting task run into MongoDB");
+		if (insertTaskRunIntoMongoDB(jsonData, id_str, screen_name)) {
+			logger.debug("Task run was successfully inserted into MongoDB");
+			// Project has to be reqested before inserting a task run
+			logger.debug("Requesting the project ID from PyBossa before inserting it");
+			if (getReqest(project_id)) {
+				String url = Config.PyBossahost + Config.taskRunDir;
+				logger.debug("Inserting task run into PyBossa");
+				JSONObject PyBossaResponse = insertTaskRunIntoPyBossa(url, jsonData);
+				if (PyBossaResponse != null) {
+					logger.debug("Task run was successfully inserted into PyBossa");
 					return true;
 				} else {
-					logger.error("Task run was not inserted into MongoDB!");
+					logger.error("Task run was not inserted into PyBossa!");
 					return false;
 				}
 			} else {
-				logger.error("Task run was not inserted into PyBossa!");
 				return false;
 			}
+
 		} else {
+			logger.error("Task run was not inserted into MongoDB!");
 			return false;
 		}
 
@@ -180,7 +187,7 @@ public class TaskCollector {
 			Integer project_id = jsonData.getInt("project_id");
 			Integer task_id = jsonData.getInt("task_id");
 			String task_run_text = jsonData.getString("info");
-			logger.debug("Inserting a task into MongoDB");
+			logger.debug("Inserting a task run into MongoDB");
 			if (pushTaskRunToMongoDB(insertedAt, project_id, task_id, task_run_text, id_str, screen_name)) {
 				return true;
 			} else {
@@ -200,7 +207,7 @@ public class TaskCollector {
 			if (publishedAt != null && project_id != null && task_text != null && id_str != null
 					&& screen_name != null) {
 				FindIterable<Document> iterable = database.getCollection(Config.taskRunCollection)
-						.find(new Document("id_str", id_str)).limit(1);
+						.find(new Document("id_str", id_str));
 				if (iterable.first() == null) {
 					database.getCollection(Config.taskRunCollection).insertOne(
 							new Document().append("publishedAt", publishedAt).append("project_id", project_id)
@@ -217,8 +224,8 @@ public class TaskCollector {
 			}
 
 		} catch (Exception e) {
-			logger.error("Error with inserting the task run " + "publishedAt " + publishedAt + "project_id "
-					+ project_id + "isPushed " + task_id + "task_id " + task_text + "\n" + e);
+			logger.error("Error with inserting the task run " + " publishedAt " + publishedAt + " project_id "
+					+ project_id + " isPushed " + task_id + " task_id " + task_text + "\n", e);
 			return false;
 		}
 
@@ -226,7 +233,7 @@ public class TaskCollector {
 
 	private static JSONObject insertTaskRunIntoPyBossa(String url, JSONObject jsonData) {
 		JSONObject jsonResult = null;
-		logger.debug("jsonData " + jsonData);
+		logger.debug("Json to be inserted into PyBossa:  " + jsonData);
 		HttpClient httpClient = HttpClientBuilder.create().build();
 
 		try {
@@ -264,12 +271,14 @@ public class TaskCollector {
 	public static Boolean getReqest(int project_id) {
 		String url = Config.PyBossahost + Config.projectDir + "/" + project_id + "/newtask";
 
-		HttpURLConnection con;
+		HttpURLConnection con = null;
 		try {
+
 			URL obj = new URL(url);
 			con = (HttpURLConnection) obj.openConnection();
 			// optional default is GET
 			con.setRequestMethod("GET");
+			con.setConnectTimeout(10000);
 			int responseCode = con.getResponseCode();
 			// System.out.println("\nSending 'GET' request to URL : " + url);
 			// System.out.println("Response Code : " + responseCode);
@@ -281,7 +290,7 @@ public class TaskCollector {
 			while ((inputLine = in.readLine()) != null) {
 				response.append(inputLine);
 			}
-			logger.debug(response);
+			logger.debug("PyBossa get reqesut for Project_id: " + response);
 			in.close();
 
 			if (responseCode == 200 || responseCode == 204) {
@@ -333,7 +342,7 @@ public class TaskCollector {
 
 			FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
 					.find(new Document("pybossa_task_id", pybossa_task_id)).limit(1);
-			;
+			
 			iterable.forEach(new Block<Document>() {
 				@Override
 				public void apply(final Document document) {
@@ -384,68 +393,6 @@ public class TaskCollector {
 		}
 
 		return jsons;
-
-	}
-
-	// TODO: build the upper method for mapping between IDs and project type -
-	// given that each project type should be related to a particular twitter
-	// account.
-
-	/**
-	 * This is an intermediate method that is supposed to get a Twitter object
-	 * based on a simple id mapping ( id=1 for trnaslation account).
-	 * 
-	 * @param i
-	 *            This should be modelled somewhere else.
-	 * @return Twitter object of a specific account.
-	 */
-	private static Twitter setTwitterAccount(int i) {
-		Twitter twitter = null;
-		try {
-			logger.debug("Setting up a twitter account with its credintials!");
-			ConfigurationBuilder cb = new ConfigurationBuilder();
-
-			// Transltion account
-			if (i == 1) {
-				cb.setDebugEnabled(true).setOAuthConsumerKey("ZSouoRP3t2bLlznRn38LoABBY")
-						.setOAuthConsumerSecret("x0sZsH9JR7oR5OjnEG2RO9Vbq74T4GuoYVd1TiUuhxxiddbZe9")
-						.setOAuthAccessToken("4895555638-q6ZVtqdcRIXgHCKgrN5qnSyQTy5xwL3ZcUrs1Rp")
-						.setOAuthAccessTokenSecret("hxS9HSsIqUTyFEYoQxdSHQ8zPj31GMQ7zUwhlUwYQnO2K");
-
-				// Verfying account
-			} else if (i == 2) {
-				cb.setDebugEnabled(true).setOAuthConsumerKey("*********************")
-						.setOAuthConsumerSecret("******************************************")
-						.setOAuthAccessToken("**************************************************")
-						.setOAuthAccessTokenSecret("******************************************");
-
-			} else if (i == 3) {
-				cb.setDebugEnabled(true).setOAuthConsumerKey("*********************")
-						.setOAuthConsumerSecret("******************************************")
-						.setOAuthAccessToken("**************************************************")
-						.setOAuthAccessTokenSecret("******************************************");
-
-			} else if (i == 4) {
-				cb.setDebugEnabled(true).setOAuthConsumerKey("*********************")
-						.setOAuthConsumerSecret("******************************************")
-						.setOAuthAccessToken("**************************************************")
-						.setOAuthAccessTokenSecret("******************************************");
-
-			} else {
-				return null;
-			}
-
-			TwitterFactory tf = new TwitterFactory(cb.build());
-			twitter = tf.getInstance();
-
-			logger.debug("The twitter account " + twitter.getScreenName() + " is being set!");
-		} catch (IllegalStateException e) {
-			e.printStackTrace();
-			logger.error("Error", e);
-		} catch (TwitterException e) {
-			logger.error("Errore", e);
-		}
-		return twitter;
 
 	}
 

@@ -1,0 +1,74 @@
+package sociam.pybossa;
+
+import org.apache.log4j.Logger;
+
+import twitter4j.Twitter;
+import twitter4j.TwitterException;
+import twitter4j.TwitterFactory;
+import twitter4j.conf.ConfigurationBuilder;
+
+public class TwitterAccount {
+	// TODO: build the upper method for mapping between IDs and project type -
+	// given that each project type should be related to a particular twitter
+	// account.
+	final static Logger logger = Logger.getLogger(TwitterAccount.class);
+
+	/**
+	 * This is an intermediate method that is supposed to get a Twitter object
+	 * based on a simple id mapping ( id=1 for trnaslation account).
+	 * 
+	 * @param i
+	 *            This should be modelled somewhere else.
+	 * @return Twitter object of a specific account.
+	 */
+	public static Twitter setTwitterAccount(int i) {
+		Twitter twitter = null;
+		try {
+			logger.debug("Setting up a twitter account with its credintials!");
+			ConfigurationBuilder cb = new ConfigurationBuilder();
+			cb.setJSONStoreEnabled(true);
+
+			// Transltion account
+			if (i == 1) {
+				cb.setDebugEnabled(true).setOAuthConsumerKey("ZSouoRP3t2bLlznRn38LoABBY")
+						.setOAuthConsumerSecret("x0sZsH9JR7oR5OjnEG2RO9Vbq74T4GuoYVd1TiUuhxxiddbZe9")
+						.setOAuthAccessToken("4895555638-q6ZVtqdcRIXgHCKgrN5qnSyQTy5xwL3ZcUrs1Rp")
+						.setOAuthAccessTokenSecret("hxS9HSsIqUTyFEYoQxdSHQ8zPj31GMQ7zUwhlUwYQnO2K");
+
+				// Verfying account
+			} else if (i == 2) {
+				cb.setDebugEnabled(true).setOAuthConsumerKey("*********************")
+						.setOAuthConsumerSecret("******************************************")
+						.setOAuthAccessToken("**************************************************")
+						.setOAuthAccessTokenSecret("******************************************");
+
+			} else if (i == 3) {
+				cb.setDebugEnabled(true).setOAuthConsumerKey("*********************")
+						.setOAuthConsumerSecret("******************************************")
+						.setOAuthAccessToken("**************************************************")
+						.setOAuthAccessTokenSecret("******************************************");
+
+			} else if (i == 4) {
+				cb.setDebugEnabled(true).setOAuthConsumerKey("*********************")
+						.setOAuthConsumerSecret("******************************************")
+						.setOAuthAccessToken("**************************************************")
+						.setOAuthAccessTokenSecret("******************************************");
+
+			} else {
+				return null;
+			}
+
+			TwitterFactory tf = new TwitterFactory(cb.build());
+			twitter = tf.getInstance();
+
+			logger.debug("The twitter account " + twitter.getScreenName() + " is being set!");
+		} catch (IllegalStateException e) {
+			e.printStackTrace();
+			logger.error("Error", e);
+		} catch (TwitterException e) {
+			logger.error("Errore", e);
+		}
+		return twitter;
+
+	}
+}

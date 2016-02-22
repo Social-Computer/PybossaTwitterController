@@ -30,26 +30,22 @@ import com.mongodb.client.result.UpdateResult;
 
 public class ProjectCreator {
 	final static Logger logger = Logger.getLogger(ProjectCreator.class);
-	static MongoClient mongoClient = new MongoClient(Config.mongoHost,
-			Config.mongoPort);
-	static MongoDatabase database = mongoClient
-			.getDatabase(Config.projectsDatabaseName);
+	static MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+	static MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 	static String url = Config.PyBossahost + Config.projectDir + Config.api_key;
 
 	public static void main(String[] args) {
 		PropertyConfigurator.configure("log4j.properties");
 
-		logger.info("ProjectCreator will be repeated every "
-				+ Config.ProjectCreatorTrigger + " ms");
+		logger.info("ProjectCreator will be repeated every " + Config.ProjectCreatorTrigger + " ms");
 		try {
 			while (true) {
 				run();
-				logger.info("Sleeping for " + Config.ProjectCreatorTrigger
-						+ " ms");
+				logger.info("Sleeping for " + Config.ProjectCreatorTrigger + " ms");
 				Thread.sleep(Integer.valueOf(Config.ProjectCreatorTrigger));
 			}
 		} catch (InterruptedException e) {
-			logger.error("Error " , e);
+			logger.error("Error ", e);
 		}
 
 	}
@@ -59,60 +55,46 @@ public class ProjectCreator {
 			HashSet<Document> projectsAsdocs = checkMongoForEmptyProjects();
 
 			if (projectsAsdocs != null) {
-				logger.info("There are "
-						+ projectsAsdocs.size()
+				logger.info("There are " + projectsAsdocs.size()
 						+ " projects need to be inserted into PyBossa and then updated within MongoDB");
 				if (!projectsAsdocs.isEmpty()) {
 					for (Document document : projectsAsdocs) {
-						String project_name = document
-								.getString("project_name");
+						String project_name = document.getString("project_name");
 						ObjectId _id = document.getObjectId("_id");
-						JSONObject jsonData = BuildJsonPorject(project_name,
-								project_name, project_name,
+						JSONObject jsonData = BuildJsonPorject(project_name, project_name, project_name,
 								Config.project_validation_templatePath);
-						JSONObject PyBossaResponse = createProjectInPyBossa(
-								url, jsonData);
+						JSONObject PyBossaResponse = createProjectInPyBossa(url, jsonData);
 						if (PyBossaResponse != null) {
-							logger.debug("Project: " + project_name
-									+ " was sucessfully inserted into PyBossa");
+							logger.debug("Project: " + project_name + " was sucessfully inserted into PyBossa");
 							logger.debug(PyBossaResponse.toString());
 							int project_id = PyBossaResponse.getInt("id");
-							Boolean wasUpdated = updateProjectIntoMongoDB(_id,
-									project_id, "ready");
+							Boolean wasUpdated = updateProjectIntoMongoDB(_id, project_id, "ready");
 							if (wasUpdated) {
-								logger.debug("Project "
-										+ project_name
-										+ " was sucessfully updated to have projectID: "
-										+ project_id
-										+ " and project_started=true");
+								logger.debug("Project " + project_name + " was sucessfully updated to have projectID: "
+										+ project_id + " and project_started=true");
 							} else {
-								logger.error("Could't update project "
-										+ project_name + " in MongoDB");
+								logger.error("Could't update project " + project_name + " in MongoDB");
 							}
 						} else {
-							logger.error("Porject with the name "
-									+ project_name
-									+ " couldn't be inserted into PyBossa");
+							logger.error(
+									"Porject with the name " + project_name + " couldn't be inserted into PyBossa");
 						}
+						// for testing
+						break;
 					}
 				} else {
 					logger.debug("There are no new projects to be inserted into PyBossa!");
 				}
 			}
 		} catch (Exception e) {
-			logger.error("Error " , e);
+			logger.error("Error ", e);
 		}
 	}
 
-	private static Boolean updateProjectIntoMongoDB(ObjectId _id,
-			int project_id, String project_status) {
+	private static Boolean updateProjectIntoMongoDB(ObjectId _id, int project_id, String project_status) {
 
-		UpdateResult result = database.getCollection(Config.projectCollection)
-				.updateOne(
-						new Document("_id", _id),
-						new Document("$set", new Document("project_status",
-								project_status)
-								.append("project_id", project_id)));
+		UpdateResult result = database.getCollection(Config.projectCollection).updateOne(new Document("_id", _id),
+				new Document("$set", new Document("project_status", project_status).append("project_id", project_id)));
 		logger.debug(result.toString());
 		if (result.wasAcknowledged()) {
 			if (result.getMatchedCount() > 0) {
@@ -127,9 +109,8 @@ public class ProjectCreator {
 	private static HashSet<Document> checkMongoForEmptyProjects() {
 		try {
 			jsons = new LinkedHashSet<Document>();
-			FindIterable<Document> iterable = database.getCollection(
-					Config.projectCollection).find(
-					new Document("project_status", "empty"));
+			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
+					.find(new Document("project_status", "empty"));
 
 			if (iterable.first() != null) {
 				iterable.forEach(new Block<Document>() {
@@ -142,7 +123,7 @@ public class ProjectCreator {
 			}
 			return jsons;
 		} catch (Exception e) {
-			logger.error("Error " , e);
+			logger.error("Error ", e);
 			return null;
 		}
 	}
@@ -158,8 +139,7 @@ public class ProjectCreator {
 	 * 
 	 * @return Boolean true if its created, false otherwise.
 	 **/
-	private static JSONObject createProjectInPyBossa(String url,
-			JSONObject jsonData) {
+	private static JSONObject createProjectInPyBossa(String url, JSONObject jsonData) {
 		JSONObject jsonResult = null;
 		HttpClient httpClient = HttpClientBuilder.create().build();
 		try {
@@ -172,21 +152,17 @@ public class ProjectCreator {
 			request.addHeader("Accept-Language", "en-US,en;q=0.8");
 			request.setEntity(params);
 			HttpResponse response = httpClient.execute(request);
-			if (response.getStatusLine().getStatusCode() == 200
-					|| response.getStatusLine().getStatusCode() == 204) {
-				BufferedReader br = new BufferedReader(new InputStreamReader(
-						(response.getEntity().getContent())));
+			if (response.getStatusLine().getStatusCode() == 200 || response.getStatusLine().getStatusCode() == 204) {
+				BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
 				String output;
-				logger.debug("Output from Server ...."
-						+ response.getStatusLine().getStatusCode() + "\n");
+				logger.debug("Output from Server ...." + response.getStatusLine().getStatusCode() + "\n");
 				while ((output = br.readLine()) != null) {
 					logger.debug(output);
 					jsonResult = new JSONObject(output);
 				}
 				return jsonResult;
 			} else {
-				logger.error("Failed : HTTP error code : "
-						+ response.getStatusLine().getStatusCode());
+				logger.error("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
 				return null;
 			}
 		} catch (Exception ex) {
@@ -207,8 +183,7 @@ public class ProjectCreator {
 	 *            later!
 	 * @return Json string
 	 */
-	private static JSONObject BuildJsonPorject(String name, String shortName,
-			String description, String templeteFile) {
+	private static JSONObject BuildJsonPorject(String name, String shortName, String description, String templeteFile) {
 
 		JSONObject app2 = new JSONObject();
 		String templete = readFile(templeteFile);
