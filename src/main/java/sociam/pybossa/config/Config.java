@@ -34,7 +34,7 @@ public class Config {
 	static {
 		Properties p = new Properties();
 		try (FileInputStream stream = new FileInputStream(new File(
-				"config.properties"))) {
+				"../config.properties"))) {
 			p.load(stream);
 		} catch (Exception e) {
 			e.printStackTrace();
