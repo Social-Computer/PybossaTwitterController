@@ -30,6 +30,7 @@ public class Config {
 	public static final String RePushTaskToTwitter;
 
 	public static final String TasksPerProject;
+	public static final String ProjectLimit;
 
 	static {
 		Properties p = new Properties();
@@ -65,6 +66,7 @@ public class Config {
 		RePushTaskToTwitter = p.getProperty("RePushTaskToTwitter");
 
 		TasksPerProject = p.getProperty("TasksPerProject");
+		ProjectLimit = p.getProperty("ProjectLimit");
 
 	}
 

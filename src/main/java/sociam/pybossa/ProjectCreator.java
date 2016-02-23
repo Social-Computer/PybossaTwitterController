@@ -52,46 +52,55 @@ public class ProjectCreator {
 
 	public static void run() {
 		try {
-			HashSet<Document> projectsAsdocs = checkMongoForEmptyProjects();
+			HashSet<Document> projectsAsdocs = getAllProjects();
 
 			if (projectsAsdocs != null) {
 				logger.info("There are " + projectsAsdocs.size()
 						+ " projects need to be inserted into PyBossa and then updated within MongoDB");
+				logger.info("ProjectLimit " + Config.ProjectLimit);
 				if (!projectsAsdocs.isEmpty()) {
 					for (Document document : projectsAsdocs) {
-						String project_name = document.getString("project_name");
-						ObjectId _id = document.getObjectId("_id");
-						JSONObject jsonData = BuildJsonPorject(project_name, project_name, project_name,
-								Config.project_validation_templatePath);
-						JSONObject PyBossaResponse = createProjectInPyBossa(url, jsonData);
-						if (PyBossaResponse != null) {
-							logger.debug("Project: " + project_name + " was sucessfully inserted into PyBossa");
-							logger.debug(PyBossaResponse.toString());
-							int project_id = PyBossaResponse.getInt("id");
-							Boolean wasUpdated = updateProjectIntoMongoDB(_id, project_id, "ready");
-							if (wasUpdated) {
-								logger.debug("Project " + project_name + " was sucessfully updated to have projectID: "
-										+ project_id + " and project_started=true");
+						String project_status = document.getString("project_status");
+						if (project_status.equals("empty")) {
+							String project_name = document.getString("project_name");
+							ObjectId _id = document.getObjectId("_id");
+							JSONObject jsonData = BuildJsonPorject(project_name, project_name, project_name,
+									Config.project_validation_templatePath);
+							JSONObject PyBossaResponse = createProjectInPyBossa(url, jsonData);
+							if (PyBossaResponse != null) {
+								logger.debug("Project: " + project_name + " was sucessfully inserted into PyBossa");
+								logger.debug(PyBossaResponse.toString());
+								int project_id = PyBossaResponse.getInt("id");
+								Boolean wasUpdated = updateProjectIntoMongoDB(_id, project_id, "ready");
+								if (wasUpdated) {
+									logger.debug(
+											"Project " + project_name + " was sucessfully updated to have projectID: "
+													+ project_id + " and project_started=true");
+								} else {
+									logger.error("Could't update project " + project_name + " in MongoDB");
+								}
 							} else {
-								logger.error("Could't update project " + project_name + " in MongoDB");
+								logger.error(
+										"Porject with the name " + project_name + " couldn't be inserted into PyBossa");
 							}
+							// for testing
+							// break;
 						} else {
-							logger.error(
-									"Porject with the name " + project_name + " couldn't be inserted into PyBossa");
+							logger.debug("There are no empty projects");
 						}
-						// for testing
-						// break;
 					}
 				} else {
-					logger.debug("There are no new projects to be inserted into PyBossa!");
+					logger.debug("There are no projects in the collection " + Config.projectCollection);
 				}
+			} else {
+				logger.debug("There are no projects in the collection " + Config.projectCollection);
 			}
 		} catch (Exception e) {
 			logger.error("Error ", e);
 		}
 	}
 
-	private static Boolean updateProjectIntoMongoDB(ObjectId _id, int project_id, String project_status) {
+	public static Boolean updateProjectIntoMongoDB(ObjectId _id, int project_id, String project_status) {
 
 		UpdateResult result = database.getCollection(Config.projectCollection).updateOne(new Document("_id", _id),
 				new Document("$set", new Document("project_status", project_status).append("project_id", project_id)));
@@ -106,11 +115,11 @@ public class ProjectCreator {
 
 	// static HashSet<Document> jsons = new LinkedHashSet<Document>();
 
-	private static HashSet<Document> checkMongoForEmptyProjects() {
+	public static HashSet<Document> getAllProjects() {
 		try {
 			HashSet<Document> jsons = new LinkedHashSet<Document>();
-			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
-					.find(new Document("project_status", "empty"));
+			FindIterable<Document> iterable = database.getCollection(Config.projectCollection).find(new Document())
+					.limit(Integer.valueOf(Config.ProjectLimit));
 
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
@@ -135,7 +144,7 @@ public class ProjectCreator {
 	 * 
 	 * @return Boolean true if its created, false otherwise.
 	 **/
-	private static JSONObject createProjectInPyBossa(String url, JSONObject jsonData) {
+	public static JSONObject createProjectInPyBossa(String url, JSONObject jsonData) {
 		JSONObject jsonResult = null;
 		HttpClient httpClient = HttpClientBuilder.create().build();
 		try {
@@ -179,7 +188,7 @@ public class ProjectCreator {
 	 *            later!
 	 * @return Json string
 	 */
-	private static JSONObject BuildJsonPorject(String name, String shortName, String description, String templeteFile) {
+	public static JSONObject BuildJsonPorject(String name, String shortName, String description, String templeteFile) {
 
 		JSONObject app2 = new JSONObject();
 		String templete = readFile(templeteFile);

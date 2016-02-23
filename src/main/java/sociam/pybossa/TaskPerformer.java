@@ -54,15 +54,15 @@ public class TaskPerformer {
 
 	public static void run() {
 		try {
-			HashSet<Document> tasksToBePushed = getTasksFromMongoDB();
+			HashSet<Document> tasksToBePushed = getReadyTasksFromMongoDB();
 			if (tasksToBePushed != null) {
 				logger.info("There are " + tasksToBePushed.size()
 						+ " tasks that need to be pushed into Twitter, then updating to MongoDB");
 
 				for (Document document : tasksToBePushed) {
-					Boolean isPushed = document.getBoolean("isPushed");
+					String task_status = document.getString("task_status");
 					String task_text = document.getString("task_text");
-					if (isPushed) {
+					if (task_status.equals("pushed")) {
 						Date lastPushAt = document.getDate("lastPushAt");
 						if (!rePush(lastPushAt)) {
 							break;
@@ -75,16 +75,27 @@ public class TaskPerformer {
 					int pybossa_task_id = document.getInteger("pybossa_task_id");
 					String task_textPlusTaskTag = task_text + " #t" + pybossa_task_id;
 
-					if (sendTaskToTwitter(task_textPlusTaskTag)) {
-						if (updateTaskToPushedInMongoDB(_id)) {
+					int responseCode = sendTaskToTwitter(task_textPlusTaskTag);
+					if (responseCode == 1) {
+						if (updateTaskToPushedInMongoDB(_id, "pushed")) {
 							logger.info("Task with text " + task_text + " has been sucessfully pushed to Twitter");
 							wasPushed = true;
 						} else {
 							logger.error(
 									"Error with updating " + Config.taskCollection + " for the _id " + _id.toString());
 						}
-					} else {
-						logger.error("Couldn't push task with text \"" + task_text + "\" to twitter");
+					} else if (responseCode == 0) {
+						if (updateTaskToPushedInMongoDB(_id, "notValied")) {
+							logger.debug("Tweeet is not valid because of length, but updated in Mongodb" + task_text);
+						}
+						logger.error("Couldn't update the task in MongoDB");
+					} else if (responseCode == 2) {
+						if (updateTaskToPushedInMongoDB(_id, "error")) {
+							logger.debug("pushing tweet has encountered an error, but has been updated into MongoDB "
+									+ task_text);
+						} else {
+							logger.error("Couldn't update the task in MongoDB");
+						}
 					}
 					// TODO: add lastPushAt when updating tasks
 
@@ -101,7 +112,7 @@ public class TaskPerformer {
 		}
 	}
 
-	private static Boolean rePush(Date lastPushAt) {
+	public static Boolean rePush(Date lastPushAt) {
 		try {
 
 			Calendar cal = Calendar.getInstance();
@@ -117,12 +128,13 @@ public class TaskPerformer {
 		}
 	}
 
-	private static Boolean updateTaskToPushedInMongoDB(ObjectId _id) {
+	public static Boolean updateTaskToPushedInMongoDB(ObjectId _id, String project_status) {
 		try {
 			Date date = new Date();
 			String lastPushAt = MongoDBformatter.format(date);
 			UpdateResult result = database.getCollection(Config.taskCollection).updateOne(new Document("_id", _id),
-					new Document().append("$set", new Document("isPushed", true).append("lastPushAt", lastPushAt)));
+					new Document().append("$set",
+							new Document("project_status", project_status).append("lastPushAt", lastPushAt)));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
@@ -146,7 +158,7 @@ public class TaskPerformer {
 	 * @param taskContent
 	 *            the content of the tweet to be published
 	 */
-	private static Boolean sendTaskToTwitter(String taskContent) {
+	public static int sendTaskToTwitter(String taskContent) {
 		Twitter twitter = TwitterAccount.setTwitterAccount(1);
 		// Twitter twitter = TwitterFactory.getSingleton();
 		Status status;
@@ -156,14 +168,14 @@ public class TaskPerformer {
 			if (post.length() < 140) {
 				status = twitter.updateStatus(post);
 				logger.debug("Successfully posting a task '" + status.getText() + "'." + status.getId());
-				return true;
+				return 1;
 			} else {
 				logger.error("Post \"" + post + "\" is longer than 140 characters. It has: " + (post.length()));
-				return false;
+				return 0;
 			}
 		} catch (Exception e) {
 			logger.error(e);
-			return false;
+			return 2;
 		}
 
 	}
@@ -171,10 +183,11 @@ public class TaskPerformer {
 	// static HashSet<Document> NotPushedTasksjsons = new
 	// LinkedHashSet<Document>();
 
-	public static HashSet<Document> getTasksFromMongoDB() {
+	public static HashSet<Document> getReadyTasksFromMongoDB() {
 		HashSet<Document> NotPushedTasksjsons = new LinkedHashSet<Document>();
 		try {
-			FindIterable<Document> iterable = database.getCollection(Config.taskCollection).find(new Document());
+			FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
+					.find(new Document("task_status", "ready"));
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
 					NotPushedTasksjsons.add(document);

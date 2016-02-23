@@ -76,7 +76,7 @@ public class TaskCollector {
 
 					logger.debug("Processing a new twitter object ");
 					if (!jsonObject.isNull("in_reply_to_status_id_str")) {
-						logger.debug("Found a reply tweet");
+						logger.debug("Found a reply tweet " + jsonObject);
 						String in_reply_to_status_id_str = jsonObject.getString("in_reply_to_status_id_str");
 						String reply = jsonObject.getString("text");
 						String in_reply_to_screen_name = jsonObject.getString("in_reply_to_screen_name");
@@ -146,10 +146,9 @@ public class TaskCollector {
 		}
 	}
 
-	private static Boolean insertTaskRun(String text, int task_id, int project_id, String id_str, String screen_name) {
+	public static Boolean insertTaskRun(String text, int task_id, int project_id, String id_str, String screen_name) {
 
 		JSONObject jsonData = BuildJsonTaskRunContent(text, task_id, project_id);
-		logger.debug("Inserting task run into MongoDB");
 		if (insertTaskRunIntoMongoDB(jsonData, id_str, screen_name)) {
 			logger.debug("Task run was successfully inserted into MongoDB");
 			// Project has to be reqested before inserting a task run
@@ -176,7 +175,7 @@ public class TaskCollector {
 
 	}
 
-	private static Boolean insertTaskRunIntoMongoDB(JSONObject jsonData, String id_str, String screen_name) {
+	public static Boolean insertTaskRunIntoMongoDB(JSONObject jsonData, String id_str, String screen_name) {
 
 		try {
 			// Integer pybossa_task_run_id = PyBossaResponse.getInt("id");
@@ -200,14 +199,14 @@ public class TaskCollector {
 
 	}
 
-	private static boolean pushTaskRunToMongoDB(String publishedAt, Integer project_id, Integer task_id,
+	public static boolean pushTaskRunToMongoDB(String publishedAt, Integer project_id, Integer task_id,
 			String task_text, String id_str, String screen_name) {
 
 		try {
 			if (publishedAt != null && project_id != null && task_text != null && id_str != null
 					&& screen_name != null) {
 				FindIterable<Document> iterable = database.getCollection(Config.taskRunCollection)
-						.find(new Document("id_str", id_str));
+						.find(new Document("id_str", id_str)).limit(1);
 				if (iterable.first() == null) {
 					database.getCollection(Config.taskRunCollection).insertOne(
 							new Document().append("publishedAt", publishedAt).append("project_id", project_id)
@@ -231,7 +230,7 @@ public class TaskCollector {
 
 	}
 
-	private static JSONObject insertTaskRunIntoPyBossa(String url, JSONObject jsonData) {
+	public static JSONObject insertTaskRunIntoPyBossa(String url, JSONObject jsonData) {
 		JSONObject jsonResult = null;
 		logger.debug("Json to be inserted into PyBossa:  " + jsonData);
 		HttpClient httpClient = HttpClientBuilder.create().build();
@@ -320,7 +319,7 @@ public class TaskCollector {
 	 * @param priority_0
 	 * @return Json string
 	 */
-	private static JSONObject BuildJsonTaskRunContent(String answer, int task_id, int project_id) {
+	public static JSONObject BuildJsonTaskRunContent(String answer, int task_id, int project_id) {
 
 		JSONObject app2 = new JSONObject();
 		app2.put("project_id", project_id);
@@ -331,7 +330,7 @@ public class TaskCollector {
 		return app2;
 	}
 
-	private static Document getTaskFromMongoDB(int pybossa_task_id) {
+	public static Document getTaskFromMongoDB(int pybossa_task_id) {
 		try {
 			// MongoCollection<Document> collection = database
 			// .getCollection(Config.taskCollection);
@@ -351,7 +350,7 @@ public class TaskCollector {
 
 	}
 
-	private static JSONObject getTweetByID(String status_id_str, Twitter twitter) {
+	public static JSONObject getTweetByID(String status_id_str, Twitter twitter) {
 
 		try {
 			Status status = twitter.showStatus(Long.parseLong(status_id_str));
@@ -368,7 +367,7 @@ public class TaskCollector {
 		}
 	}
 
-	private static ArrayList<JSONObject> getTimeLineAsJsons(Twitter twitter) {
+	public static ArrayList<JSONObject> getTimeLineAsJsons(Twitter twitter) {
 
 		ArrayList<JSONObject> jsons = new ArrayList<JSONObject>();
 		try {
