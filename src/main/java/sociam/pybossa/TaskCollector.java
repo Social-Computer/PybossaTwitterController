@@ -23,7 +23,6 @@ import org.apache.log4j.PropertyConfigurator;
 import org.bson.Document;
 import org.json.JSONObject;
 
-import com.mongodb.Block;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
@@ -34,6 +33,12 @@ import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterObjectFactory;
 
+/**
+ * 
+ * @author user Saud Aljaloud
+ * @author email sza1g10@ecs.soton.ac.uk
+ *
+ */
 public class TaskCollector {
 
 	final static Logger logger = Logger.getLogger(TaskCollector.class);
@@ -55,6 +60,7 @@ public class TaskCollector {
 		logger.info("TaskCollector will be repeated every " + Config.TaskCollectorTrigger + " ms");
 		try {
 			while (true) {
+				Config.reload();
 				run();
 				logger.info("Sleeping for " + Config.TaskCollectorTrigger + " ms");
 				Thread.sleep(Integer.valueOf(Config.TaskCollectorTrigger));

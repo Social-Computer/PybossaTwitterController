@@ -14,9 +14,7 @@ import org.bson.types.ObjectId;
 import sociam.pybossa.config.Config;
 import twitter4j.Status;
 import twitter4j.Twitter;
-import twitter4j.TwitterFactory;
 
-import com.mongodb.Block;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
@@ -43,6 +41,7 @@ public class TaskPerformer {
 		logger.info("TaskPerformer will be repeated every " + Config.TaskCreatorTrigger + " ms");
 		try {
 			while (true) {
+				Config.reload();
 				run();
 				logger.info("Sleeping for " + Config.TaskPerformerTrigger + " ms");
 				Thread.sleep(Integer.valueOf(Config.TaskPerformerTrigger));

@@ -7,6 +7,12 @@ import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
 import twitter4j.conf.ConfigurationBuilder;
 
+/**
+ * 
+ * @author user Saud Aljaloud
+ * @author email sza1g10@ecs.soton.ac.uk
+ *
+ */
 public class TwitterAccount {
 	// TODO: build the upper method for mapping between IDs and project type -
 	// given that each project type should be related to a particular twitter

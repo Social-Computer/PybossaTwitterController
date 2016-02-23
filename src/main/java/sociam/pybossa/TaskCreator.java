@@ -25,12 +25,17 @@ import org.json.JSONObject;
 
 import sociam.pybossa.config.Config;
 
-import com.mongodb.Block;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.UpdateResult;
 
+/**
+ * 
+ * @author user Saud Aljaloud
+ * @author email sza1g10@ecs.soton.ac.uk
+ *
+ */
 public class TaskCreator {
 
 	final static Logger logger = Logger.getLogger(TaskCreator.class);
@@ -50,6 +55,7 @@ public class TaskCreator {
 		logger.info("TaskCreator will be repeated every " + Config.TaskCreatorTrigger + " ms");
 		try {
 			while (true) {
+				Config.reload();
 				run();
 				logger.info("Sleeping for " + Config.TaskCreatorTrigger + " ms");
 				Thread.sleep(Integer.valueOf(Config.TaskCreatorTrigger));

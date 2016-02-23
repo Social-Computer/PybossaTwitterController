@@ -22,11 +22,17 @@ import org.json.JSONObject;
 
 import sociam.pybossa.config.Config;
 
-import com.mongodb.Block;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.UpdateResult;
+
+/**
+ * 
+ * @author user Saud Aljaloud
+ * @author email sza1g10@ecs.soton.ac.uk
+ *
+ */
 
 public class ProjectCreator {
 	final static Logger logger = Logger.getLogger(ProjectCreator.class);
@@ -40,6 +46,7 @@ public class ProjectCreator {
 		logger.info("ProjectCreator will be repeated every " + Config.ProjectCreatorTrigger + " ms");
 		try {
 			while (true) {
+				Config.reload();
 				run();
 				logger.info("Sleeping for " + Config.ProjectCreatorTrigger + " ms");
 				Thread.sleep(Integer.valueOf(Config.ProjectCreatorTrigger));
