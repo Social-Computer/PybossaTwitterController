@@ -45,7 +45,6 @@ public class TaskCollector {
 
 	final static Logger logger = Logger.getLogger(TaskCollector.class);
 	static MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
-	static MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 
 	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	final static SimpleDateFormat PyBossaformatter = new SimpleDateFormat("yyyy-mm-dd'T'hh:mm:ss.SSSSSS");
@@ -129,7 +128,7 @@ public class TaskCollector {
 										int project_id = doc.getInteger("project_id");
 										cachedTaskIDsAndProjectsIDs.put(intTaskID, project_id);
 										if (insertTaskRun(taskResponse, intTaskID, project_id, id_str, screen_name)) {
-											logger.debug("Rask run was completely processed");
+											logger.debug("Task run was completely processed");
 										} else {
 											logger.error("Failed to process the task run");
 										}
@@ -227,6 +226,7 @@ public class TaskCollector {
 			String task_text, String id_str, String screen_name) {
 
 		try {
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			if (publishedAt != null && project_id != null && task_text != null && id_str != null
 					&& screen_name != null) {
 				FindIterable<Document> iterable = database.getCollection(Config.taskRunCollection)
@@ -356,6 +356,8 @@ public class TaskCollector {
 
 	public static Document getTaskFromMongoDB(int pybossa_task_id) {
 		try {
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+
 			// MongoCollection<Document> collection = database
 			// .getCollection(Config.taskCollection);
 			// Document myDoc = collection.find(
@@ -376,6 +378,8 @@ public class TaskCollector {
 
 	public static Document getTaskRunsFromMongoDB(String id_str) {
 		try {
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+
 			// MongoCollection<Document> collection = database
 			// .getCollection(Config.taskCollection);
 			// Document myDoc = collection.find(
