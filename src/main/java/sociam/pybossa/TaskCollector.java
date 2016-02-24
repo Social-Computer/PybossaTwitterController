@@ -29,6 +29,7 @@ import com.mongodb.client.MongoDatabase;
 
 import sociam.pybossa.config.Config;
 import sociam.pybossa.util.TwitterAccount;
+import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -128,6 +129,9 @@ public class TaskCollector {
 									}
 								} else {
 									logger.error("Couldn't find task with ID " + taskID);
+									// TODO: Remove tweets that do not have
+									// records in MongoDB
+
 								}
 							} else {
 								logger.debug("Task ID was found in the cache");
@@ -141,6 +145,9 @@ public class TaskCollector {
 									+ orgTweetText);
 						}
 
+					}else{
+						logger.debug("This is not a reply tweet");
+						
 					}
 
 				}
@@ -378,8 +385,9 @@ public class TaskCollector {
 
 		ArrayList<JSONObject> jsons = new ArrayList<JSONObject>();
 		try {
-
-			List<Status> statuses = twitter.getHomeTimeline();
+			Paging p = new Paging();
+			p.setCount(200);
+			List<Status> statuses = twitter.getHomeTimeline(p);
 			for (Status status : statuses) {
 
 				String rawJSON = TwitterObjectFactory.getRawJSON(status);
