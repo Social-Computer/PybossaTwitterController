@@ -34,17 +34,17 @@ public class TwitterAccount {
 			ConfigurationBuilder cb = new ConfigurationBuilder();
 			cb.setJSONStoreEnabled(true);
 
-			// Transltion account
+			// validation account
 			if (i == 1) {
 				cb.setDebugEnabled(true).setOAuthConsumerKey("ZSouoRP3t2bLlznRn38LoABBY")
 						.setOAuthConsumerSecret("x0sZsH9JR7oR5OjnEG2RO9Vbq74T4GuoYVd1TiUuhxxiddbZe9")
 						.setOAuthAccessToken("4895555638-q6ZVtqdcRIXgHCKgrN5qnSyQTy5xwL3ZcUrs1Rp")
 						.setOAuthAccessTokenSecret("hxS9HSsIqUTyFEYoQxdSHQ8zPj31GMQ7zUwhlUwYQnO2K");
 
-				// Verfying account
+				// Transltion account
 			} else if (i == 2) {
-				cb.setDebugEnabled(true).setOAuthConsumerKey("07Xu6m5LhhmZMRe2ifZ3bljkk")
-						.setOAuthConsumerSecret("S2W2fqIjpwZhdEc3K9lBlDMCv3yfDmgpYYezCangTK77SFbgbM")
+				cb.setDebugEnabled(true).setOAuthConsumerKey("2CKOAYT8OOAfS3mgSH5HOtXQ4")
+						.setOAuthConsumerSecret("IIl53jtVCI8DHjcTww5t8bJcNqEuRyFxUJlFs1x9VH5bxlI3NK")
 						.setOAuthAccessToken("4894867594-fY2u8giMiK4zMCJD8NtnuLRs6QFiEv2zBW7DZ08")
 						.setOAuthAccessTokenSecret("GkW5FwC65EK7AjIgasnohb5QbFLojCiGWKwBoAANpB2eV");
 
