@@ -247,7 +247,7 @@ public class TaskPerformer {
 	}
 
 	public static JSONObject getProjectByID(int project_id) {
-		logger.debug("getting project by project_id from " + Config.projectCollection);
+		logger.debug("getting project by project_id from " + Config.projectCollection + " collection");
 
 		try {
 			JSONObject json = null;

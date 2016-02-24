@@ -20,7 +20,7 @@ public class DeleteTweets {
 	}
 
 	public static Boolean removeTweets() {
-		Twitter twitter = TwitterAccount.setTwitterAccount(1);
+		Twitter twitter = TwitterAccount.setTwitterAccount(2);
 		try {
 			Paging p = new Paging();
 			p.setCount(200);

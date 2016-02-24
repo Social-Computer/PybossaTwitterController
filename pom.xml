@@ -23,11 +23,6 @@
 			<artifactId>httpclient</artifactId>
 			<version>4.5.1</version>
 		</dependency>
-		<dependency>
-			<groupId>org.mongodb</groupId>
-			<artifactId>mongo-java-driver</artifactId>
-			<version>3.1.0</version>
-		</dependency>
 
 		<dependency>
 			<groupId>org.json</groupId>
@@ -43,6 +38,11 @@
 			<groupId>org.freehep</groupId>
 			<artifactId>freehep-graphics2d</artifactId>
 			<version>2.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mongodb</groupId>
+			<artifactId>mongo-java-driver</artifactId>
+			<version>3.2.2</version>
 		</dependency>
 	</dependencies>
 	<build>
