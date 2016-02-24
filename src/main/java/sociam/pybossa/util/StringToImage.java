@@ -86,7 +86,7 @@ public class StringToImage {
 			// }
 			File outputfile = new File("image.jpg");
 			ImageIO.write(img, "jpg", outputfile);
-			// ImageIO.write(img, "jpg", new File("image.jpg"));
+			ImageIO.write(img, "jpg", new File("image.jpg"));
 			return outputfile;
 		} catch (Exception e) {
 			e.printStackTrace();
