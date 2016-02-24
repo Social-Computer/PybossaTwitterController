@@ -45,7 +45,7 @@
 			<version>2.4</version>
 		</dependency>
 	</dependencies>
-		<build>
+	<build>
 		<plugins>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
@@ -53,7 +53,6 @@
 					<archive>
 						<manifest>
 							<mainClass>sociam.pybossa.ProjectCreator</mainClass>
-							<!--  --><mainClass>sociam.pybossa.TaskCreator</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
@@ -70,8 +69,26 @@
 					<target>1.7</target>
 				</configuration>
 			</plugin>
-
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
-	
+
 </project>
