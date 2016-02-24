@@ -7,7 +7,6 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
@@ -87,7 +86,7 @@ public class StringToImage {
 			File outputfile = new File("textToImage.jpg");
 			ImageIO.write(img, "jpg", outputfile);
 			// ImageIO.write(img, "jpg", new File("image.jpg"));
-			return outputfile;
+			return outputfile.getAbsoluteFile();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
