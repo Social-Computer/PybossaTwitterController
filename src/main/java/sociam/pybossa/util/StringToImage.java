@@ -10,7 +10,10 @@ import java.io.File;
 
 import javax.imageio.ImageIO;
 
+import org.apache.log4j.Logger;
+
 public class StringToImage {
+	final static Logger logger = Logger.getLogger(StringToImage.class);
 
 	// public static void main(String[] args) {
 	//
@@ -28,7 +31,7 @@ public class StringToImage {
 		 * height of the final image
 		 */
 		try {
-			BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+			BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_3BYTE_BGR);
 			Graphics2D g2d = img.createGraphics();
 			int width = 650;
 			int height = 140;
@@ -88,7 +91,7 @@ public class StringToImage {
 			// ImageIO.write(img, "jpg", new File("image.jpg"));
 			return outputfile.getAbsoluteFile();
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("Error ", e);
 			return null;
 		}
 	}
