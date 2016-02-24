@@ -58,7 +58,7 @@ public class TaskCollector {
 	public static void main(String[] args) {
 
 		PropertyConfigurator.configure("log4j.properties");
-		twitter = TwitterAccount.setTwitterAccount(1);
+		twitter = TwitterAccount.setTwitterAccount(2);
 		logger.info("TaskCollector will be repeated every " + Config.TaskCollectorTrigger + " ms");
 		try {
 			while (true) {
@@ -145,9 +145,9 @@ public class TaskCollector {
 									+ orgTweetText);
 						}
 
-					}else{
+					} else {
 						logger.debug("This is not a reply tweet");
-						
+
 					}
 
 				}

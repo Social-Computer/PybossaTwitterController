@@ -15,7 +15,7 @@ public class TestImageinTweet {
 	}
 
 	public static void sendTaskToTwitter(String taskContent) {
-		Twitter twitter = TwitterAccount.setTwitterAccount(1);
+		Twitter twitter = TwitterAccount.setTwitterAccount(2);
 		// Twitter twitter = TwitterFactory.getSingleton();
 
 		try {

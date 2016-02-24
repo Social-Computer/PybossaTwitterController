@@ -43,10 +43,10 @@ public class TwitterAccount {
 
 				// Verfying account
 			} else if (i == 2) {
-				cb.setDebugEnabled(true).setOAuthConsumerKey("*********************")
-						.setOAuthConsumerSecret("******************************************")
-						.setOAuthAccessToken("**************************************************")
-						.setOAuthAccessTokenSecret("******************************************");
+				cb.setDebugEnabled(true).setOAuthConsumerKey("07Xu6m5LhhmZMRe2ifZ3bljkk")
+						.setOAuthConsumerSecret("S2W2fqIjpwZhdEc3K9lBlDMCv3yfDmgpYYezCangTK77SFbgbM")
+						.setOAuthAccessToken("4894867594-fY2u8giMiK4zMCJD8NtnuLRs6QFiEv2zBW7DZ08")
+						.setOAuthAccessTokenSecret("GkW5FwC65EK7AjIgasnohb5QbFLojCiGWKwBoAANpB2eV");
 
 			} else if (i == 3) {
 				cb.setDebugEnabled(true).setOAuthConsumerKey("*********************")
