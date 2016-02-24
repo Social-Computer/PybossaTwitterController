@@ -98,53 +98,61 @@ public class TaskCollector {
 
 						// store the replier user name
 						String screen_name = userJson.getString("screen_name");
-						logger.debug("Looking for the original tweet for the reply");
-						JSONObject orgTweet = getTweetByID(String.valueOf(in_reply_to_status_id_str), twitter);
-						// loop through tweets till you find the orginal tweet
-						while (!orgTweet.isNull("in_reply_to_status_id_str")) {
-							orgTweet = getTweetByID(orgTweet.getString("in_reply_to_status_id_str"), twitter);
-						}
-						logger.debug("Original tweet was found");
 
-						String orgTweetText = orgTweet.getString("text");
-						Pattern pattern = Pattern.compile("(#t[0-9]+)");
-						Matcher matcher = pattern.matcher(orgTweetText);
-						String taskID = "";
-						if (matcher.find()) {
-							logger.debug("Found a taskID in the orginal tweet");
-							taskID = matcher.group(1).replaceAll("#t", "");
-							Integer intTaskID = Integer.valueOf(taskID);
-							// cache taskIDs
-							if (!cachedTaskIDsAndProjectsIDs.containsKey(intTaskID)) {
-								logger.debug("TaskID is not in the cache");
-								logger.debug("Retriving Task id from Collection: " + Config.taskCollection);
-								Document doc = getTaskFromMongoDB(intTaskID);
-								if (doc != null) {
-									int project_id = doc.getInteger("project_id");
-									cachedTaskIDsAndProjectsIDs.put(intTaskID, project_id);
-									if (insertTaskRun(taskResponse, intTaskID, project_id, id_str, screen_name)) {
-										logger.debug("Rask run was completely processed");
+						logger.debug("Checking if the reply has already being stored");
+						Document taskRun = getTaskRunsFromMongoDB(id_str);
+						if (taskRun == null) {
+
+							logger.debug("Looking for the original tweet for the reply");
+							JSONObject orgTweet = getTweetByID(String.valueOf(in_reply_to_status_id_str), twitter);
+							// loop through tweets till you find the orginal
+							// tweet
+							while (!orgTweet.isNull("in_reply_to_status_id_str")) {
+								orgTweet = getTweetByID(orgTweet.getString("in_reply_to_status_id_str"), twitter);
+							}
+							logger.debug("Original tweet was found");
+
+							String orgTweetText = orgTweet.getString("text");
+							Pattern pattern = Pattern.compile("(#t[0-9]+)");
+							Matcher matcher = pattern.matcher(orgTweetText);
+							String taskID = "";
+							if (matcher.find()) {
+								logger.debug("Found a taskID in the orginal tweet");
+								taskID = matcher.group(1).replaceAll("#t", "");
+								Integer intTaskID = Integer.valueOf(taskID);
+								// cache taskIDs
+								if (!cachedTaskIDsAndProjectsIDs.containsKey(intTaskID)) {
+									logger.debug("TaskID is not in the cache");
+									logger.debug("Retriving Task id from Collection: " + Config.taskCollection);
+									Document doc = getTaskFromMongoDB(intTaskID);
+									if (doc != null) {
+										int project_id = doc.getInteger("project_id");
+										cachedTaskIDsAndProjectsIDs.put(intTaskID, project_id);
+										if (insertTaskRun(taskResponse, intTaskID, project_id, id_str, screen_name)) {
+											logger.debug("Rask run was completely processed");
+										} else {
+											logger.error("Failed to process the task run");
+										}
 									} else {
-										logger.error("Failed to process the task run");
+										logger.error("Couldn't find task with ID " + taskID);
+										// TODO: Remove tweets that do not have
+										// records in MongoDB
+
 									}
 								} else {
-									logger.error("Couldn't find task with ID " + taskID);
-									// TODO: Remove tweets that do not have
-									// records in MongoDB
-
+									logger.debug("Task ID was found in the cache");
+									insertTaskRun(taskResponse, intTaskID, cachedTaskIDsAndProjectsIDs.get(intTaskID),
+											id_str, screen_name);
 								}
+
 							} else {
-								logger.debug("Task ID was found in the cache");
-								insertTaskRun(taskResponse, intTaskID, cachedTaskIDsAndProjectsIDs.get(intTaskID),
-										id_str, screen_name);
+								logger.error("reply: \\" + reply
+										+ " was not being identified with an associated task in the original text: \\"
+										+ orgTweetText);
 							}
-
 						} else {
-							logger.error("reply: \\" + reply
-									+ " was not being identified with an associated task in the original text: \\"
-									+ orgTweetText);
+							logger.debug("Reply has already being stored");
 						}
-
 					} else {
 						logger.debug("This is not a reply tweet");
 
@@ -213,6 +221,8 @@ public class TaskCollector {
 
 	}
 
+	// maybe it's not needed to check id_str becasue we check it first!
+	// so only do an insert?
 	public static boolean pushTaskRunToMongoDB(String publishedAt, Integer project_id, Integer task_id,
 			String task_text, String id_str, String screen_name) {
 
@@ -220,7 +230,7 @@ public class TaskCollector {
 			if (publishedAt != null && project_id != null && task_text != null && id_str != null
 					&& screen_name != null) {
 				FindIterable<Document> iterable = database.getCollection(Config.taskRunCollection)
-						.find(new Document("id_str", id_str)).limit(1);
+						.find(new Document("id_str", id_str));
 				if (iterable.first() == null) {
 					database.getCollection(Config.taskRunCollection).insertOne(
 							new Document().append("publishedAt", publishedAt).append("project_id", project_id)
@@ -364,6 +374,26 @@ public class TaskCollector {
 
 	}
 
+	public static Document getTaskRunsFromMongoDB(String id_str) {
+		try {
+			// MongoCollection<Document> collection = database
+			// .getCollection(Config.taskCollection);
+			// Document myDoc = collection.find(
+			// eq("pybossa_task_id", pybossa_task_id)).limit(1);
+
+			FindIterable<Document> iterable = database.getCollection(Config.taskRunCollection)
+					.find(new Document("id_str", id_str));
+
+			Document document = iterable.first();
+
+			return document;
+		} catch (Exception e) {
+			logger.error("Error ", e);
+			return null;
+		}
+
+	}
+
 	public static JSONObject getTweetByID(String status_id_str, Twitter twitter) {
 
 		try {
@@ -395,7 +425,7 @@ public class TaskCollector {
 				jsons.add(jsonObject);
 			}
 		} catch (TwitterException te) {
-			logger.error("Failed to get timeline: " + te.getMessage());
+			logger.error("Failed to get timeline: ", te);
 			return null;
 		}
 

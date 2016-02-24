@@ -18,7 +18,6 @@ import org.json.JSONObject;
 import sociam.pybossa.config.Config;
 import sociam.pybossa.util.StringToImage;
 import sociam.pybossa.util.TwitterAccount;
-import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 
@@ -252,13 +251,16 @@ public class TaskPerformer {
 		try {
 			JSONObject json = null;
 			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
-					.find(new Document("project_id", project_id)).limit(1);
-			if (iterable.first() != null) {
-				for (Document document : iterable) {
-					JSONObject app2 = new JSONObject(document);
-					json = app2;
-				}
-			}
+					.find(new Document("project_id", project_id));
+
+			Document document = iterable.first();
+			json = new JSONObject(document);
+			// if (iterable.first() != null) {
+			// for (Document document : iterable) {
+			// JSONObject app2 = new JSONObject(document);
+			// json = app2;
+			// }
+			// }
 			return json;
 		} catch (Exception e) {
 			logger.error("Error ", e);

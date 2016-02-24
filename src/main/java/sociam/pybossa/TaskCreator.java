@@ -233,7 +233,7 @@ public class TaskCreator {
 		try {
 
 			FindIterable<Document> iterable = binsDatabase.getCollection(collectionName).find()
-					.limit(Integer.valueOf(Config.TasksPerProject) * 2);
+					.limit(Integer.valueOf(Config.TasksPerProject));
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
 					// JSONObject app2 = new JSONObject(document);
