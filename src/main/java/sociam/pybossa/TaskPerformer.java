@@ -94,7 +94,7 @@ public class TaskPerformer {
 
 					String taskTag = "#t" + pybossa_task_id;
 
-					int responseCode = sendTaskToTwitter(task_text, taskTag, hashtags, 1);
+					int responseCode = sendTaskToTwitter(task_text, taskTag, hashtags, 2);
 					if (responseCode == 1) {
 						if (updateTaskToPushedInMongoDB(_id, "pushed")) {
 							logger.info("Task with text " + task_text + " has been sucessfully pushed to Twitter");
