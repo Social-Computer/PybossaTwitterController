@@ -31,7 +31,7 @@ public class StringToImage {
 		 * height of the final image
 		 */
 		try {
-			BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_3BYTE_BGR);
+			BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_BINARY);
 			Graphics2D g2d = img.createGraphics();
 			int width = 650;
 			int height = 140;
