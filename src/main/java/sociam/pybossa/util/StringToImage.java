@@ -1,4 +1,4 @@
-package sociam.pybossa.twitter;
+package sociam.pybossa.util;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -11,16 +11,17 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-public class TestStringTOImage {
+public class StringToImage {
 
-	public static void main(String[] args) {
+	// public static void main(String[] args) {
+	//
+	// convertToImage(
+	// "Because font metrics is based on a graphics context, we need to Because
+	// font metrics is based on a graphics context, we need to Because font",
+	// "Can you translate the below text? (yes/no/not valid)");
+	// }
 
-		convertToImage(
-				"Because font metrics is based on a graphics context, we need to Because font metrics is based on a graphics context, we need to Because font",
-				"Can you translate the below text? (yes/no/not valid)");
-	}
-
-	public static File convertToImage(String text, String taskMessage) {
+	public static File convertStringToImage(String text, String question) {
 
 		/*
 		 * Because font metrics is based on a graphics context, we need to
@@ -28,11 +29,10 @@ public class TestStringTOImage {
 		 * height of the final image
 		 */
 		try {
-			BufferedImage img = new BufferedImage(1, 1,
-					BufferedImage.TYPE_INT_ARGB);
+			BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
 			Graphics2D g2d = img.createGraphics();
 			int width = 650;
-			int height = 130;
+			int height = 140;
 			Font font = new Font("Arial", Font.PLAIN, 20);
 			g2d.setFont(font);
 			FontMetrics fm = g2d.getFontMetrics();
@@ -41,20 +41,13 @@ public class TestStringTOImage {
 			g2d = img.createGraphics();
 			g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION,
 					RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-					RenderingHints.VALUE_ANTIALIAS_ON);
-			g2d.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING,
-					RenderingHints.VALUE_COLOR_RENDER_QUALITY);
-			g2d.setRenderingHint(RenderingHints.KEY_DITHERING,
-					RenderingHints.VALUE_DITHER_ENABLE);
-			g2d.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS,
-					RenderingHints.VALUE_FRACTIONALMETRICS_ON);
-			g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-					RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-			g2d.setRenderingHint(RenderingHints.KEY_RENDERING,
-					RenderingHints.VALUE_RENDER_QUALITY);
-			g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL,
-					RenderingHints.VALUE_STROKE_PURE);
+			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g2d.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+			g2d.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
+			g2d.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+			g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+			g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+			g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
 			// g2d.setColor(Color.BLUE);
 			// g2d.fillRect(0, 0, width, height);
 			g2d.setFont(font);
@@ -64,8 +57,8 @@ public class TestStringTOImage {
 			int lineWidth = 60;
 			int x = 20;
 			int y = 30;
-			g2d.drawString(taskMessage, x, y);
-			y += 30;
+			g2d.drawString(question, x, y);
+			y += 40;
 			if (fm.stringWidth(text) < lineWidth) {
 				g2d.drawString(text, x, y);
 			} else {
@@ -93,7 +86,7 @@ public class TestStringTOImage {
 			// }
 			File outputfile = new File("image.jpg");
 			ImageIO.write(img, "jpg", outputfile);
-			ImageIO.write(img, "jpg", new File("image.jpg"));
+			// ImageIO.write(img, "jpg", new File("image.jpg"));
 			return outputfile;
 		} catch (Exception e) {
 			e.printStackTrace();

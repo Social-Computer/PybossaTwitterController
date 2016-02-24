@@ -2,7 +2,7 @@ package sociam.pybossa.twitter;
 
 import java.util.List;
 
-import sociam.pybossa.TwitterAccount;
+import sociam.pybossa.util.TwitterAccount;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -27,7 +27,7 @@ public class DeleteTweets {
 					long id = status.getId();
 					twitter.destroyStatus(id);
 					System.out.println("deleted");
-					Thread.sleep(3000);
+					Thread.sleep(5000);
 				}
 				statuses = twitter.getHomeTimeline();
 			}

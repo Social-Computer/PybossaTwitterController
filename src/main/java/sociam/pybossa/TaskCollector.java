@@ -28,6 +28,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
 
 import sociam.pybossa.config.Config;
+import sociam.pybossa.util.TwitterAccount;
 import twitter4j.Status;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;

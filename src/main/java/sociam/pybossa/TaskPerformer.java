@@ -1,6 +1,8 @@
 package sociam.pybossa;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
@@ -10,9 +12,14 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import sociam.pybossa.config.Config;
+import sociam.pybossa.util.StringToImage;
+import sociam.pybossa.util.TwitterAccount;
 import twitter4j.Status;
+import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 
 import com.mongodb.MongoClient;
@@ -72,9 +79,22 @@ public class TaskPerformer {
 
 					ObjectId _id = document.getObjectId("_id");
 					int pybossa_task_id = document.getInteger("pybossa_task_id");
-					String task_textPlusTaskTag = task_text + " #t" + pybossa_task_id;
+					int project_id = document.getInteger("project_id");
 
-					int responseCode = sendTaskToTwitter(task_textPlusTaskTag);
+					JSONObject project = getProjectByID(project_id);
+					ArrayList<String> hashtags = new ArrayList<>();
+					if (project != null) {
+						JSONArray bin_id = project.getJSONArray("bin_ids");
+						for (Object object : bin_id) {
+							String binItem = (String) object;
+							hashtags.add("#" + binItem);
+						}
+
+					}
+
+					String taskTag = "#t" + pybossa_task_id;
+
+					int responseCode = sendTaskToTwitter(task_text, taskTag, hashtags, 1);
 					if (responseCode == 1) {
 						if (updateTaskToPushedInMongoDB(_id, "pushed")) {
 							logger.info("Task with text " + task_text + " has been sucessfully pushed to Twitter");
@@ -133,12 +153,12 @@ public class TaskPerformer {
 			String lastPushAt = MongoDBformatter.format(date);
 			UpdateResult result = database.getCollection(Config.taskCollection).updateOne(new Document("_id", _id),
 					new Document().append("$set",
-							new Document("project_status", task_status).append("lastPushAt", lastPushAt)));
+							new Document("task_status", task_status).append("lastPushAt", lastPushAt)));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
 					logger.debug(Config.taskCollection + " Collection was updated where _id= " + _id.toString()
-							+ " to isPushed=true");
+							+ " to task_status=" + task_status);
 					return true;
 				}
 			}
@@ -157,23 +177,50 @@ public class TaskPerformer {
 	 * @param taskContent
 	 *            the content of the tweet to be published
 	 */
-	public static int sendTaskToTwitter(String taskContent) {
-		Twitter twitter = TwitterAccount.setTwitterAccount(1);
-		// Twitter twitter = TwitterFactory.getSingleton();
-		Status status;
-
+	public static int sendTaskToTwitter(String taskContent, String taskTag, ArrayList<String> hashtags,
+			int project_type) {
 		try {
-			String post = taskContent;
+			Twitter twitter = TwitterAccount.setTwitterAccount(project_type);
+
+			// combine hashtags and tasktag while maintaining the 140 length
+			String post = "";
+			for (String string : hashtags) {
+				if (post.length() == 0) {
+					post = string;
+				} else {
+					String tmpResult = post + " " + string + taskTag;
+					if (tmpResult.length() >= 140) {
+						break;
+					}
+					post = post + " " + string;
+				}
+			}
+			post = post + " " + taskTag;
+
+			// defualt
+			String question = Config.project_validation_question;
+			if (project_type == 1) {
+				question = Config.project_validation_question;
+			}
+
+			// convert taskContent and question into an image
+			File image = StringToImage.convertStringToImage(taskContent, question);
+
 			if (post.length() < 140) {
-				status = twitter.updateStatus(post);
-				logger.debug("Successfully posting a task '" + status.getText() + "'." + status.getId());
+				// status = twitter.updateStatus(post);
+
+				StatusUpdate status = new StatusUpdate(post);
+				status.setMedia(image);
+				twitter.updateStatus(status);
+
+				logger.debug("Successfully posting a task '" + status.getStatus() + "'." + status.getPlaceId());
 				return 1;
 			} else {
 				logger.error("Post \"" + post + "\" is longer than 140 characters. It has: " + (post.length()));
 				return 0;
 			}
 		} catch (Exception e) {
-			logger.error(e);
+			logger.error("Error", e);
 			return 2;
 		}
 
@@ -193,6 +240,26 @@ public class TaskPerformer {
 				}
 			}
 			return NotPushedTasksjsons;
+		} catch (Exception e) {
+			logger.error("Error ", e);
+			return null;
+		}
+	}
+
+	public static JSONObject getProjectByID(int project_id) {
+		logger.debug("getting project by project_id from " + Config.projectCollection);
+
+		try {
+			JSONObject json = null;
+			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
+					.find(new Document("project_id", project_id)).limit(1);
+			if (iterable.first() != null) {
+				for (Document document : iterable) {
+					JSONObject app2 = new JSONObject(document);
+					json = app2;
+				}
+			}
+			return json;
 		} catch (Exception e) {
 			logger.error("Error ", e);
 			return null;

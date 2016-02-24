@@ -32,6 +32,8 @@ public class Config {
 	public static String TasksPerProject;
 	public static String ProjectLimit;
 
+	public static String project_validation_question;
+
 	public static void reload() {
 
 		Properties p = new Properties();
@@ -66,6 +68,8 @@ public class Config {
 
 		TasksPerProject = p.getProperty("TasksPerProject");
 		ProjectLimit = p.getProperty("ProjectLimit");
+
+		project_validation_question = p.getProperty("project_validation_question");
 
 	}
 
@@ -102,6 +106,8 @@ public class Config {
 
 		TasksPerProject = p.getProperty("TasksPerProject");
 		ProjectLimit = p.getProperty("ProjectLimit");
+
+		project_validation_question = p.getProperty("project_validation_question");
 
 	}
 

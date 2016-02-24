@@ -2,7 +2,8 @@ package sociam.pybossa.twitter;
 
 import java.io.File;
 
-import sociam.pybossa.TwitterAccount;
+import sociam.pybossa.util.StringToImage;
+import sociam.pybossa.util.TwitterAccount;
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 
@@ -18,8 +19,7 @@ public class TestImageinTweet {
 		// Twitter twitter = TwitterFactory.getSingleton();
 
 		try {
-			File image = TestStringTOImage.convertToImage(
-					"俄罗斯的英文翻译，免费在线翻译。俄语翻译",
+			File image = StringToImage.convertStringToImage("俄罗斯的英文翻译，免费在线翻译。俄语翻译",
 					"is it possible for the below text to be translated?");
 
 			StatusUpdate status = new StatusUpdate(taskContent);

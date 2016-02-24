@@ -1,4 +1,4 @@
-package sociam.pybossa;
+package sociam.pybossa.util;
 
 import org.apache.log4j.Logger;
 
