@@ -36,7 +36,6 @@ import com.mongodb.client.result.UpdateResult;
 
 public class ProjectCreator {
 	final static Logger logger = Logger.getLogger(ProjectCreator.class);
-	static MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 	static String url = Config.PyBossahost + Config.projectDir + Config.api_key;
 
 	public static void main(String[] args) {
@@ -107,6 +106,8 @@ public class ProjectCreator {
 	}
 
 	public static Boolean updateProjectIntoMongoDB(ObjectId _id, int project_id, String project_status) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+
 		try {
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 
@@ -116,11 +117,14 @@ public class ProjectCreator {
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
+					mongoClient.close();
 					return true;
 				}
 			}
+			mongoClient.close();
 			return false;
 		} catch (Exception e) {
+			mongoClient.close();
 			logger.error("Error ", e);
 			return false;
 		}
@@ -130,6 +134,7 @@ public class ProjectCreator {
 	// static HashSet<Document> jsons = new LinkedHashSet<Document>();
 
 	public static HashSet<Document> getAllProjects() {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			HashSet<Document> jsons = new LinkedHashSet<Document>();
@@ -141,8 +146,10 @@ public class ProjectCreator {
 					jsons.add(document);
 				}
 			}
+			mongoClient.close();
 			return jsons;
 		} catch (Exception e) {
+			mongoClient.close();
 			logger.error("Error ", e);
 			return null;
 		}

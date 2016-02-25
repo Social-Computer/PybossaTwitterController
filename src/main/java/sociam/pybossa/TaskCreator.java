@@ -43,11 +43,6 @@ public class TaskCreator {
 	public final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	public final static SimpleDateFormat PyBossaformatter = new SimpleDateFormat("yyyy-mm-dd'T'hh:mm:ss.SSSSSS");
 
-	static MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
-	
-
-	
-
 	static String url = Config.PyBossahost + Config.taskDir + Config.api_key;
 
 	public static void main(String[] args) {
@@ -188,6 +183,7 @@ public class TaskCreator {
 	}
 
 	public static Boolean updateProjectToInsertedInMongoDB(int project_id) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			UpdateResult result = database.getCollection(Config.projectCollection).updateOne(
@@ -197,12 +193,15 @@ public class TaskCreator {
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
 					logger.debug(Config.projectCollection + " Collection was updated with project_status: inserted");
+					mongoClient.close();
 					return true;
 				}
 			}
+			mongoClient.close();
 			return false;
 		} catch (Exception e) {
 			logger.error("Error ", e);
+			mongoClient.close();
 			return false;
 		}
 	}
@@ -210,6 +209,7 @@ public class TaskCreator {
 	// For encoding issue that makes the text changed after inserting it into
 	// PyBossa
 	public static Boolean updateBinString(ObjectId _id, String text_encoded, String binItem) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 			MongoDatabase binsDatabase = mongoClient.getDatabase(Config.binsDatabaseName);
 			UpdateResult result = binsDatabase.getCollection(binItem).updateOne(new Document("_id", _id),
@@ -217,12 +217,15 @@ public class TaskCreator {
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
+					mongoClient.close();
 					return true;
 				}
 			}
+			mongoClient.close();
 			return false;
 		} catch (Exception e) {
 			logger.error("Error ", e);
+			mongoClient.close();
 			return false;
 		}
 	}
@@ -230,7 +233,7 @@ public class TaskCreator {
 	// static HashSet<Document> tweetsjsons = new LinkedHashSet<Document>();
 
 	public static HashSet<Document> getTweetsFromBinInMongoDB(String collectionName) {
-
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		HashSet<Document> tweetsjsons = new LinkedHashSet<Document>();
 		try {
 			MongoDatabase binsDatabase = mongoClient.getDatabase(Config.binsDatabaseName);
@@ -242,9 +245,11 @@ public class TaskCreator {
 					tweetsjsons.add(document);
 				}
 			}
+			mongoClient.close();
 			return tweetsjsons;
 		} catch (Exception e) {
 			logger.error("Error ", e);
+			mongoClient.close();
 			return tweetsjsons;
 		}
 	}
@@ -255,6 +260,7 @@ public class TaskCreator {
 	public static HashSet<JSONObject> getReadyProjects() {
 		logger.debug("getting projects from collection " + Config.projectCollection);
 		HashSet<JSONObject> startedProjectsJsons = new HashSet<JSONObject>();
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
@@ -274,10 +280,11 @@ public class TaskCreator {
 				// });
 				// return startedProjectsJsons;
 			}
-
+			mongoClient.close();
 			return startedProjectsJsons;
 		} catch (Exception e) {
 			logger.error("Error ", e);
+			mongoClient.close();
 			return null;
 		}
 	}
@@ -378,9 +385,9 @@ public class TaskCreator {
 
 	public static boolean pushTaskToMongoDB(Integer pybossa_task_id, String publishedAt, Integer project_id,
 			String task_status, String task_text) {
-
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-			
+
 			if (publishedAt != null && project_id != null && task_status != null && task_text != null) {
 				MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 				FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
@@ -397,11 +404,13 @@ public class TaskCreator {
 				}
 
 			}
+			mongoClient.close();
 			return true;
 		} catch (Exception e) {
 			logger.error("Error with inserting the task " + " pybossa_task_id " + pybossa_task_id + " publishedAt "
 					+ publishedAt + " project_id " + project_id + " task_status " + task_status + " task_text "
 					+ task_text + "\n" + e);
+			mongoClient.close();
 			return false;
 		}
 

@@ -21,10 +21,6 @@ import sociam.pybossa.util.TwitterAccount;
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;

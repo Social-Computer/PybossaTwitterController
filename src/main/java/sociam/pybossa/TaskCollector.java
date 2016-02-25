@@ -44,8 +44,6 @@ import twitter4j.TwitterObjectFactory;
 public class TaskCollector {
 
 	final static Logger logger = Logger.getLogger(TaskCollector.class);
-	static MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
-
 	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	final static SimpleDateFormat PyBossaformatter = new SimpleDateFormat("yyyy-mm-dd'T'hh:mm:ss.SSSSSS");
 
@@ -224,7 +222,7 @@ public class TaskCollector {
 	// so only do an insert?
 	public static boolean pushTaskRunToMongoDB(String publishedAt, Integer project_id, Integer task_id,
 			String task_text, String id_str, String screen_name) {
-
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			if (publishedAt != null && project_id != null && task_text != null && id_str != null
@@ -237,18 +235,22 @@ public class TaskCollector {
 									.append("task_id", task_id).append("task_text", task_text).append("id_str", id_str)
 									.append("screen_name", screen_name));
 					logger.debug("One task run is inserted into MongoDB");
+					mongoClient.close();
 					return true;
 				} else {
 					logger.error("The task run is already stored in MongoDB!");
+					mongoClient.close();
 					return false;
 				}
 			} else {
+				mongoClient.close();
 				return false;
 			}
 
 		} catch (Exception e) {
 			logger.error("Error with inserting the task run " + " publishedAt " + publishedAt + " project_id "
 					+ project_id + " isPushed " + task_id + " task_id " + task_text + "\n", e);
+			mongoClient.close();
 			return false;
 		}
 
@@ -355,6 +357,7 @@ public class TaskCollector {
 	}
 
 	public static Document getTaskFromMongoDB(int pybossa_task_id) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 
@@ -367,16 +370,18 @@ public class TaskCollector {
 					.find(new Document("pybossa_task_id", pybossa_task_id));
 
 			Document document = iterable.first();
-
+			mongoClient.close();
 			return document;
 		} catch (Exception e) {
 			logger.error("Error ", e);
+			mongoClient.close();
 			return null;
 		}
 
 	}
 
 	public static Document getTaskRunsFromMongoDB(String id_str) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 
@@ -389,10 +394,11 @@ public class TaskCollector {
 					.find(new Document("id_str", id_str));
 
 			Document document = iterable.first();
-
+			mongoClient.close();
 			return document;
 		} catch (Exception e) {
 			logger.error("Error ", e);
+			mongoClient.close();
 			return null;
 		}
 
