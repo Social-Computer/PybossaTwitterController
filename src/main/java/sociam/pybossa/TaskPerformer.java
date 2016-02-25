@@ -21,6 +21,10 @@ import sociam.pybossa.util.TwitterAccount;
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
@@ -249,15 +253,34 @@ public class TaskPerformer {
 		logger.debug("getting project by project_id from " + Config.projectCollection + " collection");
 
 		try {
-			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			JSONObject json = null;
-			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
-					.find(new Document("project_id", project_id));
-			if (iterable.first() != null) {
-				Document document = iterable.first();
-				json = new JSONObject(document);
+			DB database = mongoClient.getDB(Config.projectsDatabaseName);
+			JSONObject proj = new JSONObject();
+			proj.put("project_id", project_id);	
+			Object o = com.mongodb.util.JSON.parse(proj.toString());
+			DBObject dbObj = (DBObject) o;
+			
+			DBCollection collections = database.getCollection(Config.projectCollection);
+			DBCursor iterable = collections.find(dbObj);
+			if(iterable.hasNext()){
+				json = new JSONObject(iterable.next().toString());
+				
 			}
 			return json;
+			
+			
+			
+			// MongoDatabase database =
+			// mongoClient.getDatabase(Config.projectsDatabaseName);
+			// JSONObject json = null;
+			// FindIterable<Document> iterable =
+			// database.getCollection(Config.projectCollection)
+			// .find(new Document("project_id", project_id));
+			// if (iterable.first() != null) {
+			// Document document = iterable.first();
+			// json = new JSONObject(document);
+			// }
+			// return json;
 		} catch (Exception e) {
 			logger.error("Error ", e);
 			return null;
