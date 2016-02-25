@@ -44,9 +44,9 @@ public class TaskCreator {
 	public final static SimpleDateFormat PyBossaformatter = new SimpleDateFormat("yyyy-mm-dd'T'hh:mm:ss.SSSSSS");
 
 	static MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
-	static MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+	
 
-	static MongoDatabase binsDatabase = mongoClient.getDatabase(Config.binsDatabaseName);
+	
 
 	static String url = Config.PyBossahost + Config.taskDir + Config.api_key;
 
@@ -189,6 +189,7 @@ public class TaskCreator {
 
 	public static Boolean updateProjectToInsertedInMongoDB(int project_id) {
 		try {
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			UpdateResult result = database.getCollection(Config.projectCollection).updateOne(
 					new Document("project_id", project_id),
 					new Document().append("$set", new Document("project_status", "inserted")));
@@ -210,6 +211,7 @@ public class TaskCreator {
 	// PyBossa
 	public static Boolean updateBinString(ObjectId _id, String text_encoded, String binItem) {
 		try {
+			MongoDatabase binsDatabase = mongoClient.getDatabase(Config.binsDatabaseName);
 			UpdateResult result = binsDatabase.getCollection(binItem).updateOne(new Document("_id", _id),
 					new Document().append("$set", new Document("text_encoded", text_encoded)));
 			logger.debug(result.toString());
@@ -231,7 +233,7 @@ public class TaskCreator {
 
 		HashSet<Document> tweetsjsons = new LinkedHashSet<Document>();
 		try {
-
+			MongoDatabase binsDatabase = mongoClient.getDatabase(Config.binsDatabaseName);
 			FindIterable<Document> iterable = binsDatabase.getCollection(collectionName).find()
 					.limit(Integer.valueOf(Config.TasksPerProject));
 			if (iterable.first() != null) {
@@ -254,7 +256,7 @@ public class TaskCreator {
 		logger.debug("getting projects from collection " + Config.projectCollection);
 		HashSet<JSONObject> startedProjectsJsons = new HashSet<JSONObject>();
 		try {
-
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
 					.find(new Document("project_status", "ready"));
 			if (iterable.first() != null) {
@@ -378,8 +380,9 @@ public class TaskCreator {
 			String task_status, String task_text) {
 
 		try {
+			
 			if (publishedAt != null && project_id != null && task_status != null && task_text != null) {
-
+				MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 				FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
 						.find(new Document("project_id", project_id).append("task_text", task_text));
 				if (iterable.first() == null) {

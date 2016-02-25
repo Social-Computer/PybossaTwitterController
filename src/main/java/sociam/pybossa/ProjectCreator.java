@@ -37,7 +37,6 @@ import com.mongodb.client.result.UpdateResult;
 public class ProjectCreator {
 	final static Logger logger = Logger.getLogger(ProjectCreator.class);
 	static MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
-	static MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 	static String url = Config.PyBossahost + Config.projectDir + Config.api_key;
 
 	public static void main(String[] args) {
@@ -108,22 +107,31 @@ public class ProjectCreator {
 	}
 
 	public static Boolean updateProjectIntoMongoDB(ObjectId _id, int project_id, String project_status) {
+		try {
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 
-		UpdateResult result = database.getCollection(Config.projectCollection).updateOne(new Document("_id", _id),
-				new Document("$set", new Document("project_status", project_status).append("project_id", project_id)));
-		logger.debug(result.toString());
-		if (result.wasAcknowledged()) {
-			if (result.getMatchedCount() > 0) {
-				return true;
+			UpdateResult result = database.getCollection(Config.projectCollection).updateOne(new Document("_id", _id),
+					new Document("$set",
+							new Document("project_status", project_status).append("project_id", project_id)));
+			logger.debug(result.toString());
+			if (result.wasAcknowledged()) {
+				if (result.getMatchedCount() > 0) {
+					return true;
+				}
 			}
+			return false;
+		} catch (Exception e) {
+			logger.error("Error ", e);
+			return false;
 		}
-		return false;
+
 	}
 
 	// static HashSet<Document> jsons = new LinkedHashSet<Document>();
 
 	public static HashSet<Document> getAllProjects() {
 		try {
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			HashSet<Document> jsons = new LinkedHashSet<Document>();
 			FindIterable<Document> iterable = database.getCollection(Config.projectCollection).find(new Document())
 					.limit(Integer.valueOf(Config.ProjectLimit));

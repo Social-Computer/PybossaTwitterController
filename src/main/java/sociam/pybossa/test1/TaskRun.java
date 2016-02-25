@@ -25,12 +25,12 @@ public class TaskRun {
 
 	public static void main(String[] args) {
 		BasicConfigurator.configure();
-		JSONObject jsonData = BuildJsonTaskContent("no", "111468", "5892");
+		JSONObject jsonData = BuildJsonTaskContent("yes", "546727", "6617");
 		// String jsonData = "{\"info\": {\"text\": \"#Zika News: Stop The Zika
 		// Virus https://t.co/tYqAYlbPlc #PathogenPosse\"}, \"n_answers\": 30,
 		// \"quorum\": 0, \"calibration\": 0, \"project_id\": 11,
 		// \"priority_0\": 0.0}";
-		String url = host + projectDir;
+		String url = host + projectDir + api_key;
 		getReqest();
 
 		createProject(url, jsonData);
@@ -38,7 +38,7 @@ public class TaskRun {
 	}
 
 	public static void getReqest() {
-		String url = "http://recoin.cloudapp.net:5000/api/project/5892/newtask";
+		String url = "http://recoin.cloudapp.net:5000/api/project/6617/newtask";
 
 		HttpURLConnection con;
 		try {
@@ -49,8 +49,7 @@ public class TaskRun {
 			int responseCode = con.getResponseCode();
 			System.out.println("\nSending 'GET' request to URL : " + url);
 			System.out.println("Response Code : " + responseCode);
-			BufferedReader in = new BufferedReader(new InputStreamReader(
-					con.getInputStream()));
+			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
 			String inputLine;
 			StringBuffer response = new StringBuffer();
 
@@ -83,13 +82,10 @@ public class TaskRun {
 			request.setEntity(params);
 
 			HttpResponse response = httpClient.execute(request);
-			if (response.getStatusLine().getStatusCode() == 200
-					|| response.getStatusLine().getStatusCode() == 204) {
-				BufferedReader br = new BufferedReader(new InputStreamReader(
-						(response.getEntity().getContent())));
+			if (response.getStatusLine().getStatusCode() == 200 || response.getStatusLine().getStatusCode() == 204) {
+				BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
 				String output;
-				logger.debug("Output from Server ...."
-						+ response.getStatusLine().getStatusCode() + "\n");
+				logger.debug("Output from Server ...." + response.getStatusLine().getStatusCode() + "\n");
 				while ((output = br.readLine()) != null) {
 					logger.debug(output);
 					jsonResult = new JSONObject(output);
@@ -97,8 +93,7 @@ public class TaskRun {
 				}
 				return jsonResult;
 			} else {
-				logger.error("Failed : HTTP error code : "
-						+ response.getStatusLine().getStatusCode());
+				logger.error("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
 				return null;
 			}
 		} catch (Exception ex) {
@@ -121,15 +116,14 @@ public class TaskRun {
 	 * @param priority_0
 	 * @return Json string
 	 */
-	private static JSONObject BuildJsonTaskContent(String answer,
-			String task_id, String project_id) {
+	private static JSONObject BuildJsonTaskContent(String answer, String task_id, String project_id) {
 
 		JSONObject app2 = new JSONObject();
-		app2.put("project_id", project_id);
+		app2.put("project_id", Integer.valueOf(project_id));
+		app2.put("task_id", Integer.valueOf(task_id));
 
 		app2.put("info", answer);
-		app2.put("task_id", task_id);
-		app2.put("user_ip", "80.44.145.144");
+		app2.put("user_id", 2);
 		return app2;
 	}
 

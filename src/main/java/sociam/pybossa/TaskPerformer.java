@@ -38,7 +38,7 @@ public class TaskPerformer {
 	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	static MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
-	static MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+	
 
 	static Boolean wasPushed = false;
 
@@ -148,6 +148,7 @@ public class TaskPerformer {
 
 	public static Boolean updateTaskToPushedInMongoDB(ObjectId _id, String task_status) {
 		try {
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			Date date = new Date();
 			String lastPushAt = MongoDBformatter.format(date);
 			UpdateResult result = database.getCollection(Config.taskCollection).updateOne(new Document("_id", _id),
@@ -231,6 +232,7 @@ public class TaskPerformer {
 	public static HashSet<Document> getReadyTasksFromMongoDB() {
 		HashSet<Document> NotPushedTasksjsons = new LinkedHashSet<Document>();
 		try {
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
 					.find(new Document("task_status", "ready"));
 			if (iterable.first() != null) {
@@ -249,6 +251,7 @@ public class TaskPerformer {
 		logger.debug("getting project by project_id from " + Config.projectCollection + " collection");
 
 		try {
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			JSONObject json = null;
 			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
 					.find(new Document("project_id", project_id));
