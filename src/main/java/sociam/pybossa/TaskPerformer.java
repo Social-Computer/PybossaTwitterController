@@ -184,8 +184,14 @@ public class TaskPerformer {
 		try {
 			Twitter twitter = TwitterAccount.setTwitterAccount(project_type);
 
+			// defualt
+			String question = "";
+			if (project_type == 2) {
+				question = Config.project_validation_question;
+			}
+
 			// combine hashtags and tasktag while maintaining the 140 length
-			String post = "";
+			String post = question;
 			for (String string : hashtags) {
 				if (post.length() == 0) {
 					post = string;
@@ -197,16 +203,11 @@ public class TaskPerformer {
 					post = post + " " + string;
 				}
 			}
+			post = post + "?";
 			post = post + " " + taskTag;
 
-			// defualt
-			String question = Config.project_validation_question;
-			if (project_type == 1) {
-				question = Config.project_validation_question;
-			}
-
 			// convert taskContent and question into an image
-			File image = StringToImage.convertStringToImage(taskContent, question);
+			File image = StringToImage.convertStringToImage(taskContent);
 
 			if (post.length() < 140) {
 				// status = twitter.updateStatus(post);
@@ -256,21 +257,22 @@ public class TaskPerformer {
 		logger.debug("getting project by project_id from " + Config.projectCollection + " collection");
 		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-//			JSONObject json = null;
-//			DB database = mongoClient.getDB(Config.projectsDatabaseName);
-//			JSONObject proj = new JSONObject();
-//			proj.put("project_id", project_id);
-//			Object o = com.mongodb.util.JSON.parse(proj.toString());
-//			DBObject dbObj = (DBObject) o;
-//
-//			DBCollection collections = database.getCollection(Config.projectCollection);
-//			DBCursor iterable = collections.find(dbObj);
-//			if (iterable.hasNext()) {
-//				json = new JSONObject(iterable.next().toString());
-//
-//			}
-//			mongoClient.close();
-//			return json;
+			// JSONObject json = null;
+			// DB database = mongoClient.getDB(Config.projectsDatabaseName);
+			// JSONObject proj = new JSONObject();
+			// proj.put("project_id", project_id);
+			// Object o = com.mongodb.util.JSON.parse(proj.toString());
+			// DBObject dbObj = (DBObject) o;
+			//
+			// DBCollection collections =
+			// database.getCollection(Config.projectCollection);
+			// DBCursor iterable = collections.find(dbObj);
+			// if (iterable.hasNext()) {
+			// json = new JSONObject(iterable.next().toString());
+			//
+			// }
+			// mongoClient.close();
+			// return json;
 
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			JSONObject json = null;

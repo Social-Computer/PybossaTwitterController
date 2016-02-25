@@ -23,7 +23,7 @@ public class StringToImage {
 	// "Can you translate the below text? (yes/no/not valid)");
 	// }
 
-	public static File convertStringToImage(String text, String question) {
+	public static File convertStringToImage(String text) {
 
 		/*
 		 * Because font metrics is based on a graphics context, we need to
@@ -59,8 +59,8 @@ public class StringToImage {
 			int lineWidth = 60;
 			int x = 20;
 			int y = 30;
-			g2d.drawString(question, x, y);
-			y += 40;
+			// g2d.drawString(question, x, y);
+			// y += 40;
 			if (fm.stringWidth(text) < lineWidth) {
 				g2d.drawString(text, x, y);
 			} else {
