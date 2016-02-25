@@ -222,6 +222,7 @@ public class ProjectCreator {
 		app.put("description", description);
 		// app.put("created", true);
 		app.put("allow_anonymous_contributors", true);
+		app.put("published", true);
 		// TODO: publishing through the api is not allowed - we leave it to be
 		// done manually!
 		// app.put("published", true);
