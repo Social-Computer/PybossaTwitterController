@@ -260,33 +260,32 @@ public class TaskPerformer {
 		logger.debug("getting project by project_id from " + Config.projectCollection + " collection");
 		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
+//			JSONObject json = null;
+//			DB database = mongoClient.getDB(Config.projectsDatabaseName);
+//			JSONObject proj = new JSONObject();
+//			proj.put("project_id", project_id);
+//			Object o = com.mongodb.util.JSON.parse(proj.toString());
+//			DBObject dbObj = (DBObject) o;
+//
+//			DBCollection collections = database.getCollection(Config.projectCollection);
+//			DBCursor iterable = collections.find(dbObj);
+//			if (iterable.hasNext()) {
+//				json = new JSONObject(iterable.next().toString());
+//
+//			}
+//			mongoClient.close();
+//			return json;
+
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			JSONObject json = null;
-			DB database = mongoClient.getDB(Config.projectsDatabaseName);
-			JSONObject proj = new JSONObject();
-			proj.put("project_id", project_id);
-			Object o = com.mongodb.util.JSON.parse(proj.toString());
-			DBObject dbObj = (DBObject) o;
-
-			DBCollection collections = database.getCollection(Config.projectCollection);
-			DBCursor iterable = collections.find(dbObj);
-			if (iterable.hasNext()) {
-				json = new JSONObject(iterable.next().toString());
-
+			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
+					.find(new Document("project_id", project_id));
+			if (iterable.first() != null) {
+				Document document = iterable.first();
+				json = new JSONObject(document);
 			}
 			mongoClient.close();
 			return json;
-
-			// MongoDatabase database =
-			// mongoClient.getDatabase(Config.projectsDatabaseName);
-			// JSONObject json = null;
-			// FindIterable<Document> iterable =
-			// database.getCollection(Config.projectCollection)
-			// .find(new Document("project_id", project_id));
-			// if (iterable.first() != null) {
-			// Document document = iterable.first();
-			// json = new JSONObject(document);
-			// }
-			// return json;
 		} catch (Exception e) {
 			logger.error("Error ", e);
 			mongoClient.close();
