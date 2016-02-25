@@ -19,8 +19,7 @@ public class TestImageinTweet {
 		// Twitter twitter = TwitterFactory.getSingleton();
 
 		try {
-			File image = StringToImage.convertStringToImage("俄罗斯的英文翻译，免费在线翻译。俄语翻译",
-					"is it possible for the below text to be translated?");
+			File image = StringToImage.convertStringToImage("俄罗斯的英文翻译，免费在线翻译。俄语翻译");
 
 			StatusUpdate status = new StatusUpdate(taskContent);
 			status.setMedia(image);
