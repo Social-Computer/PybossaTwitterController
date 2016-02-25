@@ -41,8 +41,6 @@ public class TaskPerformer {
 	final static Logger logger = Logger.getLogger(TaskPerformer.class);
 	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-	static MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
-
 	static Boolean wasPushed = false;
 
 	public static void main(String[] args) {
@@ -150,7 +148,9 @@ public class TaskPerformer {
 	}
 
 	public static Boolean updateTaskToPushedInMongoDB(ObjectId _id, String task_status) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
+
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			Date date = new Date();
 			String lastPushAt = MongoDBformatter.format(date);
@@ -162,12 +162,15 @@ public class TaskPerformer {
 				if (result.getMatchedCount() > 0) {
 					logger.debug(Config.taskCollection + " Collection was updated where _id= " + _id.toString()
 							+ " to task_status=" + task_status);
+					mongoClient.close();
 					return true;
 				}
 			}
+			mongoClient.close();
 			return false;
 		} catch (Exception e) {
 			logger.error("Error ", e);
+			mongoClient.close();
 			return false;
 		}
 	}
@@ -233,7 +236,9 @@ public class TaskPerformer {
 
 	public static HashSet<Document> getReadyTasksFromMongoDB() {
 		HashSet<Document> NotPushedTasksjsons = new LinkedHashSet<Document>();
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
+
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
 					.find(new Document("task_status", "ready"));
@@ -242,34 +247,35 @@ public class TaskPerformer {
 					NotPushedTasksjsons.add(document);
 				}
 			}
+			mongoClient.close();
 			return NotPushedTasksjsons;
 		} catch (Exception e) {
 			logger.error("Error ", e);
+			mongoClient.close();
 			return null;
 		}
 	}
 
 	public static JSONObject getProjectByID(int project_id) {
 		logger.debug("getting project by project_id from " + Config.projectCollection + " collection");
-
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 			JSONObject json = null;
 			DB database = mongoClient.getDB(Config.projectsDatabaseName);
 			JSONObject proj = new JSONObject();
-			proj.put("project_id", project_id);	
+			proj.put("project_id", project_id);
 			Object o = com.mongodb.util.JSON.parse(proj.toString());
 			DBObject dbObj = (DBObject) o;
-			
+
 			DBCollection collections = database.getCollection(Config.projectCollection);
 			DBCursor iterable = collections.find(dbObj);
-			if(iterable.hasNext()){
+			if (iterable.hasNext()) {
 				json = new JSONObject(iterable.next().toString());
-				
+
 			}
+			mongoClient.close();
 			return json;
-			
-			
-			
+
 			// MongoDatabase database =
 			// mongoClient.getDatabase(Config.projectsDatabaseName);
 			// JSONObject json = null;
@@ -283,6 +289,7 @@ public class TaskPerformer {
 			// return json;
 		} catch (Exception e) {
 			logger.error("Error ", e);
+			mongoClient.close();
 			return null;
 		}
 	}
