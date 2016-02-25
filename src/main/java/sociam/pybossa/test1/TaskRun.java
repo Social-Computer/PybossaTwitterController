@@ -25,20 +25,23 @@ public class TaskRun {
 
 	public static void main(String[] args) {
 		BasicConfigurator.configure();
-		JSONObject jsonData = BuildJsonTaskContent("yes", "546727", "6617");
+		int project_id = 6618;
+		int task_id = 546756;
+
 		// String jsonData = "{\"info\": {\"text\": \"#Zika News: Stop The Zika
 		// Virus https://t.co/tYqAYlbPlc #PathogenPosse\"}, \"n_answers\": 30,
 		// \"quorum\": 0, \"calibration\": 0, \"project_id\": 11,
 		// \"priority_0\": 0.0}";
 		String url = host + projectDir + api_key;
-		getReqest();
-
+		int id = getReqest(project_id);
+		System.out.println("id " +id);
+		JSONObject jsonData = BuildJsonTaskContent("yes1", task_id, project_id, id);
 		createProject(url, jsonData);
 
 	}
 
-	public static void getReqest() {
-		String url = "http://recoin.cloudapp.net:5000/api/project/6617/newtask";
+	public static int getReqest(int project_id) {
+		String url = "http://recoin.cloudapp.net:5000/api/project/" + project_id + "/newtask";
 
 		HttpURLConnection con;
 		try {
@@ -56,13 +59,19 @@ public class TaskRun {
 			while ((inputLine = in.readLine()) != null) {
 				response.append(inputLine);
 			}
-			in.close();
 
+			JSONObject json = new JSONObject(response.toString());
+			int id = json.getInt("id");
+
+			in.close();
+			System.out.println(json);
+			return id;
 			// print result
-			System.out.println(response.toString());
+
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return 0;
 		}
 
 	}
@@ -116,12 +125,12 @@ public class TaskRun {
 	 * @param priority_0
 	 * @return Json string
 	 */
-	private static JSONObject BuildJsonTaskContent(String answer, String task_id, String project_id) {
+	private static JSONObject BuildJsonTaskContent(String answer, int task_id, int project_id, int id) {
 
 		JSONObject app2 = new JSONObject();
-		app2.put("project_id", Integer.valueOf(project_id));
-		app2.put("task_id", Integer.valueOf(task_id));
-
+		app2.put("project_id", project_id);
+		app2.put("task_id", id);
+//		app2.put("id", id);
 		app2.put("info", answer);
 		app2.put("user_id", 2);
 		return app2;

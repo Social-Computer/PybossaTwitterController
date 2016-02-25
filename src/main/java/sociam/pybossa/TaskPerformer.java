@@ -38,7 +38,6 @@ public class TaskPerformer {
 	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	static MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
-	
 
 	static Boolean wasPushed = false;
 
@@ -223,7 +222,6 @@ public class TaskPerformer {
 			logger.error("Error", e);
 			return 2;
 		}
-
 	}
 
 	// static HashSet<Document> NotPushedTasksjsons = new
@@ -255,15 +253,10 @@ public class TaskPerformer {
 			JSONObject json = null;
 			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
 					.find(new Document("project_id", project_id));
-
-			Document document = iterable.first();
-			json = new JSONObject(document);
-			// if (iterable.first() != null) {
-			// for (Document document : iterable) {
-			// JSONObject app2 = new JSONObject(document);
-			// json = app2;
-			// }
-			// }
+			if (iterable.first() != null) {
+				Document document = iterable.first();
+				json = new JSONObject(document);
+			}
 			return json;
 		} catch (Exception e) {
 			logger.error("Error ", e);
