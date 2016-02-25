@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -172,17 +173,11 @@ public class TaskCollector {
 			logger.debug("Task run was successfully inserted into MongoDB");
 			// Project has to be reqested before inserting a task run
 			logger.debug("Requesting the project ID from PyBossa before inserting it");
-			if (getReqest(project_id)) {
-				String url = Config.PyBossahost + Config.taskRunDir;
-				logger.debug("Inserting task run into PyBossa");
-				JSONObject PyBossaResponse = insertTaskRunIntoPyBossa(url, jsonData);
-				if (PyBossaResponse != null) {
-					logger.debug("Task run was successfully inserted into PyBossa");
-					return true;
-				} else {
-					logger.error("Task run was not inserted into PyBossa!");
-					return false;
-				}
+			String postURL = Config.PyBossahost + Config.taskRunDir + Config.api_key;
+			JSONObject postResponse = insertTaskRunIntoPyBossa(postURL, jsonData);
+			if (postResponse != null) {
+				logger.debug("Task run was successfully inserted into PyBossa");
+				return true;
 			} else {
 				return false;
 			}
@@ -272,20 +267,26 @@ public class TaskCollector {
 			request.setEntity(params);
 
 			HttpResponse response = httpClient.execute(request);
+
+			BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
+			String output;
+			logger.debug("Output from Server ...." + response.getStatusLine().getStatusCode() + "\n");
+			StringBuffer responseText = new StringBuffer();
+			while ((output = br.readLine()) != null) {
+
+				responseText.append(output);
+			}
+			jsonResult = new JSONObject(responseText);
+			logger.debug("Post Response " + responseText);
 			if (response.getStatusLine().getStatusCode() == 200 || response.getStatusLine().getStatusCode() == 204) {
-				BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
-				String output;
-				logger.debug("Output from Server ...." + response.getStatusLine().getStatusCode() + "\n");
-				while ((output = br.readLine()) != null) {
-					logger.debug(output);
-					jsonResult = new JSONObject(output);
-				}
 				return jsonResult;
 			} else {
 				logger.error("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
+				logger.error("Message " + response.getStatusLine());
 				logger.error(response.toString());
 				return null;
 			}
+
 		} catch (Exception ex) {
 			logger.error(ex);
 			return null;
@@ -293,44 +294,57 @@ public class TaskCollector {
 
 	}
 
-	public static Boolean getReqest(int project_id) {
-		String url = Config.PyBossahost + Config.projectDir + "/" + project_id + "/newtask";
-
-		HttpURLConnection con = null;
-		try {
-
-			URL obj = new URL(url);
-			con = (HttpURLConnection) obj.openConnection();
-			// optional default is GET
-			con.setRequestMethod("GET");
-			con.setConnectTimeout(10000);
-			int responseCode = con.getResponseCode();
-			// System.out.println("\nSending 'GET' request to URL : " + url);
-			// System.out.println("Response Code : " + responseCode);
-
-			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-			String inputLine;
-			StringBuffer response = new StringBuffer();
-
-			while ((inputLine = in.readLine()) != null) {
-				response.append(inputLine);
-			}
-			logger.debug("PyBossa get reqesut for Project_id: " + response);
-			in.close();
-
-			if (responseCode == 200 || responseCode == 204) {
-				return true;
-			} else {
-				return false;
-			}
-
-		} catch (IOException e) {
-			logger.error("Error ", e);
-			return false;
-
-		}
-
-	}
+	// public static Boolean getReqest(int project_id, String postURL,
+	// JSONObject jsonData) {
+	// String url = Config.PyBossahost + Config.projectDir + "/" + project_id +
+	// "/newtask";
+	// logger.debug("Inserting task run into PyBossa");
+	//
+	// HttpURLConnection con = null;
+	// try {
+	//
+	// URL obj = new URL(url);
+	// con = (HttpURLConnection) obj.openConnection();
+	// // optional default is GET
+	// con.setRequestMethod("GET");
+	// con.setConnectTimeout(10000);
+	// int responseCode = con.getResponseCode();
+	// // System.out.println("\nSending 'GET' request to URL : " + url);
+	// // System.out.println("Response Code : " + responseCode);
+	//
+	// BufferedReader in = new BufferedReader(new
+	// InputStreamReader(con.getInputStream()));
+	// String inputLine;
+	// StringBuffer response = new StringBuffer();
+	//
+	// while ((inputLine = in.readLine()) != null) {
+	// response.append(inputLine);
+	// }
+	// logger.debug("PyBossa get reqesut for Project_id: " + response);
+	// if (responseCode == 200 || responseCode == 204) {
+	// JSONObject postRequest = insertTaskRunIntoPyBossa(postURL, jsonData);
+	// in.close();
+	// if (postRequest != null) {
+	// return true;
+	// } else {
+	// return false;
+	// }
+	// } else {
+	// logger.error("GET request was not successful " + response);
+	// return false;
+	// }
+	//
+	// } catch (
+	//
+	// IOException e)
+	//
+	// {
+	// logger.error("Error ", e);
+	// return false;
+	//
+	// }
+	//
+	// }
 
 	/**
 	 * It returns a json string for task creation from a given task details
@@ -352,7 +366,11 @@ public class TaskCollector {
 
 		app2.put("info", answer);
 		app2.put("task_id", task_id);
-		app2.put("user_ip", "80.44.145.144");
+		Random rn = new Random();
+		int randomNum = rn.nextInt((250 - 1) + 1) + 1;
+		String ip = "80.44.192." + randomNum;
+		app2.put("user_ip", ip);
+		logger.debug("Generated ip " + ip);
 		return app2;
 	}
 
@@ -442,5 +460,55 @@ public class TaskCollector {
 		return jsons;
 
 	}
+
+	// public static Boolean getReqest(int project_id, String postURL,
+	// JSONObject jsonData) {
+	// String url = Config.PyBossahost + Config.projectDir + "/" + project_id +
+	// "/newtask";
+	//
+	// HttpURLConnection con = null;
+	// try {
+	//
+	// URL obj = new URL(url);
+	// con = (HttpURLConnection) obj.openConnection();
+	// // optional default is GET
+	// con.setRequestMethod("GET");
+	// con.setConnectTimeout(10000);
+	// int responseCode = con.getResponseCode();
+	// // System.out.println("\nSending 'GET' request to URL : " + url);
+	// // System.out.println("Response Code : " + responseCode);
+	//
+	// BufferedReader in = new BufferedReader(new
+	// InputStreamReader(con.getInputStream()));
+	// String inputLine;
+	// StringBuffer response = new StringBuffer();
+	//
+	// while ((inputLine = in.readLine()) != null) {
+	// response.append(inputLine);
+	// }
+	// logger.debug("PyBossa get reqesut for Project_id: " + response);
+	// if (responseCode == 200 || responseCode == 204) {
+	// JSONObject postRequest = insertTaskRunIntoPyBossa(postURL, jsonData);
+	// in.close();
+	// if (postRequest != null) {
+	// return true;
+	// } else {
+	// return true;
+	// }
+	// } else {
+	// return false;
+	// }
+	//
+	// } catch (
+	//
+	// IOException e)
+	//
+	// {
+	// logger.error("Error ", e);
+	// return false;
+	//
+	// }
+	//
+	// }
 
 }
