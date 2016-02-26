@@ -1,8 +1,10 @@
-package sociam.pybossa.util;
+package sociam.pybossa.graphics2g.test;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
@@ -12,29 +14,37 @@ import java.net.URL;
 
 import javax.imageio.ImageIO;
 
-import org.apache.log4j.Logger;
-/**
- * 
- * @author user Saud Aljaloud
- * @author email sza1g10@ecs.soton.ac.uk
- *
- */
-public class StringToImage {
-	final static Logger logger = Logger.getLogger(StringToImage.class);
+public class ImageWithAnImage {
 
 	// the hight of the text
 	static int height = 140;
 
+	public static void main(String[] args) {
+
+		File file = combineTextWithImage(
+				"Is this content relevant for some real-world event related to #BRITs2016? #t34563",
+				"https://pbs.twimg.com/media/CcIm3uOUkAILSIs.jpg");
+		if (file != null){
+			System.out.println(file.getAbsolutePath());
+		}else{
+			System.err.println("error");
+		}
+
+	}
+
 	public static File combineTextWithImage(String text, String ImageURL) {
 
 		try {
+
 			URL url = new URL(ImageURL);
 			BufferedImage img1 = ImageIO.read(url);
+
 			BufferedImage img2 = convertStringToImage(text, img1.getWidth());
 			File combinedImage = draw(img1, img2);
 			return combinedImage;
 		} catch (IOException e) {
-			logger.error("Error", e);
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 			return null;
 		}
 
@@ -49,11 +59,11 @@ public class StringToImage {
 			img.createGraphics().setColor(Color.RED);
 			boolean image1Drawn = img.createGraphics().drawImage(img1, 0, 20 + img2.getHeight(), null);
 			if (!image1Drawn) {
-				logger.error("Problems drawing first image");
+				System.out.println("Problems drawing first image");
 			}
 			boolean image2Drawn = img.createGraphics().drawImage(img2, 0, 0, null);
 			if (!image2Drawn) {
-				logger.error("Problems drawing second image");
+				System.out.println("Problems drawing second image");
 			}
 
 			File final_image = new File("Final.jpg");
@@ -63,7 +73,7 @@ public class StringToImage {
 				return null;
 			}
 		} catch (IOException e) {
-			logger.error("Error", e);
+			e.printStackTrace();
 			return null;
 		}
 
@@ -121,82 +131,9 @@ public class StringToImage {
 			g2d.dispose();
 			return img;
 		} catch (Exception e) {
-			logger.error("Error", e);
+			e.printStackTrace();
 			return null;
 		}
 
-	}
-
-	public static File convertStringToImage(String text) {
-
-		/*
-		 * Because font metrics is based on a graphics context, we need to
-		 * create a small, temporary image so we can ascertain the width and
-		 * height of the final image
-		 */
-		try {
-			BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_BINARY);
-			Graphics2D g2d = img.createGraphics();
-			int width = 650;
-			int height = 140;
-			Font font = new Font("Arial", Font.PLAIN, 20);
-			g2d.setFont(font);
-			FontMetrics fm = g2d.getFontMetrics();
-			g2d.dispose();
-			img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-			g2d = img.createGraphics();
-			g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION,
-					RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-			g2d.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
-			g2d.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
-			g2d.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
-			g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-			g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-			g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
-			// g2d.setColor(Color.BLUE);
-			// g2d.fillRect(0, 0, width, height);
-			g2d.setFont(font);
-			fm = g2d.getFontMetrics();
-			g2d.setColor(Color.BLACK);
-
-			int lineWidth = 60;
-			int x = 20;
-			int y = 30;
-			// g2d.drawString(question, x, y);
-			// y += 40;
-			if (fm.stringWidth(text) < lineWidth) {
-				g2d.drawString(text, x, y);
-			} else {
-				String[] words = text.split("\\s+");
-				String currentLine = words[0];
-				for (int i = 1; i < words.length; i++) {
-					String tmp = currentLine + " " + words[i];
-					if (tmp.length() < lineWidth) {
-						currentLine = currentLine + " " + words[i];
-					} else {
-						g2d.drawString(currentLine, x, y);
-						y += fm.getHeight();
-						currentLine = words[i];
-					}
-				}
-				if (currentLine.trim().length() > 0) {
-					g2d.drawString(currentLine, x, y);
-				}
-			}
-			g2d.dispose();
-			// try {
-			// ImageIO.write(img, "png", new File("Text.png"));
-			// } catch (IOException ex) {
-			// ex.printStackTrace();
-			// }
-			File outputfile = new File("textToImage.jpg");
-			ImageIO.write(img, "jpg", outputfile);
-			// ImageIO.write(img, "jpg", new File("image.jpg"));
-			return outputfile.getAbsoluteFile();
-		} catch (Exception e) {
-			logger.error("Error ", e);
-			return null;
-		}
 	}
 }

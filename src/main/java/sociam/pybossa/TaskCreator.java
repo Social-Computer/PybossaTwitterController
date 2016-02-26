@@ -123,7 +123,31 @@ public class TaskCreator {
 											// insertion
 											// of a
 											// task
-											JSONObject PyBossaTaskJsonToBeInserted = BuildJsonTaskContent(text, "30",
+											// String media_url = null;
+											// JSONObject entities = new
+											// JSONObject(tweet.get("entities"));
+											// if (entities!=null){
+											// if (!entities.isNull("media")){
+											// JSONArray media =
+											// entities.getJSONArray("media");
+											// if (media!=null){
+											// for (int i = 0; i <
+											// media.length(); i++) {
+											// JSONObject oneMedia =
+											// media.getJSONObject(i);
+											// if (oneMedia.has("type")){
+											// if
+											// (oneMedia.getString("type").equals("photo")){
+											// media_url =
+											// oneMedia.getString("media_url");
+											// }
+											// }
+											// }
+											// }
+											// }
+											// }
+											
+											JSONObject PyBossaTaskJsonToBeInserted = BuildJsonTaskContent(text, "5",
 													"0", "0", project_id, "0.0");
 											if (PyBossaTaskJsonToBeInserted != null) {
 												// Insert the PyBossa json into
