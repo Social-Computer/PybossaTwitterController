@@ -123,32 +123,30 @@ public class TaskCreator {
 											// insertion
 											// of a
 											// task
-											// String media_url = null;
-											// JSONObject entities = new
-											// JSONObject(tweet.get("entities"));
-											// if (entities!=null){
-											// if (!entities.isNull("media")){
-											// JSONArray media =
-											// entities.getJSONArray("media");
-											// if (media!=null){
-											// for (int i = 0; i <
-											// media.length(); i++) {
-											// JSONObject oneMedia =
-											// media.getJSONObject(i);
-											// if (oneMedia.has("type")){
-											// if
-											// (oneMedia.getString("type").equals("photo")){
-											// media_url =
-											// oneMedia.getString("media_url");
-											// }
-											// }
-											// }
-											// }
-											// }
-											// }
-											
+											String media_url = "";
+											JSONObject JsonTweet = new JSONObject(tweet.toJson());
+											logger.debug(tweet.toJson());
+											if (JsonTweet.has("entities")) {
+												JSONObject entities = JsonTweet.getJSONObject("entities");
+												if (entities != null) {
+													if (entities.has("media")) {
+														JSONArray media = entities.getJSONArray("media");
+														if (media != null) {
+															for (int i = 0; i < media.length(); i++) {
+																JSONObject oneMedia = media.getJSONObject(i);
+																if (oneMedia.has("type")) {
+																	if (oneMedia.getString("type").equals("photo")) {
+																		media_url = oneMedia.getString("media_url");
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+
 											JSONObject PyBossaTaskJsonToBeInserted = BuildJsonTaskContent(text, "5",
-													"0", "0", project_id, "0.0");
+													"0", "0", project_id, "0.0", media_url);
 											if (PyBossaTaskJsonToBeInserted != null) {
 												// Insert the PyBossa json into
 												// PyBossa
@@ -363,7 +361,7 @@ public class TaskCreator {
 	 * @return Json string
 	 */
 	public static JSONObject BuildJsonTaskContent(String text, String n_answers, String quorum, String calibration,
-			int project_id, String priority_0) {
+			int project_id, String priority_0, String media_url) {
 		try {
 			JSONObject app = new JSONObject();
 			app.put("text", text);
@@ -374,6 +372,7 @@ public class TaskCreator {
 			app2.put("calibration", calibration);
 			app2.put("project_id", project_id);
 			app2.put("priority_0", priority_0);
+			app2.put("media_url", media_url);
 			return app2;
 		} catch (Exception e) {
 			logger.error("Error ", e);
@@ -394,8 +393,9 @@ public class TaskCreator {
 			Integer project_id = response.getInt("project_id");
 			JSONObject info = response.getJSONObject("info");
 			String task_text = info.getString("text");
+			String media_url = response.getString("media_url");
 			logger.debug("Inserting a task into MongoDB");
-			if (pushTaskToMongoDB(pybossa_task_id, publishedAt, project_id, task_status, task_text)) {
+			if (pushTaskToMongoDB(pybossa_task_id, publishedAt, project_id, task_status, task_text, media_url)) {
 				return true;
 			} else {
 				return false;
@@ -408,7 +408,7 @@ public class TaskCreator {
 	}
 
 	public static boolean pushTaskToMongoDB(Integer pybossa_task_id, String publishedAt, Integer project_id,
-			String task_status, String task_text) {
+			String task_status, String task_text, String media_url) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 
@@ -420,7 +420,8 @@ public class TaskCreator {
 					database.getCollection(Config.taskCollection)
 							.insertOne(new Document().append("pybossa_task_id", pybossa_task_id)
 									.append("publishedAt", publishedAt).append("project_id", project_id)
-									.append("task_status", task_status).append("task_text", task_text));
+									.append("task_status", task_status).append("task_text", task_text)
+									.append("media_url", media_url));
 					logger.debug("One task is inserted into MongoDB");
 
 				} else {

@@ -17,8 +17,9 @@ public class JsonByID {
 		
 		
 		String media_url = null;
-		JSONObject entities = new JSONObject(json.get("entities"));
+		JSONObject entities = json.getJSONObject("entities");
 		if (entities!=null){
+			System.out.println(entities);
 			if (entities.has("media")){
 				JSONArray media = entities.getJSONArray("media");
 				if (media!=null){

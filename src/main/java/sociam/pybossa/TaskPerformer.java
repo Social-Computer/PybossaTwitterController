@@ -77,6 +77,11 @@ public class TaskPerformer {
 					int pybossa_task_id = document.getInteger("pybossa_task_id");
 					int project_id = document.getInteger("project_id");
 
+					String media_url = null;
+					if (document.containsKey("media_url")) {
+						media_url = document.getString("media_url");
+					}
+
 					JSONObject project = getProjectByID(project_id);
 					ArrayList<String> hashtags = new ArrayList<>();
 					if (project != null) {
@@ -90,7 +95,7 @@ public class TaskPerformer {
 
 					String taskTag = "#t" + pybossa_task_id;
 
-					int responseCode = sendTaskToTwitter(task_text, taskTag, hashtags, 2);
+					int responseCode = sendTaskToTwitter(task_text, media_url, taskTag, hashtags, 2);
 					if (responseCode == 1) {
 						if (updateTaskToPushedInMongoDB(_id, "pushed")) {
 							logger.info("Task with text " + task_text + " has been sucessfully pushed to Twitter");
@@ -179,8 +184,8 @@ public class TaskPerformer {
 	 * @param taskContent
 	 *            the content of the tweet to be published
 	 */
-	public static int sendTaskToTwitter(String taskContent, String taskTag, ArrayList<String> hashtags,
-			int project_type) {
+	public static int sendTaskToTwitter(String taskContent, String media_url, String taskTag,
+			ArrayList<String> hashtags, int project_type) {
 		try {
 			Twitter twitter = TwitterAccount.setTwitterAccount(project_type);
 
@@ -207,17 +212,32 @@ public class TaskPerformer {
 			post = post + " " + taskTag;
 
 			// convert taskContent and question into an image
-			File image = StringToImage.convertStringToImage(taskContent);
+			File image = null;
+			if (media_url != null) {
+				if (media_url.equals("")) {
+					image = StringToImage.convertStringToImage(taskContent);
+				} else {
+					image = StringToImage.combineTextWithImage(taskContent, media_url);
+				}
+			} else {
+				image = StringToImage.convertStringToImage(taskContent);
+			}
 
 			if (post.length() < 140) {
-				// status = twitter.updateStatus(post);
+				// image must exist
+				if (image != null) {
+					// status = twitter.updateStatus(post);
 
-				StatusUpdate status = new StatusUpdate(post);
-				status.setMedia(image);
-				twitter.updateStatus(status);
+					StatusUpdate status = new StatusUpdate(post);
+					status.setMedia(image);
+					twitter.updateStatus(status);
 
-				logger.debug("Successfully posting a task '" + status.getStatus() + "'." + status.getPlaceId());
-				return 1;
+					logger.debug("Successfully posting a task '" + status.getStatus() + "'." + status.getPlaceId());
+					return 1;
+				} else {
+					logger.error("Image couldn't br generated");
+					return 0;
+				}
 			} else {
 				logger.error("Post \"" + post + "\" is longer than 140 characters. It has: " + (post.length()));
 				return 0;
@@ -227,9 +247,6 @@ public class TaskPerformer {
 			return 2;
 		}
 	}
-
-	// static HashSet<Document> NotPushedTasksjsons = new
-	// LinkedHashSet<Document>();
 
 	public static HashSet<Document> getReadyTasksFromMongoDB() {
 		HashSet<Document> NotPushedTasksjsons = new LinkedHashSet<Document>();
@@ -257,22 +274,6 @@ public class TaskPerformer {
 		logger.debug("getting project by project_id from " + Config.projectCollection + " collection");
 		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-			// JSONObject json = null;
-			// DB database = mongoClient.getDB(Config.projectsDatabaseName);
-			// JSONObject proj = new JSONObject();
-			// proj.put("project_id", project_id);
-			// Object o = com.mongodb.util.JSON.parse(proj.toString());
-			// DBObject dbObj = (DBObject) o;
-			//
-			// DBCollection collections =
-			// database.getCollection(Config.projectCollection);
-			// DBCursor iterable = collections.find(dbObj);
-			// if (iterable.hasNext()) {
-			// json = new JSONObject(iterable.next().toString());
-			//
-			// }
-			// mongoClient.close();
-			// return json;
 
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			JSONObject json = null;
