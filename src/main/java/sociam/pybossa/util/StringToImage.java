@@ -45,7 +45,7 @@ public class StringToImage {
 			int widthImg1 = img1.getWidth();
 			int heightImg1 = img1.getHeight();
 			int heightImg2 = img2.getHeight();
-			BufferedImage img = new BufferedImage(widthImg1, heightImg1 + heightImg2, BufferedImage.TYPE_INT_RGB);
+			BufferedImage img = new BufferedImage(widthImg1, heightImg1 + heightImg2, BufferedImage.TYPE_INT_ARGB);
 			img.createGraphics().setColor(Color.RED);
 			boolean image1Drawn = img.createGraphics().drawImage(img1, 0, 20 + img2.getHeight(), null);
 			if (!image1Drawn) {
@@ -72,7 +72,7 @@ public class StringToImage {
 	private static BufferedImage convertStringToImage(String text, int width) {
 
 		try {
-			BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_BINARY);
+			BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
 			Graphics2D g2d = img.createGraphics();
 
 			Font font = new Font("Arial", Font.PLAIN, 20);
@@ -135,7 +135,7 @@ public class StringToImage {
 		 * height of the final image
 		 */
 		try {
-			BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_BINARY);
+			BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
 			Graphics2D g2d = img.createGraphics();
 			int width = 650;
 			int height = 140;
