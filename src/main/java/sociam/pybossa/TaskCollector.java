@@ -53,7 +53,7 @@ public class TaskCollector {
 
 	public static void main(String[] args) {
 
-		// PropertyConfigurator.configure("log4j.properties");
+		PropertyConfigurator.configure("log4j.properties");
 		twitter = TwitterAccount.setTwitterAccount(2);
 		logger.info("TaskCollector will be repeated every " + Config.TaskCollectorTrigger + " ms");
 		try {
@@ -78,7 +78,7 @@ public class TaskCollector {
 				logger.debug("There are " + ResponsesFromTwitter.size() + " tweets to be processed");
 				for (JSONObject jsonObject : ResponsesFromTwitter) {
 
-					logger.debug("Processing a new twitter object ");
+					// logger.debug("Processing a new twitter object ");
 					if (!jsonObject.isNull("in_reply_to_status_id_str")) {
 						logger.debug("Found a reply tweet " + jsonObject);
 						String in_reply_to_status_id_str = jsonObject.getString("in_reply_to_status_id_str");
@@ -86,8 +86,8 @@ public class TaskCollector {
 						String in_reply_to_screen_name = jsonObject.getString("in_reply_to_screen_name");
 						String taskResponse = reply.replaceAll("@" + in_reply_to_screen_name, "");
 
-						// store the reply id
-						String id_str = jsonObject.getString("id_str");
+						// // store the reply id
+						// String id_str = jsonObject.getString("id_str");
 
 						// store the use screen name
 						JSONObject userJson = jsonObject.getJSONObject("user");
@@ -96,64 +96,61 @@ public class TaskCollector {
 						String screen_name = userJson.getString("screen_name");
 
 						logger.debug("Checking if the reply has already being stored");
-						Document taskRun = getTaskRunsFromMongoDB(id_str);
-						if (taskRun == null) {
+						// Document taskRun = getTaskRunsFromMongoDB(id_str);
+						// if (taskRun == null) {
 
-							logger.debug("Looking for the original tweet for the reply");
-							JSONObject orgTweet = getTweetByID(String.valueOf(in_reply_to_status_id_str), twitter);
-							// loop through tweets till you find the orginal
-							// tweet
-							while (!orgTweet.isNull("in_reply_to_status_id_str")) {
-								orgTweet = getTweetByID(orgTweet.getString("in_reply_to_status_id_str"), twitter);
-							}
-							logger.debug("Original tweet was found");
+						logger.debug("Looking for the original tweet for the reply");
+						JSONObject orgTweet = getTweetByID(String.valueOf(in_reply_to_status_id_str), twitter);
+						// loop through tweets till you find the orginal
+						// tweet
+						while (!orgTweet.isNull("in_reply_to_status_id_str")) {
+							orgTweet = getTweetByID(orgTweet.getString("in_reply_to_status_id_str"), twitter);
+						}
+						logger.debug("Original tweet was found");
 
-							String orgTweetText = orgTweet.getString("text");
-							Pattern pattern = Pattern.compile("(#t[0-9]+)");
-							Matcher matcher = pattern.matcher(orgTweetText);
-							String taskID = "";
-							if (matcher.find()) {
-								logger.debug("Found a taskID in the orginal tweet");
-								taskID = matcher.group(1).replaceAll("#t", "");
-								Integer intTaskID = Integer.valueOf(taskID);
-								// cache taskIDs
-								if (!cachedTaskIDsAndProjectsIDs.containsKey(intTaskID)) {
-									logger.debug("TaskID is not in the cache");
-									logger.debug("Retriving Task id from Collection: " + Config.taskCollection);
-									Document doc = getTaskFromMongoDB(intTaskID);
-									if (doc != null) {
-										int project_id = doc.getInteger("project_id");
-										cachedTaskIDsAndProjectsIDs.put(intTaskID, project_id);
-										if (insertTaskRun(taskResponse, intTaskID, project_id, id_str, screen_name,
-												SOURCE)) {
-											logger.debug("Task run was completely processed");
-										} else {
-											logger.error("Failed to process the task run");
-										}
+						String orgTweetText = orgTweet.getString("text");
+						Pattern pattern = Pattern.compile("(#t[0-9]+)");
+						Matcher matcher = pattern.matcher(orgTweetText);
+						String taskID = "";
+						if (matcher.find()) {
+							logger.debug("Found a taskID in the orginal tweet");
+							taskID = matcher.group(1).replaceAll("#t", "");
+							Integer intTaskID = Integer.valueOf(taskID);
+
+							// cache taskIDs
+							if (!cachedTaskIDsAndProjectsIDs.containsKey(intTaskID)) {
+								logger.debug("TaskID is not in the cache");
+								logger.debug("Retriving Task id from Collection: " + Config.taskCollection);
+								Document doc = getTaskFromMongoDB(intTaskID);
+								if (doc != null) {
+									int project_id = doc.getInteger("project_id");
+									cachedTaskIDsAndProjectsIDs.put(intTaskID, project_id);
+									if (insertTaskRun(taskResponse, intTaskID, project_id, screen_name, SOURCE)) {
+										logger.debug("Task run was completely processed");
 									} else {
-										logger.error("Couldn't find task with ID " + taskID);
-										// TODO: Remove tweets that do not have
-										// records in MongoDB
-
+										logger.error("Failed to process the task run");
 									}
 								} else {
-									logger.debug("Task ID was found in the cache");
-									insertTaskRun(taskResponse, intTaskID, cachedTaskIDsAndProjectsIDs.get(intTaskID),
-											id_str, screen_name, SOURCE);
+									logger.error("Couldn't find task with ID " + taskID);
+									// TODO: Remove tweets that do not have
+									// records in MongoDB
 								}
-
 							} else {
-								logger.error("reply: \\" + reply
-										+ " was not being identified with an associated task in the original text: \\"
-										+ orgTweetText);
+								logger.debug("Task ID was found in the cache");
+								insertTaskRun(taskResponse, intTaskID, cachedTaskIDsAndProjectsIDs.get(intTaskID),
+										screen_name, SOURCE);
 							}
-						} else {
-							logger.debug("Reply has already being stored");
-						}
-					} else {
-						logger.debug("This is not a reply tweet");
 
+						} else {
+							logger.error("reply: \\" + reply
+									+ " was not being identified with an associated task in the original text: \\"
+									+ orgTweetText);
+						}
 					}
+					// else {
+					// logger.debug("This is not a reply tweet");
+					//
+					// }
 
 				}
 			} else {
@@ -165,11 +162,18 @@ public class TaskCollector {
 		}
 	}
 
-	public static Boolean insertTaskRun(String text, int task_id, int project_id, String contribution_id,
-			String contributor_name, String source) {
+	public static Boolean insertTaskRun(String text, int task_id, int project_id, String contributor_name,
+			String source) {
+
+		Document taskRun = getTaskRunsFromMongoDB(task_id, contributor_name);
+		if (taskRun != null) {
+			logger.error("You are only allowed one contribution for each task.");
+			logger.error("task_id= " + task_id + " screen_name: " + contributor_name);
+			return false;
+		}
 
 		JSONObject jsonData = BuildJsonTaskRunContent(text, task_id, project_id);
-		if (insertTaskRunIntoMongoDB(jsonData, contribution_id, contributor_name, source)) {
+		if (insertTaskRunIntoMongoDB(jsonData, contributor_name, source)) {
 			logger.debug("Task run was successfully inserted into MongoDB");
 			// Project has to be reqested before inserting a task run
 			logger.debug("Requesting the project ID from PyBossa before inserting it");
@@ -189,8 +193,7 @@ public class TaskCollector {
 
 	}
 
-	public static Boolean insertTaskRunIntoMongoDB(JSONObject jsonData, String contribution_id, String contributor_name,
-			String source) {
+	public static Boolean insertTaskRunIntoMongoDB(JSONObject jsonData, String contributor_name, String source) {
 
 		try {
 			// Integer pybossa_task_run_id = PyBossaResponse.getInt("id");
@@ -202,8 +205,7 @@ public class TaskCollector {
 			Integer task_id = jsonData.getInt("task_id");
 			String task_run_text = jsonData.getString("info");
 			logger.debug("Inserting a task run into MongoDB");
-			if (pushTaskRunToMongoDB(insertedAt, project_id, task_id, task_run_text, contribution_id, contributor_name,
-					source)) {
+			if (pushTaskRunToMongoDB(insertedAt, project_id, task_id, task_run_text, contributor_name, source)) {
 				return true;
 			} else {
 				return false;
@@ -218,28 +220,21 @@ public class TaskCollector {
 	// maybe it's not needed to check id_str becasue we check it first!
 	// so only do an insert?
 	public static boolean pushTaskRunToMongoDB(String publishedAt, Integer project_id, Integer task_id,
-			String task_text, String contribution_id, String contributor_name, String source) {
+			String task_text, String contributor_name, String source) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
-			if (publishedAt != null && project_id != null && task_text != null && contribution_id != null
-					&& contributor_name != null && source != null) {
-				FindIterable<Document> iterable = database.getCollection(Config.taskRunCollection)
-						.find(new Document("contribution_id", contribution_id));
-				if (iterable.first() == null) {
-					database.getCollection(Config.taskRunCollection)
-							.insertOne(new Document().append("publishedAt", publishedAt)
-									.append("project_id", project_id).append("task_id", task_id)
-									.append("task_text", task_text).append("contribution_id", contribution_id)
-									.append("contributor_name", contributor_name).append("source", source));
-					logger.debug("One task run is inserted into MongoDB");
-					mongoClient.close();
-					return true;
-				} else {
-					logger.error("The task run is already stored in MongoDB!");
-					mongoClient.close();
-					return false;
-				}
+			if (publishedAt != null && project_id != null && task_text != null && contributor_name != null
+					&& source != null) {
+
+				database.getCollection(Config.taskRunCollection)
+						.insertOne(new Document().append("publishedAt", publishedAt).append("project_id", project_id)
+								.append("task_id", task_id).append("task_text", task_text)
+								.append("contributor_name", contributor_name).append("source", source));
+				logger.debug("One task run is inserted into MongoDB");
+				mongoClient.close();
+				return true;
+
 			} else {
 				mongoClient.close();
 				return false;
@@ -401,7 +396,7 @@ public class TaskCollector {
 
 	}
 
-	public static Document getTaskRunsFromMongoDB(String contribution_id) {
+	public static Document getTaskRunsFromMongoDB(int task_id, String contributor_name) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
@@ -412,7 +407,7 @@ public class TaskCollector {
 			// eq("pybossa_task_id", pybossa_task_id)).limit(1);
 
 			FindIterable<Document> iterable = database.getCollection(Config.taskRunCollection)
-					.find(new Document("contribution_id", contribution_id));
+					.find(new Document("task_id", task_id).append("contributor_name", contributor_name));
 
 			Document document = iterable.first();
 			mongoClient.close();
@@ -424,6 +419,33 @@ public class TaskCollector {
 		}
 
 	}
+
+	// public static Document getTaskRunsFromMongoDB(String contribution_id) {
+	// MongoClient mongoClient = new MongoClient(Config.mongoHost,
+	// Config.mongoPort);
+	// try {
+	// MongoDatabase database =
+	// mongoClient.getDatabase(Config.projectsDatabaseName);
+	//
+	// // MongoCollection<Document> collection = database
+	// // .getCollection(Config.taskCollection);
+	// // Document myDoc = collection.find(
+	// // eq("pybossa_task_id", pybossa_task_id)).limit(1);
+	//
+	// FindIterable<Document> iterable =
+	// database.getCollection(Config.taskRunCollection)
+	// .find(new Document("contribution_id", contribution_id));
+	//
+	// Document document = iterable.first();
+	// mongoClient.close();
+	// return document;
+	// } catch (Exception e) {
+	// logger.error("Error ", e);
+	// mongoClient.close();
+	// return null;
+	// }
+	//
+	// }
 
 	public static JSONObject getTweetByID(String status_id_str, Twitter twitter) {
 
@@ -457,6 +479,17 @@ public class TaskCollector {
 			}
 		} catch (TwitterException te) {
 			logger.error("Failed to get timeline: ", te);
+			if (te.exceededRateLimitation()) {
+				try {
+					logger.debug("Twitter rate limit is exceeded waiting for 300000 ms");
+					Thread.sleep(300000);
+					getTimeLineAsJsons(twitter);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
 			return null;
 		}
 
