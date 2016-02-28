@@ -2,6 +2,7 @@ package sociam.pybossa.config;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.Properties;
 
 public class Config {
@@ -37,7 +38,7 @@ public class Config {
 	public static void reload() {
 
 		Properties p = new Properties();
-		try (FileInputStream stream = new FileInputStream(new File("../config.properties"))) {
+		try (InputStream stream = Config.class.getResourceAsStream("/config.properties")) {
 			p.load(stream);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -75,7 +76,7 @@ public class Config {
 
 	static {
 		Properties p = new Properties();
-		try (FileInputStream stream = new FileInputStream(new File("../config.properties"))) {
+		try (InputStream stream = Config.class.getResourceAsStream("/config.properties")) {
 			p.load(stream);
 		} catch (Exception e) {
 			e.printStackTrace();

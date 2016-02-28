@@ -1,10 +1,7 @@
 package sociam.pybossa;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -47,6 +44,7 @@ public class TaskCollector {
 	final static Logger logger = Logger.getLogger(TaskCollector.class);
 	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	final static SimpleDateFormat PyBossaformatter = new SimpleDateFormat("yyyy-mm-dd'T'hh:mm:ss.SSSSSS");
+	final static String SOURCE = "Twitter";
 
 	// caching tasksIDs
 	static HashMap<Integer, Integer> cachedTaskIDsAndProjectsIDs = new HashMap<>();
@@ -55,7 +53,7 @@ public class TaskCollector {
 
 	public static void main(String[] args) {
 
-		PropertyConfigurator.configure("log4j.properties");
+		// PropertyConfigurator.configure("log4j.properties");
 		twitter = TwitterAccount.setTwitterAccount(2);
 		logger.info("TaskCollector will be repeated every " + Config.TaskCollectorTrigger + " ms");
 		try {
@@ -126,7 +124,8 @@ public class TaskCollector {
 									if (doc != null) {
 										int project_id = doc.getInteger("project_id");
 										cachedTaskIDsAndProjectsIDs.put(intTaskID, project_id);
-										if (insertTaskRun(taskResponse, intTaskID, project_id, id_str, screen_name)) {
+										if (insertTaskRun(taskResponse, intTaskID, project_id, id_str, screen_name,
+												SOURCE)) {
 											logger.debug("Task run was completely processed");
 										} else {
 											logger.error("Failed to process the task run");
@@ -140,7 +139,7 @@ public class TaskCollector {
 								} else {
 									logger.debug("Task ID was found in the cache");
 									insertTaskRun(taskResponse, intTaskID, cachedTaskIDsAndProjectsIDs.get(intTaskID),
-											id_str, screen_name);
+											id_str, screen_name, SOURCE);
 								}
 
 							} else {
@@ -166,10 +165,11 @@ public class TaskCollector {
 		}
 	}
 
-	public static Boolean insertTaskRun(String text, int task_id, int project_id, String id_str, String screen_name) {
+	public static Boolean insertTaskRun(String text, int task_id, int project_id, String contribution_id,
+			String contributor_name, String source) {
 
 		JSONObject jsonData = BuildJsonTaskRunContent(text, task_id, project_id);
-		if (insertTaskRunIntoMongoDB(jsonData, id_str, screen_name)) {
+		if (insertTaskRunIntoMongoDB(jsonData, contribution_id, contributor_name, source)) {
 			logger.debug("Task run was successfully inserted into MongoDB");
 			// Project has to be reqested before inserting a task run
 			logger.debug("Requesting the project ID from PyBossa before inserting it");
@@ -189,7 +189,8 @@ public class TaskCollector {
 
 	}
 
-	public static Boolean insertTaskRunIntoMongoDB(JSONObject jsonData, String id_str, String screen_name) {
+	public static Boolean insertTaskRunIntoMongoDB(JSONObject jsonData, String contribution_id, String contributor_name,
+			String source) {
 
 		try {
 			// Integer pybossa_task_run_id = PyBossaResponse.getInt("id");
@@ -201,7 +202,8 @@ public class TaskCollector {
 			Integer task_id = jsonData.getInt("task_id");
 			String task_run_text = jsonData.getString("info");
 			logger.debug("Inserting a task run into MongoDB");
-			if (pushTaskRunToMongoDB(insertedAt, project_id, task_id, task_run_text, id_str, screen_name)) {
+			if (pushTaskRunToMongoDB(insertedAt, project_id, task_id, task_run_text, contribution_id, contributor_name,
+					source)) {
 				return true;
 			} else {
 				return false;
@@ -216,19 +218,20 @@ public class TaskCollector {
 	// maybe it's not needed to check id_str becasue we check it first!
 	// so only do an insert?
 	public static boolean pushTaskRunToMongoDB(String publishedAt, Integer project_id, Integer task_id,
-			String task_text, String id_str, String screen_name) {
+			String task_text, String contribution_id, String contributor_name, String source) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
-			if (publishedAt != null && project_id != null && task_text != null && id_str != null
-					&& screen_name != null) {
+			if (publishedAt != null && project_id != null && task_text != null && contribution_id != null
+					&& contributor_name != null && source != null) {
 				FindIterable<Document> iterable = database.getCollection(Config.taskRunCollection)
-						.find(new Document("id_str", id_str));
+						.find(new Document("contribution_id", contribution_id));
 				if (iterable.first() == null) {
-					database.getCollection(Config.taskRunCollection).insertOne(
-							new Document().append("publishedAt", publishedAt).append("project_id", project_id)
-									.append("task_id", task_id).append("task_text", task_text).append("id_str", id_str)
-									.append("screen_name", screen_name));
+					database.getCollection(Config.taskRunCollection)
+							.insertOne(new Document().append("publishedAt", publishedAt)
+									.append("project_id", project_id).append("task_id", task_id)
+									.append("task_text", task_text).append("contribution_id", contribution_id)
+									.append("contributor_name", contributor_name).append("source", source));
 					logger.debug("One task run is inserted into MongoDB");
 					mongoClient.close();
 					return true;
@@ -398,7 +401,7 @@ public class TaskCollector {
 
 	}
 
-	public static Document getTaskRunsFromMongoDB(String id_str) {
+	public static Document getTaskRunsFromMongoDB(String contribution_id) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
@@ -409,7 +412,7 @@ public class TaskCollector {
 			// eq("pybossa_task_id", pybossa_task_id)).limit(1);
 
 			FindIterable<Document> iterable = database.getCollection(Config.taskRunCollection)
-					.find(new Document("id_str", id_str));
+					.find(new Document("contribution_id", contribution_id));
 
 			Document document = iterable.first();
 			mongoClient.close();
