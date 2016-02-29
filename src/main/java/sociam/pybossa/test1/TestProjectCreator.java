@@ -25,7 +25,9 @@ public class TestProjectCreator {
 	public static void main(String[] args) {
 		BasicConfigurator.configure();
 
-		JSONObject jsonData = BuildJsonPorject("test15", "test15", "test15", Config.project_validation_templatePath);
+		
+		
+		JSONObject jsonData = BuildJsonPorject("test2000", "test2000", "test2000", Config.project_validation_templatePath);
 		String url = Config.PyBossahost + Config.projectDir + Config.api_key;
 		createProject(url, jsonData);
 
@@ -100,7 +102,9 @@ public class TestProjectCreator {
 		app.put("allow_anonymous_contributors", true);
 		// TODO: publishing through the api is not allowed - we leave it to be
 		// done manually!
-		// app.put("published", true);
+		app.put("published", true);
+		app.put("owner_id", 1);
+		app.put("featured", false);
 		app.put("info", app2);
 
 		return app;
