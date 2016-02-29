@@ -7,6 +7,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Random;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -35,18 +36,21 @@ import com.mongodb.client.result.UpdateResult;
 public class TaskPerformer {
 
 	final static Logger logger = Logger.getLogger(TaskPerformer.class);
-	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat(
+			"yyyy-MM-dd HH:mm:ss");
 
 	static Boolean wasPushed = false;
 
 	public static void main(String[] args) {
 		PropertyConfigurator.configure("log4j.properties");
-		logger.info("TaskPerformer will be repeated every " + Config.TaskCreatorTrigger + " ms");
+		logger.info("TaskPerformer will be repeated every "
+				+ Config.TaskCreatorTrigger + " ms");
 		try {
 			while (true) {
 				Config.reload();
 				run();
-				logger.info("Sleeping for " + Config.TaskPerformerTrigger + " ms");
+				logger.info("Sleeping for " + Config.TaskPerformerTrigger
+						+ " ms");
 				Thread.sleep(Integer.valueOf(Config.TaskPerformerTrigger));
 			}
 		} catch (InterruptedException e) {
@@ -56,25 +60,41 @@ public class TaskPerformer {
 
 	public static void run() {
 		try {
-			HashSet<Document> tasksToBePushed = getReadyTasksFromMongoDB();
+			ArrayList<Document> tasksToBePushed = getReadyTasksFromMongoDB();
 			if (tasksToBePushed != null) {
-				logger.info("There are " + tasksToBePushed.size()
+				logger.info("There are "
+						+ tasksToBePushed.size()
 						+ " tasks that need to be pushed into Twitter, then updating to MongoDB");
 
-				for (Document document : tasksToBePushed) {
+				// randomly pick a task
+				// for (Document document : tasksToBePushed) {
+				HashSet<Integer> taskIDs = new HashSet<Integer>();
+				int seed = 200;
+				while (taskIDs.size() < tasksToBePushed.size()) {
+					Random random = new Random(seed);
+					seed++;
+					Integer genertatedTaskID = random.nextInt(tasksToBePushed
+							.size());
+					if (taskIDs.contains(genertatedTaskID)) {
+						continue;
+					} else {
+						taskIDs.add(genertatedTaskID);
+					}
+					Document document = tasksToBePushed.get(genertatedTaskID);
 					String task_status = document.getString("task_status");
 					String task_text = document.getString("task_text");
 					if (task_status.equals("pushed")) {
 						Date lastPushAt = document.getDate("lastPushAt");
 						if (!rePush(lastPushAt)) {
-							break;
+							continue;
 						} else {
 							logger.debug("Repushing task " + task_text);
 						}
 					}
 
 					ObjectId _id = document.getObjectId("_id");
-					int pybossa_task_id = document.getInteger("pybossa_task_id");
+					int pybossa_task_id = document
+							.getInteger("pybossa_task_id");
 					int project_id = document.getInteger("project_id");
 
 					String media_url = null;
@@ -95,18 +115,22 @@ public class TaskPerformer {
 
 					String taskTag = "#t" + pybossa_task_id;
 
-					int responseCode = sendTaskToTwitter(task_text, media_url, taskTag, hashtags, 2);
+					int responseCode = sendTaskToTwitter(task_text, media_url,
+							taskTag, hashtags, 2);
 					if (responseCode == 1) {
 						if (updateTaskToPushedInMongoDB(_id, "pushed")) {
-							logger.info("Task with text " + task_text + " has been sucessfully pushed to Twitter");
+							logger.info("Task with text " + task_text
+									+ " has been sucessfully pushed to Twitter");
 							wasPushed = true;
 						} else {
-							logger.error(
-									"Error with updating " + Config.taskCollection + " for the _id " + _id.toString());
+							logger.error("Error with updating "
+									+ Config.taskCollection + " for the _id "
+									+ _id.toString());
 						}
 					} else if (responseCode == 0) {
 						if (updateTaskToPushedInMongoDB(_id, "notValied")) {
-							logger.debug("Tweeet is not valid because of length, but updated in Mongodb" + task_text);
+							logger.debug("Tweeet is not valid because of length, but updated in Mongodb"
+									+ task_text);
 						}
 						logger.error("Couldn't update the task in MongoDB");
 					} else if (responseCode == 2) {
@@ -121,9 +145,11 @@ public class TaskPerformer {
 
 					if (wasPushed) {
 						wasPushed = false;
-						logger.debug(
-								"waiting for " + Config.TaskPerformerPushRate + " ms before pushing another tweet");
-						Thread.sleep(Integer.valueOf(Config.TaskPerformerPushRate));
+						logger.debug("waiting for "
+								+ Config.TaskPerformerPushRate
+								+ " ms before pushing another tweet");
+						Thread.sleep(Integer
+								.valueOf(Config.TaskPerformerPushRate));
 					}
 				}
 			}
@@ -148,21 +174,28 @@ public class TaskPerformer {
 		}
 	}
 
-	public static Boolean updateTaskToPushedInMongoDB(ObjectId _id, String task_status) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+	public static Boolean updateTaskToPushedInMongoDB(ObjectId _id,
+			String task_status) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost,
+				Config.mongoPort);
 		try {
 
-			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			MongoDatabase database = mongoClient
+					.getDatabase(Config.projectsDatabaseName);
 			Date date = new Date();
 			String lastPushAt = MongoDBformatter.format(date);
-			UpdateResult result = database.getCollection(Config.taskCollection).updateOne(new Document("_id", _id),
-					new Document().append("$set",
-							new Document("task_status", task_status).append("lastPushAt", lastPushAt)));
+			UpdateResult result = database.getCollection(Config.taskCollection)
+					.updateOne(
+							new Document("_id", _id),
+							new Document().append("$set", new Document(
+									"task_status", task_status).append(
+									"lastPushAt", lastPushAt)));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
-					logger.debug(Config.taskCollection + " Collection was updated where _id= " + _id.toString()
-							+ " to task_status=" + task_status);
+					logger.debug(Config.taskCollection
+							+ " Collection was updated where _id= "
+							+ _id.toString() + " to task_status=" + task_status);
 					mongoClient.close();
 					return true;
 				}
@@ -184,8 +217,8 @@ public class TaskPerformer {
 	 * @param taskContent
 	 *            the content of the tweet to be published
 	 */
-	public static int sendTaskToTwitter(String taskContent, String media_url, String taskTag,
-			ArrayList<String> hashtags, int project_type) {
+	public static int sendTaskToTwitter(String taskContent, String media_url,
+			String taskTag, ArrayList<String> hashtags, int project_type) {
 		try {
 			Twitter twitter = TwitterAccount.setTwitterAccount(project_type);
 
@@ -217,7 +250,8 @@ public class TaskPerformer {
 				if (media_url.equals("")) {
 					image = StringToImage.convertStringToImage(taskContent);
 				} else {
-					image = StringToImage.combineTextWithImage(taskContent, media_url);
+					image = StringToImage.combineTextWithImage(taskContent,
+							media_url);
 				}
 			} else {
 				image = StringToImage.convertStringToImage(taskContent);
@@ -232,14 +266,17 @@ public class TaskPerformer {
 					status.setMedia(image);
 					twitter.updateStatus(status);
 
-					logger.debug("Successfully posting a task '" + status.getStatus() + "'." + status.getPlaceId());
+					logger.debug("Successfully posting a task '"
+							+ status.getStatus() + "'." + status.getPlaceId());
 					return 1;
 				} else {
 					logger.error("Image couldn't br generated");
 					return 0;
 				}
 			} else {
-				logger.error("Post \"" + post + "\" is longer than 140 characters. It has: " + (post.length()));
+				logger.error("Post \"" + post
+						+ "\" is longer than 140 characters. It has: "
+						+ (post.length()));
 				return 0;
 			}
 		} catch (Exception e) {
@@ -248,14 +285,17 @@ public class TaskPerformer {
 		}
 	}
 
-	public static HashSet<Document> getReadyTasksFromMongoDB() {
-		HashSet<Document> NotPushedTasksjsons = new LinkedHashSet<Document>();
-		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+	public static ArrayList<Document> getReadyTasksFromMongoDB() {
+		ArrayList<Document> NotPushedTasksjsons = new ArrayList<Document>();
+		MongoClient mongoClient = new MongoClient(Config.mongoHost,
+				Config.mongoPort);
 		try {
 
-			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
-			FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
-					.find(new Document("task_status", "ready"));
+			MongoDatabase database = mongoClient
+					.getDatabase(Config.projectsDatabaseName);
+			FindIterable<Document> iterable = database.getCollection(
+					Config.taskCollection).find(
+					new Document("task_status", "ready"));
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
 					NotPushedTasksjsons.add(document);
@@ -271,14 +311,18 @@ public class TaskPerformer {
 	}
 
 	public static JSONObject getProjectByID(int project_id) {
-		logger.debug("getting project by project_id from " + Config.projectCollection + " collection");
-		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+		logger.debug("getting project by project_id from "
+				+ Config.projectCollection + " collection");
+		MongoClient mongoClient = new MongoClient(Config.mongoHost,
+				Config.mongoPort);
 		try {
 
-			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			MongoDatabase database = mongoClient
+					.getDatabase(Config.projectsDatabaseName);
 			JSONObject json = null;
-			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
-					.find(new Document("project_id", project_id));
+			FindIterable<Document> iterable = database.getCollection(
+					Config.projectCollection).find(
+					new Document("project_id", project_id));
 			if (iterable.first() != null) {
 				Document document = iterable.first();
 				json = new JSONObject(document);
