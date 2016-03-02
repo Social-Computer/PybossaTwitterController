@@ -156,8 +156,13 @@ public class TaskPerformer {
 		ArrayList<String> hashtags = new ArrayList<>();
 		if (project != null) {
 			JSONArray bin_id = project.getJSONArray("bin_ids");
-			for (Object object : bin_id) {
-				String binItem = (String) object;
+			// for (Object object : bin_id) {
+			// String binItem = (String) object;
+			// hashtags.add("#" + binItem);
+			// }
+			for (int i = 0; i < bin_id.length(); i++) {
+				JSONObject item = bin_id.getJSONObject(i);
+				String binItem = item.getString("bin_ids");
 				hashtags.add("#" + binItem);
 			}
 
@@ -393,6 +398,14 @@ public class TaskPerformer {
 				Document doc = iterable.first();
 				JSONObject task = new JSONObject(doc);
 				mongoClient.close();
+				
+				ArrayList<String> hashtags = getProjectHashTags(task
+						.getInt("project_id"));
+				if (hashtags != null) {
+					Collections.sort(hashtags);
+					task.put("hashtags", hashtags);
+				}
+				
 				return task;
 			} else {
 				mongoClient.close();
