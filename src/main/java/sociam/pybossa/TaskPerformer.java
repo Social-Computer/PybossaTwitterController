@@ -311,9 +311,10 @@ public class TaskPerformer {
 		JSONObject tasks = new JSONObject();
 		JSONArray tasksArray = new JSONArray();
 		logger.debug("Getting not completed tasks from " + Config.taskCollection + " collection");
-		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+		MongoClient mongoClient = null;
 		JSONObject json = null;
 		try {
+			mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
 					.find(ne("task_status", "completed")).limit(200).skip(offset);
@@ -334,6 +335,100 @@ public class TaskPerformer {
 			return null;
 		}
 
+	}
+
+	public static JSONObject getLatestUncompletedAnsweredTask() {
+		logger.debug("Retriving the last uncompleted task");
+		MongoClient mongoClient = null;
+		try {
+			mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
+					.find(ne("task_status", "completed")).sort(new Document("publishedAt", -1)).limit(1);
+			if (iterable.first() != null) {
+				Document doc = iterable.first();
+				JSONObject task = new JSONObject(doc);
+				mongoClient.close();
+				return task;
+			} else {
+				mongoClient.close();
+				return null;
+			}
+		} catch (Exception e) {
+			logger.error("Error ", e);
+			mongoClient.close();
+			return null;
+		}
+	}
+
+	public static JSONObject getLatestUnAnsweredTask() {
+		logger.debug("Retriving the last unanswered task");
+		MongoClient mongoClient = null;
+		try {
+			mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			Boolean foundTask = false;
+			int pybossa_task_id;
+			int offset = 0;
+			JSONObject task = new JSONObject();
+			while (!foundTask) {
+				FindIterable<Document> iterable = database.getCollection(Config.taskCollection).find()
+						.sort(new Document("publishedAt", -1)).limit(1).skip(offset);
+				if (iterable.first() != null) {
+					Document doc = iterable.first();
+					pybossa_task_id = doc.getInteger("pybossa_task_id");
+					Boolean hadAnswer = wasAnsweredBefore(pybossa_task_id);
+					if (!hadAnswer) {
+						task.put("task_id", doc.getInteger("pybossa_task_id"));
+						task.put("project_id", doc.getInteger("project_id"));
+						task.put("task_text", doc.getString("task_text"));
+						task.put("publishedAt", doc.getString("publishedAt"));
+						task.put("task_type", doc.getString("task_type"));
+						break;
+					} else {
+						offset++;
+					}
+				} else {
+					logger.debug("There are no tasks without answeres");
+					mongoClient.close();
+					return null;
+				}
+			}
+			logger.debug("Latest task is found");
+
+			if (task.getString("task_type").equals("validate")) {
+				task.put("question", Config.project_validation_question + "?");
+			}
+
+			mongoClient.close();
+			return task;
+		} catch (Exception e) {
+			logger.error("Error ", e);
+			mongoClient.close();
+			return null;
+		}
+	}
+
+	public static Boolean wasAnsweredBefore(int pybossa_task_id) {
+		MongoClient mongoClient = null;
+		try {
+			Boolean exist = false;
+			mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			FindIterable<Document> iterable = database.getCollection(Config.taskRunCollection)
+					.find(new Document("task_id", pybossa_task_id)).limit(1);
+			if (iterable.first() != null) {
+				exist = true;
+			} else {
+				exist = false;
+			}
+			mongoClient.close();
+			return exist;
+		} catch (Exception e) {
+			logger.error("Error ", e);
+			mongoClient.close();
+			return null;
+		}
 	}
 
 }

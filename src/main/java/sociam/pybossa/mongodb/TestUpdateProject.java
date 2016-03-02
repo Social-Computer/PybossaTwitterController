@@ -31,9 +31,9 @@ public class TestUpdateProject {
 					JSONObject app2 = new JSONObject(document);
 					ObjectId id =  document.getObjectId("_id");
 					System.out.println(id);
-					UpdateResult result = database.getCollection(Config.projectCollection).updateOne(
-							new Document("project_started", "true"),
-							new Document("$set", new Document("project_started", "true")));
+					UpdateResult result = database.getCollection(Config.taskCollection).updateMany(
+							new Document(),
+							new Document("$set", new Document("task_type", "validate")));
 					if (result.wasAcknowledged()) {
 						if (result.getMatchedCount() > 0) {
 							System.out.println("fould a match " + result.getMatchedCount());
