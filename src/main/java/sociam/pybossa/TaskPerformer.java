@@ -7,7 +7,6 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Random;
 
 import org.apache.log4j.Logger;
@@ -157,23 +156,10 @@ public class TaskPerformer {
 		ArrayList<String> hashtags = new ArrayList<>();
 		if (project != null) {
 			JSONArray bin_id = project.getJSONArray("bin_ids");
-			// for (Object object : bin_id) {
-			// String binItem = (String) object;
-			// hashtags.add("#" + binItem);
-			// }
-
-			// Iterator<Object> iterator = bin_id.iterator();
-			// while (iterator.hasNext())
-			// {
-			// String binItem = (String) iterator.next();
-			// hashtags.add("#" + binItem);
-			// }
-
 			for (int i = 0; i < bin_id.length(); i++) {
 				String hashtag = bin_id.getString(i);
 				hashtags.add("#" + hashtag);
 			}
-
 		} else {
 			return null;
 		}
