@@ -112,8 +112,8 @@ public class ProjectCreator {
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 
 			UpdateResult result = database.getCollection(Config.projectCollection).updateOne(new Document("_id", _id),
-					new Document("$set",
-							new Document("project_status", project_status).append("project_id", project_id)));
+					new Document("$set", new Document("project_status", project_status).append("project_id", project_id)
+							.append("project_type", "validate")));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {

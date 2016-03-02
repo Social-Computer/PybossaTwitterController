@@ -208,9 +208,9 @@ public class TaskCreator {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
-			UpdateResult result = database.getCollection(Config.projectCollection).updateOne(
-					new Document("project_id", project_id),
-					new Document().append("$set", new Document("project_status", "inserted")));
+			UpdateResult result = database.getCollection(Config.projectCollection)
+					.updateOne(new Document("project_id", project_id), new Document().append("$set",
+							new Document("project_status", "inserted").append("task_type", "validate")));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
