@@ -326,14 +326,15 @@ public class TaskCreator {
 			request.setEntity(params);
 
 			HttpResponse response = httpClient.execute(request);
+			BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
+			String output;
+			logger.debug("Output from Server ...." + response.getStatusLine().getStatusCode() + "\n");
+			while ((output = br.readLine()) != null) {
+				logger.debug(output);
+				jsonResult = new JSONObject(output);
+			}
 			if (response.getStatusLine().getStatusCode() == 200 || response.getStatusLine().getStatusCode() == 204) {
-				BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
-				String output;
-				logger.debug("Output from Server ...." + response.getStatusLine().getStatusCode() + "\n");
-				while ((output = br.readLine()) != null) {
-					logger.debug(output);
-					jsonResult = new JSONObject(output);
-				}
+
 				return jsonResult;
 			} else {
 				logger.error("PyBossa response failed : HTTP error code : " + response.getStatusLine().getStatusCode());
@@ -365,6 +366,7 @@ public class TaskCreator {
 		try {
 			JSONObject app = new JSONObject();
 			app.put("text", text);
+			app.put("media_url", media_url);
 			JSONObject app2 = new JSONObject();
 			app2.put("info", app);
 			app2.put("n_answers", n_answers);
@@ -372,7 +374,7 @@ public class TaskCreator {
 			app2.put("calibration", calibration);
 			app2.put("project_id", project_id);
 			app2.put("priority_0", priority_0);
-			app2.put("media_url", media_url);
+			
 			return app2;
 		} catch (Exception e) {
 			logger.error("Error ", e);
@@ -393,7 +395,7 @@ public class TaskCreator {
 			Integer project_id = response.getInt("project_id");
 			JSONObject info = response.getJSONObject("info");
 			String task_text = info.getString("text");
-			String media_url = response.getString("media_url");
+			String media_url = info.getString("media_url");
 			logger.debug("Inserting a task into MongoDB");
 			if (pushTaskToMongoDB(pybossa_task_id, publishedAt, project_id, task_status, task_text, media_url)) {
 				return true;
