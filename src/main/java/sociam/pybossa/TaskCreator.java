@@ -161,7 +161,7 @@ public class TaskCreator {
 													// PyBossa
 													// into
 													// MongoDB
-													if (insertTaskIntoMongoDB(pybossaResponse, "ready")) {
+													if (insertTaskIntoMongoDB(pybossaResponse, "ready", "validate")) {
 														logger.debug("task with pybossaResponse "
 																+ pybossaResponse.toString());
 														if (updateBinString(_id, task_text, binItem)) {
@@ -383,7 +383,7 @@ public class TaskCreator {
 
 	}
 
-	public static Boolean insertTaskIntoMongoDB(JSONObject response, String task_status) {
+	public static Boolean insertTaskIntoMongoDB(JSONObject response, String task_status,String task_type) {
 
 		try {
 			Integer pybossa_task_id = response.getInt("id");
@@ -397,7 +397,7 @@ public class TaskCreator {
 			String task_text = info.getString("text");
 			String media_url = info.getString("media_url");
 			logger.debug("Inserting a task into MongoDB");
-			if (pushTaskToMongoDB(pybossa_task_id, publishedAt, project_id, task_status, task_text, media_url)) {
+			if (pushTaskToMongoDB(pybossa_task_id, publishedAt, project_id, task_status, task_text, media_url, task_type)) {
 				return true;
 			} else {
 				return false;
@@ -410,7 +410,7 @@ public class TaskCreator {
 	}
 
 	public static boolean pushTaskToMongoDB(Integer pybossa_task_id, String publishedAt, Integer project_id,
-			String task_status, String task_text, String media_url) {
+			String task_status, String task_text, String media_url, String task_type) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 
@@ -423,7 +423,8 @@ public class TaskCreator {
 							.insertOne(new Document().append("pybossa_task_id", pybossa_task_id)
 									.append("publishedAt", publishedAt).append("project_id", project_id)
 									.append("task_status", task_status).append("task_text", task_text)
-									.append("media_url", media_url));
+									.append("media_url", media_url)
+									.append("task_type", task_type));
 					logger.debug("One task is inserted into MongoDB");
 
 				} else {
