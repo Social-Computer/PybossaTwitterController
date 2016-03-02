@@ -170,9 +170,8 @@ public class TaskPerformer {
 			// }
 
 			for (int i = 0; i < bin_id.length(); i++) {
-				JSONObject OneItem = bin_id.getJSONObject(i);
-
-				hashtags.add("#" + OneItem.toString());
+				String hashtag = bin_id.getString(i);
+				hashtags.add("#" + hashtag);
 			}
 
 		} else {
