@@ -161,17 +161,19 @@ public class TaskPerformer {
 			// String binItem = (String) object;
 			// hashtags.add("#" + binItem);
 			// }
-			Iterator<Object> iterator = bin_id.iterator();
-			while (iterator.hasNext())
-            {
-				String binItem = (String) iterator.next();
-				hashtags.add("#" + binItem);
-            }
-			
-			// for (int i = 0; i < bin_id.length(); i++) {
-			// String binItem = bin_id.getString(i);
+
+			// Iterator<Object> iterator = bin_id.iterator();
+			// while (iterator.hasNext())
+			// {
+			// String binItem = (String) iterator.next();
 			// hashtags.add("#" + binItem);
 			// }
+
+			for (int i = 0; i < bin_id.length(); i++) {
+				JSONObject OneItem = bin_id.getJSONObject(i);
+
+				hashtags.add("#" + OneItem.toString());
+			}
 
 		} else {
 			return null;
@@ -405,14 +407,14 @@ public class TaskPerformer {
 				Document doc = iterable.first();
 				JSONObject task = new JSONObject(doc);
 				mongoClient.close();
-				
+
 				ArrayList<String> hashtags = getProjectHashTags(task
 						.getInt("project_id"));
 				if (hashtags != null) {
 					Collections.sort(hashtags);
 					task.put("hashtags", hashtags);
 				}
-				
+
 				return task;
 			} else {
 				mongoClient.close();
