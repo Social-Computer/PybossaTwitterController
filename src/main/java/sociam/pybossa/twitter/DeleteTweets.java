@@ -15,6 +15,10 @@ public class DeleteTweets {
 		Boolean res = removeTweets();
 		if (res == false) {
 			removeTweets();
+		} else if (res == true) {
+			System.out.println("All tweets are deleted");
+		} else {
+			System.err.println("Error, exiting the script!!");
 		}
 
 	}
@@ -25,6 +29,7 @@ public class DeleteTweets {
 			Paging p = new Paging();
 			p.setCount(200);
 			List<Status> statuses = twitter.getHomeTimeline(p);
+
 			while (statuses != null) {
 				for (Status status : statuses) {
 					long id = status.getId();
@@ -32,7 +37,9 @@ public class DeleteTweets {
 					System.out.println("deleted");
 					Thread.sleep(5000);
 				}
+				System.out.println("Waiting 15 minutes before getting 200 responses");
 				statuses = twitter.getHomeTimeline();
+				Thread.sleep(900000);
 			}
 
 			return true;
