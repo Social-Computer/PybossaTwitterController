@@ -28,7 +28,7 @@ public class DeleteTweets {
 		try {
 			Paging p = new Paging();
 			p.setCount(200);
-			List<Status> statuses = twitter.getHomeTimeline(p);
+			List<Status> statuses = twitter.getUserTimeline(p);
 
 			while (statuses != null) {
 				for (Status status : statuses) {
