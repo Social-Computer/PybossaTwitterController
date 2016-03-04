@@ -38,13 +38,21 @@ public class DeleteTweets {
 			return true;
 		} catch (TwitterException e) {
 			e.printStackTrace();
-			try {
-				Thread.sleep(60000);
-			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+			if (e.exceededRateLimitation()) {
+				try {
+
+					System.err
+							.println("Twitter rate limit is exceeded waiting for 300000 ms");
+					System.out.println("RetryAfter " + e.getRetryAfter());
+					Thread.sleep(e.getRetryAfter() + 5000);
+					removeTweets();
+				} catch (InterruptedException e2) {
+					// TODO Auto-generated catch block
+					e2.printStackTrace();
+				}
+
 			}
-			return false;
+			return null;
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
