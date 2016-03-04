@@ -40,17 +40,16 @@ public class DeleteTweets {
 			e.printStackTrace();
 			if (e.exceededRateLimitation()) {
 				try {
-
-					System.err
-							.println("Twitter rate limit is exceeded waiting for 300000 ms");
-					System.out.println("RetryAfter " + e.getRetryAfter());
-					Thread.sleep(e.getRetryAfter() + 5000);
+					System.err.println("Twitter rate limit is exceeded!");
+					int waitfor = e.getRateLimitStatus().getSecondsUntilReset();
+					System.err.println("Waiting for " + (waitfor + 5)
+							+ " seconds");
+					Thread.sleep((waitfor * 1000) + 5000);
 					removeTweets();
 				} catch (InterruptedException e2) {
 					// TODO Auto-generated catch block
 					e2.printStackTrace();
 				}
-
 			}
 			return null;
 		} catch (InterruptedException e) {
