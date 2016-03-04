@@ -42,9 +42,8 @@ public class DeleteTweets {
 				try {
 					System.err.println("Twitter rate limit is exceeded!");
 					int waitfor = e.getRateLimitStatus().getSecondsUntilReset();
-					System.err.println("Waiting for " + (waitfor + 5)
-							+ " seconds");
-					Thread.sleep((waitfor * 1000) + 5000);
+					System.err.println("Waiting for " + (waitfor + 100) + " seconds");
+					Thread.sleep((waitfor * 1000) + 100000);
 					removeTweets();
 				} catch (InterruptedException e2) {
 					// TODO Auto-generated catch block
