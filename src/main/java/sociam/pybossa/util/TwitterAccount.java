@@ -2,6 +2,7 @@ package sociam.pybossa.util;
 
 import org.apache.log4j.Logger;
 
+import sociam.pybossa.config.Config;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterFactory;
@@ -37,45 +38,29 @@ public class TwitterAccount {
 
 			// validation account
 			if (i == 1) {
-				cb.setDebugEnabled(true)
-						.setOAuthConsumerKey("ZSouoRP3t2bLlznRn38LoABBY")
-						.setOAuthConsumerSecret(
-								"x0sZsH9JR7oR5OjnEG2RO9Vbq74T4GuoYVd1TiUuhxxiddbZe9")
-						.setOAuthAccessToken(
-								"4895555638-q6ZVtqdcRIXgHCKgrN5qnSyQTy5xwL3ZcUrs1Rp")
-						.setOAuthAccessTokenSecret(
-								"hxS9HSsIqUTyFEYoQxdSHQ8zPj31GMQ7zUwhlUwYQnO2K");
+				cb.setDebugEnabled(true).setOAuthConsumerKey(Config.TwitterValidation1OAuthConsumerKey)
+						.setOAuthConsumerSecret(Config.TwitterValidation1OAuthConsumerSecret)
+						.setOAuthAccessToken(Config.TwitterValidation1OAuthAccessToken)
+						.setOAuthAccessTokenSecret(Config.TwitterValidation1OAuthAccessTokenSecret);
 
 				// Transltion account
 			} else if (i == 2) {
-				cb.setDebugEnabled(true)
-						.setOAuthConsumerKey("2CKOAYT8OOAfS3mgSH5HOtXQ4")
-						.setOAuthConsumerSecret(
-								"IIl53jtVCI8DHjcTww5t8bJcNqEuRyFxUJlFs1x9VH5bxlI3NK")
-						.setOAuthAccessToken(
-								"4894867594-fY2u8giMiK4zMCJD8NtnuLRs6QFiEv2zBW7DZ08")
-						.setOAuthAccessTokenSecret(
-								"GkW5FwC65EK7AjIgasnohb5QbFLojCiGWKwBoAANpB2eV");
+				cb.setDebugEnabled(true).setOAuthConsumerKey(Config.TwitterValidation2OAuthConsumerKey)
+						.setOAuthConsumerSecret(Config.TwitterValidation2OAuthConsumerSecret)
+						.setOAuthAccessToken(Config.TwitterValidation2OAuthAccessToken)
+						.setOAuthAccessTokenSecret(Config.TwitterValidation2OAuthAccessTokenSecret);
 
 			} else if (i == 3) {
-				cb.setDebugEnabled(true)
-						.setOAuthConsumerKey("*********************")
-						.setOAuthConsumerSecret(
-								"******************************************")
-						.setOAuthAccessToken(
-								"**************************************************")
-						.setOAuthAccessTokenSecret(
-								"******************************************");
+				cb.setDebugEnabled(true).setOAuthConsumerKey("*********************")
+						.setOAuthConsumerSecret("******************************************")
+						.setOAuthAccessToken("**************************************************")
+						.setOAuthAccessTokenSecret("******************************************");
 
 			} else if (i == 4) {
-				cb.setDebugEnabled(true)
-						.setOAuthConsumerKey("*********************")
-						.setOAuthConsumerSecret(
-								"******************************************")
-						.setOAuthAccessToken(
-								"**************************************************")
-						.setOAuthAccessTokenSecret(
-								"******************************************");
+				cb.setDebugEnabled(true).setOAuthConsumerKey("*********************")
+						.setOAuthConsumerSecret("******************************************")
+						.setOAuthAccessToken("**************************************************")
+						.setOAuthAccessTokenSecret("******************************************");
 
 			} else {
 				return null;
@@ -84,8 +69,7 @@ public class TwitterAccount {
 			TwitterFactory tf = new TwitterFactory(cb.build());
 			twitter = tf.getInstance();
 
-			logger.debug("The twitter account " + twitter.getScreenName()
-					+ " is being set!");
+			logger.debug("The twitter account " + twitter.getScreenName() + " is being set!");
 		} catch (IllegalStateException e) {
 			e.printStackTrace();
 			logger.error("Error", e);

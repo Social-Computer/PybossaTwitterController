@@ -1,7 +1,5 @@
 package sociam.pybossa.config;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -34,6 +32,16 @@ public class Config {
 	public static String ProjectLimit;
 
 	public static String project_validation_question;
+
+	public static String TwitterValidation1OAuthConsumerKey;
+	public static String TwitterValidation1OAuthConsumerSecret;
+	public static String TwitterValidation1OAuthAccessToken;
+	public static String TwitterValidation1OAuthAccessTokenSecret;
+
+	public static String TwitterValidation2OAuthConsumerKey;
+	public static String TwitterValidation2OAuthConsumerSecret;
+	public static String TwitterValidation2OAuthAccessToken;
+	public static String TwitterValidation2OAuthAccessTokenSecret;
 
 	public static void reload() {
 
@@ -72,6 +80,16 @@ public class Config {
 
 		project_validation_question = p.getProperty("project_validation_question");
 
+		TwitterValidation1OAuthConsumerKey = p.getProperty("TwitterValidation1OAuthConsumerKey");
+		TwitterValidation1OAuthConsumerSecret = p.getProperty("TwitterValidation1OAuthConsumerSecret");
+		TwitterValidation1OAuthAccessToken = p.getProperty("TwitterValidation1OAuthAccessToken");
+		TwitterValidation1OAuthAccessTokenSecret = p.getProperty("TwitterValidation1OAuthAccessTokenSecret");
+
+		TwitterValidation2OAuthConsumerKey = p.getProperty("TwitterValidation2OAuthConsumerKey");
+		TwitterValidation2OAuthConsumerSecret = p.getProperty("TwitterValidation2OAuthConsumerSecret");
+		TwitterValidation2OAuthAccessToken = p.getProperty("TwitterValidation2OAuthAccessToken");
+		TwitterValidation2OAuthAccessTokenSecret = p.getProperty("TwitterValidation2OAuthAccessTokenSecret");
+
 	}
 
 	static {
@@ -109,6 +127,16 @@ public class Config {
 		ProjectLimit = p.getProperty("ProjectLimit");
 
 		project_validation_question = p.getProperty("project_validation_question");
+
+		TwitterValidation1OAuthConsumerKey = p.getProperty("TwitterValidation1OAuthConsumerKey");
+		TwitterValidation1OAuthConsumerSecret = p.getProperty("TwitterValidation1OAuthConsumerSecret");
+		TwitterValidation1OAuthAccessToken = p.getProperty("TwitterValidation1OAuthAccessToken");
+		TwitterValidation1OAuthAccessTokenSecret = p.getProperty("TwitterValidation1OAuthAccessTokenSecret");
+
+		TwitterValidation2OAuthConsumerKey = p.getProperty("TwitterValidation2OAuthConsumerKey");
+		TwitterValidation2OAuthConsumerSecret = p.getProperty("TwitterValidation2OAuthConsumerSecret");
+		TwitterValidation2OAuthAccessToken = p.getProperty("TwitterValidation2OAuthAccessToken");
+		TwitterValidation2OAuthAccessTokenSecret = p.getProperty("TwitterValidation2OAuthAccessTokenSecret");
 
 	}
 
