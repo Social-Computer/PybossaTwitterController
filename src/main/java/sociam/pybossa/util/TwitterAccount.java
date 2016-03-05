@@ -32,33 +32,50 @@ public class TwitterAccount {
 		try {
 			logger.debug("Setting up a twitter account with its credintials!");
 			ConfigurationBuilder cb = new ConfigurationBuilder();
+
 			cb.setJSONStoreEnabled(true);
 
 			// validation account
 			if (i == 1) {
-				cb.setDebugEnabled(true).setOAuthConsumerKey("ZSouoRP3t2bLlznRn38LoABBY")
-						.setOAuthConsumerSecret("x0sZsH9JR7oR5OjnEG2RO9Vbq74T4GuoYVd1TiUuhxxiddbZe9")
-						.setOAuthAccessToken("4895555638-q6ZVtqdcRIXgHCKgrN5qnSyQTy5xwL3ZcUrs1Rp")
-						.setOAuthAccessTokenSecret("hxS9HSsIqUTyFEYoQxdSHQ8zPj31GMQ7zUwhlUwYQnO2K");
+				cb.setDebugEnabled(true)
+						.setOAuthConsumerKey("ZSouoRP3t2bLlznRn38LoABBY")
+						.setOAuthConsumerSecret(
+								"x0sZsH9JR7oR5OjnEG2RO9Vbq74T4GuoYVd1TiUuhxxiddbZe9")
+						.setOAuthAccessToken(
+								"4895555638-q6ZVtqdcRIXgHCKgrN5qnSyQTy5xwL3ZcUrs1Rp")
+						.setOAuthAccessTokenSecret(
+								"hxS9HSsIqUTyFEYoQxdSHQ8zPj31GMQ7zUwhlUwYQnO2K");
 
 				// Transltion account
 			} else if (i == 2) {
-				cb.setDebugEnabled(true).setOAuthConsumerKey("2CKOAYT8OOAfS3mgSH5HOtXQ4")
-						.setOAuthConsumerSecret("IIl53jtVCI8DHjcTww5t8bJcNqEuRyFxUJlFs1x9VH5bxlI3NK")
-						.setOAuthAccessToken("4894867594-fY2u8giMiK4zMCJD8NtnuLRs6QFiEv2zBW7DZ08")
-						.setOAuthAccessTokenSecret("GkW5FwC65EK7AjIgasnohb5QbFLojCiGWKwBoAANpB2eV");
+				cb.setDebugEnabled(true)
+						.setOAuthConsumerKey("2CKOAYT8OOAfS3mgSH5HOtXQ4")
+						.setOAuthConsumerSecret(
+								"IIl53jtVCI8DHjcTww5t8bJcNqEuRyFxUJlFs1x9VH5bxlI3NK")
+						.setOAuthAccessToken(
+								"4894867594-fY2u8giMiK4zMCJD8NtnuLRs6QFiEv2zBW7DZ08")
+						.setOAuthAccessTokenSecret(
+								"GkW5FwC65EK7AjIgasnohb5QbFLojCiGWKwBoAANpB2eV");
 
 			} else if (i == 3) {
-				cb.setDebugEnabled(true).setOAuthConsumerKey("*********************")
-						.setOAuthConsumerSecret("******************************************")
-						.setOAuthAccessToken("**************************************************")
-						.setOAuthAccessTokenSecret("******************************************");
+				cb.setDebugEnabled(true)
+						.setOAuthConsumerKey("*********************")
+						.setOAuthConsumerSecret(
+								"******************************************")
+						.setOAuthAccessToken(
+								"**************************************************")
+						.setOAuthAccessTokenSecret(
+								"******************************************");
 
 			} else if (i == 4) {
-				cb.setDebugEnabled(true).setOAuthConsumerKey("*********************")
-						.setOAuthConsumerSecret("******************************************")
-						.setOAuthAccessToken("**************************************************")
-						.setOAuthAccessTokenSecret("******************************************");
+				cb.setDebugEnabled(true)
+						.setOAuthConsumerKey("*********************")
+						.setOAuthConsumerSecret(
+								"******************************************")
+						.setOAuthAccessToken(
+								"**************************************************")
+						.setOAuthAccessTokenSecret(
+								"******************************************");
 
 			} else {
 				return null;
@@ -67,7 +84,8 @@ public class TwitterAccount {
 			TwitterFactory tf = new TwitterFactory(cb.build());
 			twitter = tf.getInstance();
 
-			logger.debug("The twitter account " + twitter.getScreenName() + " is being set!");
+			logger.debug("The twitter account " + twitter.getScreenName()
+					+ " is being set!");
 		} catch (IllegalStateException e) {
 			e.printStackTrace();
 			logger.error("Error", e);
