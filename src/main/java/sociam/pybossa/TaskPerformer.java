@@ -155,7 +155,7 @@ public class TaskPerformer {
 		JSONObject project = getProjectByID(project_id);
 		ArrayList<String> hashtags = new ArrayList<>();
 		if (project != null) {
-			JSONArray bin_id = project.getJSONArray("bin_ids");
+			JSONArray bin_id = project.getJSONArray("identifiers");
 			for (int i = 0; i < bin_id.length(); i++) {
 				String hashtag = bin_id.getString(i);
 				hashtags.add("#" + hashtag);
