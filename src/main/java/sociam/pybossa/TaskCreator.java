@@ -76,7 +76,7 @@ public class TaskCreator {
 
 					// Get project name and id for these started projects
 					for (JSONObject jsonObject : projectsAsJsons) {
-						String bin_id = jsonObject.getString("bin_ids");
+						String bin_id = jsonObject.getString("bin_id");
 						int project_id = jsonObject.getInt("project_id");
 						int tasksPerProjectlimit = Integer
 								.valueOf(Config.TasksPerProject);
