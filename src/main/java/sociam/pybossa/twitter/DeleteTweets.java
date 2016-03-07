@@ -42,7 +42,7 @@ public class DeleteTweets {
 				System.out
 						.println("Waiting 15 minutes before getting 200 responses");
 				statuses = twitter.getUserTimeline(p);
-				Thread.sleep(900000);
+				Thread.sleep(1000);
 			}
 
 			return true;

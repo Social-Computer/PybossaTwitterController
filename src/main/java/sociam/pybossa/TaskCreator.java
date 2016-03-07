@@ -462,6 +462,9 @@ public class TaskCreator {
 									.append("publishedAt", publishedAt)
 									.append("project_id", project_id)
 									.append("task_status", task_status)
+									.append("twitter_task_status", task_status)
+									.append("facebook_task_status", task_status)
+									.append("task_status", task_status)
 									.append("task_text", task_text)
 									.append("media_url", media_url)
 									.append("task_type", task_type));

@@ -83,11 +83,11 @@ public class TaskPerformer {
 						taskIDs.add(genertatedTaskID);
 					}
 					Document document = tasksToBePushed.get(genertatedTaskID);
-					String task_status = document.getString("task_status");
+					String twitter_task_status = document.getString("twitter_task_status");
 					String task_text = document.getString("task_text");
-					if (task_status.equals("pushed")) {
-						Date lastPushAt = document.getDate("lastPushAt");
-						if (!rePush(lastPushAt)) {
+					if (twitter_task_status.equals("pushed")) {
+						Date twitter_lastPushAt = document.getDate("twitter_lastPushAt");
+						if (!rePush(twitter_lastPushAt)) {
 							continue;
 						} else {
 							logger.debug("Repushing task " + task_text);
@@ -175,7 +175,7 @@ public class TaskPerformer {
 	}
 
 	public static Boolean updateTaskToPushedInMongoDB(ObjectId _id,
-			String task_status) {
+			String twitter_task_status) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost,
 				Config.mongoPort);
 		try {
@@ -188,14 +188,14 @@ public class TaskPerformer {
 					.updateOne(
 							new Document("_id", _id),
 							new Document().append("$set", new Document(
-									"task_status", task_status).append(
-									"lastPushAt", lastPushAt)));
+									"twitter_task_status", twitter_task_status).append(
+									"twitter_lastPushAt", lastPushAt)));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
 					logger.debug(Config.taskCollection
 							+ " Collection was updated where _id= "
-							+ _id.toString() + " to task_status=" + task_status);
+							+ _id.toString() + " to twitter_task_status=" + twitter_task_status);
 					mongoClient.close();
 					return true;
 				}
