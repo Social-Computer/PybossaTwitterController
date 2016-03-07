@@ -93,21 +93,13 @@ public class TaskPerformer {
 							logger.debug("Repushing task " + task_text);
 						}
 					}
-
 					ObjectId _id = document.getObjectId("_id");
 					int pybossa_task_id = document
 							.getInteger("pybossa_task_id");
 					int project_id = document.getInteger("project_id");
-
-					String media_url = null;
-					if (document.containsKey("media_url")) {
-						media_url = document.getString("media_url");
-					}
-
+					String media_url = document.getString("media_url");
 					ArrayList<String> hashtags = getProjectHashTags(project_id);
-
 					String taskTag = "#t" + pybossa_task_id;
-
 					int responseCode = sendTaskToTwitter(task_text, media_url,
 							taskTag, hashtags, 2);
 					if (responseCode == 1) {
@@ -254,13 +246,9 @@ public class TaskPerformer {
 
 			// convert taskContent and question into an image
 			File image = null;
-			if (media_url != null) {
-				if (media_url.equals("")) {
-					image = StringToImage.convertStringToImage(taskContent);
-				} else {
-					image = StringToImage.combineTextWithImage(taskContent,
-							media_url);
-				}
+			if (!media_url.equals("")) {
+				image = StringToImage.combineTextWithImage(taskContent,
+						media_url);
 			} else {
 				image = StringToImage.convertStringToImage(taskContent);
 			}
@@ -298,7 +286,6 @@ public class TaskPerformer {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost,
 				Config.mongoPort);
 		try {
-
 			MongoDatabase database = mongoClient
 					.getDatabase(Config.projectsDatabaseName);
 			FindIterable<Document> iterable = database.getCollection(
