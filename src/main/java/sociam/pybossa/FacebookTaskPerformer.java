@@ -17,16 +17,18 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import sociam.pybossa.config.Config;
+import sociam.pybossa.util.FacebookAccount;
 import sociam.pybossa.util.StringToImage;
-import sociam.pybossa.util.TwitterAccount;
-import twitter4j.StatusUpdate;
-import twitter4j.Twitter;
 
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.UpdateResult;
 
+import facebook4j.Facebook;
+import facebook4j.FacebookException;
+import facebook4j.Media;
+import facebook4j.PhotoUpdate;
 import static com.mongodb.client.model.Filters.*;
 
 /**
@@ -35,9 +37,9 @@ import static com.mongodb.client.model.Filters.*;
  * @author email sza1g10@ecs.soton.ac.uk
  *
  */
-public class TaskPerformer {
+public class FacebookTaskPerformer {
 
-	final static Logger logger = Logger.getLogger(TaskPerformer.class);
+	final static Logger logger = Logger.getLogger(FacebookTaskPerformer.class);
 	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat(
 			"yyyy-MM-dd HH:mm:ss");
 
@@ -66,12 +68,12 @@ public class TaskPerformer {
 			if (tasksToBePushed != null) {
 				logger.info("There are "
 						+ tasksToBePushed.size()
-						+ " tasks that need to be pushed into Twitter, then updating to MongoDB");
+						+ " tasks that need to be pushed into facebook, then updating to MongoDB");
 
 				// randomly pick a task
 				// for (Document document : tasksToBePushed) {
 				HashSet<Integer> taskIDs = new HashSet<Integer>();
-				int seed = 200;
+				int seed = 300;
 				while (taskIDs.size() < tasksToBePushed.size()) {
 					Random random = new Random(seed);
 					seed++;
@@ -83,13 +85,13 @@ public class TaskPerformer {
 						taskIDs.add(genertatedTaskID);
 					}
 					Document document = tasksToBePushed.get(genertatedTaskID);
-					String twitter_task_status = document
-							.getString("twitter_task_status");
+					String facebook_task_status = document
+							.getString("facebook_task_status");
 					String task_text = document.getString("task_text");
-					if (twitter_task_status.equals("pushed")) {
-						Date twitter_lastPushAt = document
-								.getDate("twitter_lastPushAt");
-						if (!rePush(twitter_lastPushAt)) {
+					if (facebook_task_status.equals("pushed")) {
+						Date facebook_lastPushAt = document
+								.getDate("facebook_lastPushAt");
+						if (!rePush(facebook_lastPushAt)) {
 							continue;
 						} else {
 							logger.debug("Repushing task " + task_text);
@@ -102,12 +104,13 @@ public class TaskPerformer {
 					String media_url = document.getString("media_url");
 					ArrayList<String> hashtags = getProjectHashTags(project_id);
 					String taskTag = "#t" + pybossa_task_id;
-					int responseCode = sendTaskToTwitter(task_text, media_url,
+					int responseCode = sendTaskToFacebook(task_text, media_url,
 							taskTag, hashtags, 2);
 					if (responseCode == 1) {
 						if (updateTaskToPushedInMongoDB(_id, "pushed")) {
-							logger.info("Task with text " + task_text
-									+ " has been sucessfully pushed to Twitter");
+							logger.info("Task with text "
+									+ task_text
+									+ " has been sucessfully pushed to facebook");
 							wasPushed = true;
 						} else {
 							logger.error("Error with updating "
@@ -177,7 +180,7 @@ public class TaskPerformer {
 	}
 
 	public static Boolean updateTaskToPushedInMongoDB(ObjectId _id,
-			String twitter_task_status) {
+			String facebook_task_status) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost,
 				Config.mongoPort);
 		try {
@@ -190,15 +193,16 @@ public class TaskPerformer {
 					.updateOne(
 							new Document("_id", _id),
 							new Document().append("$set", new Document(
-									"twitter_task_status", twitter_task_status)
-									.append("twitter_lastPushAt", lastPushAt)));
+									"facebook_task_status",
+									facebook_task_status).append(
+									"facebook_lastPushAt", lastPushAt)));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
 					logger.debug(Config.taskCollection
 							+ " Collection was updated where _id= "
-							+ _id.toString() + " to twitter_task_status="
-							+ twitter_task_status);
+							+ _id.toString() + " to facebook_task_status="
+							+ facebook_task_status);
 					mongoClient.close();
 					return true;
 				}
@@ -212,42 +216,32 @@ public class TaskPerformer {
 		}
 	}
 
-	/**
-	 * This method send a task by a twitter account
-	 * 
-	 * @param taskId
-	 *            The id of the task to be hashed within the tweet
-	 * @param taskContent
-	 *            the content of the tweet to be published
-	 */
-	public static int sendTaskToTwitter(String taskContent, String media_url,
+	public static int sendTaskToFacebook(String taskContent, String media_url,
 			String taskTag, ArrayList<String> hashtags, int project_type) {
 		try {
-			Twitter twitter = TwitterAccount.setTwitterAccount(project_type);
+			Facebook facebook = FacebookAccount
+					.setFacebookAccount(project_type);
 
 			// defualt
 			String question = "";
-			if (project_type == 2) {
+			if (project_type == 1) {
 				question = Config.project_validation_question;
 			}
 
-			// combine hashtags and tasktag while maintaining the 140 length
 			String post = question;
-			// for (String string : hashtags) {
-			// if (post.length() == 0) {
-			// post = string;
-			// } else {
-			// String tmpResult = post + " " + string + taskTag;
-			// if (tmpResult.length() >= 140) {
-			// break;
-			// }
-			// post = post + " " + string;
-			// }
-			// }
-			// post = post + "?";
+			for (String string : hashtags) {
+				if (post.length() == 0) {
+					post = string;
+				} else {
+					String tmpResult = post + " " + string + taskTag;
+					if (tmpResult.length() >= 140) {
+						break;
+					}
+					post = post + " " + string;
+				}
+			}
+			post = post + "?";
 			post = post + " " + taskTag;
-			
-			System.out.println(post);
 
 			// convert taskContent and question into an image
 			File image = null;
@@ -258,28 +252,24 @@ public class TaskPerformer {
 				image = StringToImage.convertStringToImage(taskContent);
 			}
 
-			if (post.length() < 140) {
-				// image must exist
-				if (image != null) {
-					// status = twitter.updateStatus(post);
+			// image must exist
+			if (image != null) {
+				// status = facebook.updateStatus(post);
 
-					StatusUpdate status = new StatusUpdate(post);
-					status.setMedia(image);
-					twitter.updateStatus(status);
+				Media media = new Media(image);
+				PhotoUpdate photoUpdate = new PhotoUpdate(media);
+				photoUpdate.message("tast with massge");
+				facebook.postPhoto(photoUpdate);
 
-					logger.debug("Successfully posting a task '"
-							+ status.getStatus() + "'." + status.getPlaceId());
-					return 1;
-				} else {
-					logger.error("Image couldn't br generated");
-					return 0;
-				}
+				logger.debug("Successfully posting a task ");
+				return 1;
 			} else {
-				logger.error("Post \"" + post
-						+ "\" is longer than 140 characters. It has: "
-						+ (post.length()));
+				logger.error("Image couldn't br generated");
 				return 0;
 			}
+		} catch (FacebookException e) {
+			logger.error("Error", e);
+			return 2;
 		} catch (Exception e) {
 			logger.error("Error", e);
 			return 2;
