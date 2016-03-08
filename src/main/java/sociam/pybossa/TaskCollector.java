@@ -461,7 +461,7 @@ public class TaskCollector {
 				JSONObject json = new JSONObject(rawJSON);
 				return json;
 			}
-		} catch (TwitterException e) {
+		} catch (Exception e) {
 			logger.error("Error ", e);
 			return null;
 		}
