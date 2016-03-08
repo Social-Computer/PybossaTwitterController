@@ -103,48 +103,51 @@ public class TaskCollector {
 						JSONObject orgTweet = getTweetByID(String.valueOf(in_reply_to_status_id_str), twitter);
 						// loop through tweets till you find the orginal
 						// tweet
-						while (!orgTweet.isNull("in_reply_to_status_id_str")) {
-							orgTweet = getTweetByID(orgTweet.getString("in_reply_to_status_id_str"), twitter);
-						}
-						logger.debug("Original tweet was found");
+						if (orgTweet != null) {
+							while (!orgTweet.isNull("in_reply_to_status_id_str")) {
+								orgTweet = getTweetByID(orgTweet.getString("in_reply_to_status_id_str"), twitter);
+							}
+							logger.debug("Original tweet was found");
 
-						String orgTweetText = orgTweet.getString("text");
-						Pattern pattern = Pattern.compile("(#t[0-9]+)");
-						Matcher matcher = pattern.matcher(orgTweetText);
-						String taskID = "";
-						if (matcher.find()) {
-							logger.debug("Found a taskID in the orginal tweet");
-							taskID = matcher.group(1).replaceAll("#t", "");
-							Integer intTaskID = Integer.valueOf(taskID);
+							String orgTweetText = orgTweet.getString("text");
+							Pattern pattern = Pattern.compile("(#t[0-9]+)");
+							Matcher matcher = pattern.matcher(orgTweetText);
+							String taskID = "";
+							if (matcher.find()) {
+								logger.debug("Found a taskID in the orginal tweet");
+								taskID = matcher.group(1).replaceAll("#t", "");
+								Integer intTaskID = Integer.valueOf(taskID);
 
-							// cache taskIDs
-							if (!cachedTaskIDsAndProjectsIDs.containsKey(intTaskID)) {
-								logger.debug("TaskID is not in the cache");
-								logger.debug("Retriving Task id from Collection: " + Config.taskCollection);
-								Document doc = getTaskFromMongoDB(intTaskID);
-								if (doc != null) {
-									int project_id = doc.getInteger("project_id");
-									cachedTaskIDsAndProjectsIDs.put(intTaskID, project_id);
-									if (insertTaskRun(taskResponse, intTaskID, project_id, screen_name, SOURCE)) {
-										logger.debug("Task run was completely processed");
+								// cache taskIDs
+								if (!cachedTaskIDsAndProjectsIDs.containsKey(intTaskID)) {
+									logger.debug("TaskID is not in the cache");
+									logger.debug("Retriving Task id from Collection: " + Config.taskCollection);
+									Document doc = getTaskFromMongoDB(intTaskID);
+									if (doc != null) {
+										int project_id = doc.getInteger("project_id");
+										cachedTaskIDsAndProjectsIDs.put(intTaskID, project_id);
+										if (insertTaskRun(taskResponse, intTaskID, project_id, screen_name, SOURCE)) {
+											logger.debug("Task run was completely processed");
+										} else {
+											logger.error("Failed to process the task run");
+										}
 									} else {
-										logger.error("Failed to process the task run");
+										logger.error("Couldn't find task with ID " + taskID);
+										// TODO: Remove tweets that do not have
+										// records in MongoDB
 									}
 								} else {
-									logger.error("Couldn't find task with ID " + taskID);
-									// TODO: Remove tweets that do not have
-									// records in MongoDB
+									logger.debug("Task ID was found in the cache");
+									insertTaskRun(taskResponse, intTaskID, cachedTaskIDsAndProjectsIDs.get(intTaskID),
+											screen_name, SOURCE);
 								}
+
 							} else {
-								logger.debug("Task ID was found in the cache");
-								insertTaskRun(taskResponse, intTaskID, cachedTaskIDsAndProjectsIDs.get(intTaskID),
-										screen_name, SOURCE);
+								logger.error("reply: \\" + reply
+										+ " was not being identified with an associated task in the original text: \\"
+										+ orgTweetText);
 							}
 
-						} else {
-							logger.error("reply: \\" + reply
-									+ " was not being identified with an associated task in the original text: \\"
-									+ orgTweetText);
 						}
 					}
 					// else {
