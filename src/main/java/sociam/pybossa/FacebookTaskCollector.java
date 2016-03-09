@@ -25,8 +25,13 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
 
+import facebook4j.Comment;
 import facebook4j.Facebook;
 import facebook4j.FacebookException;
+import facebook4j.PagableList;
+import facebook4j.Post;
+import facebook4j.Reading;
+import facebook4j.ResponseList;
 import sociam.pybossa.config.Config;
 import sociam.pybossa.util.FacebookAccount;
 
@@ -45,15 +50,12 @@ public class FacebookTaskCollector {
 			"yyyy-mm-dd'T'hh:mm:ss.SSSSSS");
 	final static String SOURCE = "Facebook";
 
-	// caching tasksIDs
-	static HashMap<Integer, Integer> cachedTaskIDsAndProjectsIDs = new HashMap<>();
-
 	static Facebook facebook;
 
 	public static void main(String[] args) {
 
 		PropertyConfigurator.configure("log4j.properties");
-		facebook = FacebookAccount.setFacebookAccount(2);
+		facebook = FacebookAccount.setFacebookAccount(1);
 		logger.info("TaskCollector will be repeated every "
 				+ Config.TaskCollectorTrigger + " ms");
 		try {
@@ -74,101 +76,47 @@ public class FacebookTaskCollector {
 		try {
 
 			logger.debug("Getting time line from facebook");
-			ArrayList<JSONObject> ResponsesFromFacebook = getTimeLineAsJsons(facebook);
-			if (ResponsesFromFacebook != null) {
-				logger.debug("There are " + ResponsesFromFacebook.size()
-						+ " tweets to be processed");
-				for (JSONObject jsonObject : ResponsesFromFacebook) {
-
-					// logger.debug("Processing a new facebook object ");
-					if (!jsonObject.isNull("in_reply_to_status_id_str")) {
-						logger.debug("Found a reply tweet " + jsonObject);
-						String in_reply_to_status_id_str = jsonObject
-								.getString("in_reply_to_status_id_str");
-						String reply = jsonObject.getString("text");
-						String in_reply_to_screen_name = jsonObject
-								.getString("in_reply_to_screen_name");
-						String taskResponse = reply.replaceAll("@"
-								+ in_reply_to_screen_name, "");
-
-						// // store the reply id
-						// String id_str = jsonObject.getString("id_str");
-
-						// store the use screen name
-						JSONObject userJson = jsonObject.getJSONObject("user");
-
-						// store the replier user name
-						String screen_name = userJson.getString("screen_name");
-
-						logger.debug("Checking if the reply has already being stored");
-						// Document taskRun = getTaskRunsFromMongoDB(id_str);
-						// if (taskRun == null) {
-
-						logger.debug("Looking for the original tweet for the reply");
-						JSONObject orgTweet = getTweetByID(
-								String.valueOf(in_reply_to_status_id_str),
-								facebook);
-						// loop through tweets till you find the orginal
-						// tweet
-						while (!orgTweet.isNull("in_reply_to_status_id_str")) {
-							orgTweet = getTweetByID(
-									orgTweet.getString("in_reply_to_status_id_str"),
-									facebook);
-						}
-						logger.debug("Original tweet was found");
-
-						String orgTweetText = orgTweet.getString("text");
-						Pattern pattern = Pattern.compile("(#t[0-9]+)");
-						Matcher matcher = pattern.matcher(orgTweetText);
-						String taskID = "";
-						if (matcher.find()) {
-							logger.debug("Found a taskID in the orginal tweet");
-							taskID = matcher.group(1).replaceAll("#t", "");
-							Integer intTaskID = Integer.valueOf(taskID);
-
-							// cache taskIDs
-							if (!cachedTaskIDsAndProjectsIDs
-									.containsKey(intTaskID)) {
-								logger.debug("TaskID is not in the cache");
-								logger.debug("Retriving Task id from Collection: "
-										+ Config.taskCollection);
-								Document doc = getTaskFromMongoDB(intTaskID);
-								if (doc != null) {
-									int project_id = doc
-											.getInteger("project_id");
-									cachedTaskIDsAndProjectsIDs.put(intTaskID,
-											project_id);
-									if (insertTaskRun(taskResponse, intTaskID,
-											project_id, screen_name, SOURCE)) {
-										logger.debug("Task run was completely processed");
-									} else {
-										logger.error("Failed to process the task run");
-									}
+			ArrayList<Post> postsfromFacebook = getLatestPosts(facebook);
+			if (postsfromFacebook != null) {
+				logger.debug("There are "
+						+ postsfromFacebook.size()
+						+ " facebook posts with at least one message to be processed");
+				for (Post post : postsfromFacebook) {
+					String postMessage = post.getMessage();
+					Pattern pattern = Pattern.compile("(#t[0-9]+)");
+					Matcher matcher = pattern.matcher(postMessage);
+					String taskID = "";
+					if (matcher.find()) {
+						logger.debug("Found a taskID in the orginal post");
+						taskID = matcher.group(1).replaceAll("#t", "");
+						Integer intTaskID = Integer.valueOf(taskID);
+						logger.debug("Retriving Task id from Collection: "
+								+ Config.taskCollection);
+						Document doc = getTaskFromMongoDB(intTaskID);
+						if (doc != null) {
+							int project_id = doc.getInteger("project_id");
+							PagableList<Comment> comments = post.getComments();
+							for (Comment comment : comments) {
+								String taskResponse = comment.getMessage();
+								String contributorName = comment.getFrom()
+										.getName();
+								if (insertTaskRun(taskResponse, intTaskID,
+										project_id, contributorName, SOURCE)) {
+									logger.debug("Task run was completely processed");
 								} else {
-									logger.error("Couldn't find task with ID "
-											+ taskID);
-									// TODO: Remove tweets that do not have
-									// records in MongoDB
+									logger.error("Failed to process the task run");
 								}
-							} else {
-								logger.debug("Task ID was found in the cache");
-								insertTaskRun(taskResponse, intTaskID,
-										cachedTaskIDsAndProjectsIDs
-												.get(intTaskID), screen_name,
-										SOURCE);
 							}
-
 						} else {
-							logger.error("reply: \\"
-									+ reply
-									+ " was not being identified with an associated task in the original text: \\"
-									+ orgTweetText);
+							logger.error("Couldn't find task with ID " + taskID);
 						}
+					} else {
+						logger.error("couldn't find an associated task id with the one in the post "
+								+ postMessage);
 					}
-
 				}
 			} else {
-				logger.info("Time line was null");
+				logger.error("facebook is not returning any posts!");
 			}
 
 		} catch (Exception e) {
@@ -391,15 +339,39 @@ public class FacebookTaskCollector {
 
 	}
 
-	public static JSONObject getTweetByID(String status_id_str,
-			Facebook facebook) {
+	public static Post getPostByID(String post_id, Facebook facebook) {
 
-		return new JSONObject();
+		try {
+			facebook = FacebookAccount.setFacebookAccount(1);
+			Post onePost = facebook.getPost(post_id,
+					new Reading().fields("comments,message,name"));
+			return onePost;
+		} catch (Exception e) {
+			logger.error("Error", e);
+			return null;
+		}
 	}
 
-	public static ArrayList<JSONObject> getTimeLineAsJsons(Facebook facebook) {
+	public static ArrayList<Post> getLatestPosts(Facebook facebook) {
 
-		return new ArrayList<JSONObject>();
+		ArrayList<Post> validposts = new ArrayList<Post>();
+		try {
+			ResponseList<Post> feeds = facebook.getFeed("964602923577144",
+					new Reading().limit(100).fields("comments,message,name"));
+			for (Post post : feeds) {
+				if (post.getComments().size() > 0) {
+					validposts.add(post);
+				}
+			}
+			if (!validposts.isEmpty()) {
+				return validposts;
+			} else {
+				return null;
+			}
+		} catch (Exception e) {
+			logger.error("Error", e);
+			return null;
+		}
 
 	}
 

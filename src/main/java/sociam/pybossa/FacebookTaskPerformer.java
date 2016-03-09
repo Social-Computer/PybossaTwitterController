@@ -104,10 +104,11 @@ public class FacebookTaskPerformer {
 					String media_url = document.getString("media_url");
 					ArrayList<String> hashtags = getProjectHashTags(project_id);
 					String taskTag = "#t" + pybossa_task_id;
-					int responseCode = sendTaskToFacebook(task_text, media_url,
-							taskTag, hashtags, 2);
-					if (responseCode == 1) {
-						if (updateTaskToPushedInMongoDB(_id, "pushed")) {
+					String facebook_task_id = sendTaskToFacebook(task_text,
+							media_url, taskTag, hashtags, 1);
+					if (facebook_task_id != null) {
+						if (updateTaskToPushedInMongoDB(_id, facebook_task_id,
+								"pushed")) {
 							logger.info("Task with text "
 									+ task_text
 									+ " has been sucessfully pushed to facebook");
@@ -117,15 +118,9 @@ public class FacebookTaskPerformer {
 									+ Config.taskCollection + " for the _id "
 									+ _id.toString());
 						}
-					} else if (responseCode == 0) {
-						if (updateTaskToPushedInMongoDB(_id, "notValied")) {
-							logger.debug("Tweeet is not valid because of length, but updated in Mongodb"
-									+ task_text);
-						}
-						logger.error("Couldn't update the task in MongoDB");
-					} else if (responseCode == 2) {
-						if (updateTaskToPushedInMongoDB(_id, "error")) {
-							logger.debug("pushing tweet has encountered an error, but has been updated into MongoDB "
+					} else {
+						if (updateTaskToPushedInMongoDB(_id, "", "error")) {
+							logger.debug("pushing post to facebook has encountered an error, but has been updated into MongoDB "
 									+ task_text);
 						} else {
 							logger.error("Couldn't update the task in MongoDB");
@@ -137,7 +132,7 @@ public class FacebookTaskPerformer {
 						wasPushed = false;
 						logger.debug("waiting for "
 								+ Config.TaskPerformerPushRate
-								+ " ms before pushing another tweet");
+								+ " ms before pushing another post to facebook");
 						Thread.sleep(Integer
 								.valueOf(Config.TaskPerformerPushRate));
 					}
@@ -180,7 +175,7 @@ public class FacebookTaskPerformer {
 	}
 
 	public static Boolean updateTaskToPushedInMongoDB(ObjectId _id,
-			String facebook_task_status) {
+			String facebook_task_id, String facebook_task_status) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost,
 				Config.mongoPort);
 		try {
@@ -192,10 +187,13 @@ public class FacebookTaskPerformer {
 			UpdateResult result = database.getCollection(Config.taskCollection)
 					.updateOne(
 							new Document("_id", _id),
-							new Document().append("$set", new Document(
-									"facebook_task_status",
-									facebook_task_status).append(
-									"facebook_lastPushAt", lastPushAt)));
+							new Document().append(
+									"$set",
+									new Document("facebook_task_status",
+											facebook_task_status).append(
+											"facebook_lastPushAt", lastPushAt)
+											.append("facebook_task_id",
+													facebook_task_id)));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
@@ -216,8 +214,10 @@ public class FacebookTaskPerformer {
 		}
 	}
 
-	public static int sendTaskToFacebook(String taskContent, String media_url,
-			String taskTag, ArrayList<String> hashtags, int project_type) {
+	public static String sendTaskToFacebook(String taskContent,
+			String media_url, String taskTag, ArrayList<String> hashtags,
+			int project_type) {
+		String facebook_task_id;
 		try {
 			Facebook facebook = FacebookAccount
 					.setFacebookAccount(project_type);
@@ -258,21 +258,21 @@ public class FacebookTaskPerformer {
 
 				Media media = new Media(image);
 				PhotoUpdate photoUpdate = new PhotoUpdate(media);
-				photoUpdate.message("tast with massge");
-				facebook.postPhoto(photoUpdate);
+				photoUpdate.message(post);
+				facebook_task_id = facebook.postPhoto(photoUpdate);
 
 				logger.debug("Successfully posting a task ");
-				return 1;
+				return facebook_task_id;
 			} else {
 				logger.error("Image couldn't br generated");
-				return 0;
+				return null;
 			}
 		} catch (FacebookException e) {
 			logger.error("Error", e);
-			return 2;
+			return null;
 		} catch (Exception e) {
 			logger.error("Error", e);
-			return 2;
+			return null;
 		}
 	}
 
