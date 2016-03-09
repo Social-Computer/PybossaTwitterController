@@ -267,6 +267,9 @@ public class FacebookTaskPerformer {
 				logger.error("Image couldn't br generated");
 				return null;
 			}
+		} catch (IllegalStateException e) {
+			logger.error("Error", e);
+			return null;
 		} catch (FacebookException e) {
 			logger.error("Error", e);
 			return null;
