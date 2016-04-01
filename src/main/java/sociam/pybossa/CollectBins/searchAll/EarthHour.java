@@ -68,20 +68,24 @@ public class EarthHour {
 					for (Document document : iterable) {
 						ObjectId _id = document.getObjectId("_id");
 						String content = document.getString("text");
-						Matcher matcher = patter.matcher(content.toLowerCase());
-						if (matcher.find()) {
-							String timeStamp = document.getString("timestamp");
-							content = content.replaceAll(delimate, "");
-							content = content.replaceAll("\n", "");
-							content = content.replaceAll("\"", "");
-							content = content.replaceAll("\'", "");
-							System.out.println(_id.toString() + delimate
-									+ content + delimate + timeStamp);
-							writer.println(_id.toString() + delimate + "\""
-									+ content + "\"" + delimate + "\""
-									+ timeStamp + "\"" + delimate);
-						}
+						if (content != null) {
+							Matcher matcher = patter.matcher(content
+									.toLowerCase());
+							if (matcher.find()) {
+								String timeStamp = document
+										.getString("timestamp");
+								content = content.replaceAll(delimate, "");
+								content = content.replaceAll("\n", "");
+								content = content.replaceAll("\"", "");
+								content = content.replaceAll("\'", "");
+								System.out.println(_id.toString() + delimate
+										+ content + delimate + timeStamp);
+								writer.println(_id.toString() + delimate + "\""
+										+ content + "\"" + delimate + "\""
+										+ timeStamp + "\"" + delimate);
+							}
 
+						}
 					}
 				}
 			}
