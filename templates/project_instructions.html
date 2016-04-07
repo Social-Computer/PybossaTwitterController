@@ -1,0 +1,153 @@
+<style type="text/css">
+   .textContainer {
+       border-radius: 5px;
+       background-color: #f2f2f2;
+       color: #2B9884;
+       padding: 12px;
+   }
+</style>
+
+<div id="warning" class="modal fade">
+ <div class="modal-dialog">
+   <div class="modal-content">
+     <div class="modal-header">
+       <button type="button" class="close" data-dismiss="modal"
+aria-label="Close"><span aria-hidden="true">&times;</span></button>
+       <h4 class="modal-title"></h4>
+     </div>
+     <div class="modal-body">
+     </div>
+     <div class="modal-footer">
+       <button type="button" class="btn btn-default"
+data-dismiss="modal">Close</button>
+     </div>
+   </div><!-- /.modal-content -->
+ </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<div class="row skeleton">
+   <div class="col-xs-8 col-xs-offset-2">
+     <h2 id="question">Please add your instructions to the following
+content:</h2>
+   </div>
+   <div class="hidden-xs col-sm-2">
+       <p style="margin-top:30px;"><span
+id="i18n_working_task">Task</span> <span id="task-id">#</span></p>
+   </div>
+</div>
+<div class="row">
+   <div class="top20 col-xs-8 col-xs-offset-2">
+       <p class="textContainer">
+           <span id="text"></span>
+       </p>
+   </div>
+   <div id="answer" class="top20 col-xs-8 col-xs-offset-2">
+     <textarea id="response" name="response"></textarea>
+     <button class="btn btn-answer" value="submit">Submit</button>
+   </div>
+
+ <div id="help">
+   <h2>Possible instructions:</h2>
+<table style="width:900px">
+ <tr>
+   <td>Instruction</td>
+   <td>General syntax</td>		
+   <td>Example usage</td>
+ </tr>
+ <tr>
+   <td>Prioritize message</td>
+   <td>PRIO [+1|-1] #[taskid]</td>		
+   <td></td>
+ </tr>
+ <tr>
+   <td>Pass message</td>
+   <td>SHARE [userid1,userid2,...,useridN] #[taskid]</td>		
+   <td></td>
+ </tr>
+ <tr>
+   <td>Enrich message</td>
+   <td>ENRICH [your message, hashtags or URIs] #[taskid]</td>		
+   <td></td>
+ </tr>
+ <tr>
+   <td>Translate message</td>
+   <td>TRANS [your translation of original content] #[taskid]</td>		
+   <td></td>
+ </tr>
+ <tr>
+   <td>Resolve message</td>
+   <td>RESOLVE [your message to resolve this message] #[taskid]</td>		
+   <td></td>
+ </tr>
+</table>
+ </div>
+</div>
+<script type="text/javascript">
+(function() {
+// Default language
+var userLocale = "en";
+// Translations
+var messages = {"en": {
+                       "i18n_working_task": "Task",
+                     },
+              };
+// Update userLocale with server side information
+$(document).ready(function(){
+   userLocale =
+document.getElementById('PYBOSSA_USER_LOCALE').textContent.trim();
+});
+function i18n_translate() {
+   var ids = Object.keys(messages[userLocale])
+   for (i=0; i<ids.length; i++) {
+       console.log("Translating: " + ids[i]);
+       document.getElementById(ids[i]).innerHTML =
+messages[userLocale][ids[i]];
+   }
+}
+pybossa.taskLoaded(function(task, deferred) {
+   deferred.resolve(task);
+});
+function warn_user(type, msg) {
+   var p = $("<p/>");
+   var title;
+   if (type === 'info') {
+       title = "Hi there! Please, read this carefully"
+   }
+   if (type === 'error') {
+       title = "Ooops! Something went wrong!"
+   }
+   if (type === 'warning') {
+       title = "Hi there! Please, read this carefully"
+   }
+   p.text(msg);
+   $(".modal-title").text(title);
+   $(".modal-body").html(p);
+   $("#warning").modal();
+}
+pybossa.presentTask(function(task, deferred) {
+   if ( !$.isEmptyObject(task) ) {
+       i18n_translate();
+       $('#task-id').html(task.id);
+       document.getElementById('text').innerHTML = task.info.text;
+       $('.btn-answer').off('click').on('click', function(evt) {
+           var $btn = $(this);
+           var answer = document.getElementById('response').innerHTML;
+           if (typeof answer != 'undefined') {
+               pybossa.saveTask(task.id, answer).done(function() {
+                   deferred.resolve();
+               });
+           }
+           else {
+               warn_user('error', 'Unexpected type of answer.');
+           }
+       });
+   }
+   else {
+       $(".skeleton").hide();
+       warn_user('info', 'You have contributed to all available tasks!
+Thanks!');
+   }
+});
+pybossa.run('[project short name]');
+})();
+</script>
