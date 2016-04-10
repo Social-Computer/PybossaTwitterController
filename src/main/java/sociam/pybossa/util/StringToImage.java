@@ -139,18 +139,21 @@ public class StringToImage {
 		 * height of the final image
 		 */
 		try {
-			BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+			BufferedImage img = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
 			Graphics2D g2d = img.createGraphics();
 			int width = 650;
 			int height = 140;
-			Font font = new Font("Arial", Font.PLAIN, 20);
+			Font font = new Font("Arial", Font.PLAIN, 24);
 			
-			img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+			img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 			g2d = img.createGraphics();
 			// g2d.setColor(Color.BLUE);
 			// g2d.fillRect(0, 0, width, height);
-			
-			g2d.setColor(Color.BLACK);
+			int R = 204;
+			int G = 204;
+			int B= 153;
+			Color randomColor = new Color(R, G, B);
+			g2d.setColor(randomColor);
 			g2d.fillRect(0, 0, width, height);
 			Composite c = AlphaComposite.getInstance(AlphaComposite.CLEAR, .6f);
 			g2d.setComposite(c);
