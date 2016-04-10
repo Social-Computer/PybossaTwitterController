@@ -147,6 +147,9 @@ public class StringToImage {
 			
 			img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 			g2d = img.createGraphics();
+			g2d.setRenderingHint(
+			        RenderingHints.KEY_TEXT_ANTIALIASING,
+			        RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
 			// g2d.setColor(Color.BLUE);
 			// g2d.fillRect(0, 0, width, height);
 			int R = 204;
@@ -182,6 +185,7 @@ public class StringToImage {
 					g2d.drawString(currentLine, x, y);
 				}
 			}
+			
 			g2d.dispose();
 			// try {
 			// ImageIO.write(img, "png", new File("Text.png"));
