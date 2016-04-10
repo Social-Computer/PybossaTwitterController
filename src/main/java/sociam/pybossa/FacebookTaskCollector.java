@@ -127,13 +127,13 @@ public class FacebookTaskCollector {
 	public static Boolean insertTaskRun(String text, int task_id,
 			int project_id, String contributor_name, String source) {
 
-		Document taskRun = getTaskRunsFromMongoDB(task_id, contributor_name);
-		if (taskRun != null) {
-			logger.error("You are only allowed one contribution for each task.");
-			logger.error("task_id= " + task_id + " screen_name: "
-					+ contributor_name);
-			return false;
-		}
+		// Document taskRun = getTaskRunsFromMongoDB(task_id, contributor_name);
+		// if (taskRun != null) {
+		// logger.error("You are only allowed one contribution for each task.");
+		// logger.error("task_id= " + task_id + " screen_name: "
+		// + contributor_name);
+		// return false;
+		// }
 
 		JSONObject jsonData = BuildJsonTaskRunContent(text, task_id, project_id);
 		if (insertTaskRunIntoMongoDB(jsonData, contributor_name, source)) {
