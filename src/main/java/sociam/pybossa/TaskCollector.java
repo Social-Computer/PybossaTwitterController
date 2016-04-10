@@ -168,13 +168,12 @@ public class TaskCollector {
 	public static Boolean insertTaskRun(String text, int task_id, int project_id, String contributor_name,
 			String source) {
 
-		// Document taskRun = getTaskRunsFromMongoDB(task_id, contributor_name);
-		// if (taskRun != null) {
-		// logger.error("You are only allowed one contribution for each task.");
-		// logger.error("task_id= " + task_id + " screen_name: " +
-		// contributor_name);
-		// return false;
-		// }
+		Document taskRun = getTaskRunsFromMongoDB(task_id, contributor_name, text);
+		if (taskRun != null) {
+			logger.error("You are only allowed one contribution for each task.");
+			logger.error("task_id= " + task_id + " screen_name: " + contributor_name);
+			return false;
+		}
 
 		JSONObject jsonData = BuildJsonTaskRunContent(text, task_id, project_id);
 		if (insertTaskRunIntoMongoDB(jsonData, contributor_name, source)) {
@@ -400,19 +399,13 @@ public class TaskCollector {
 
 	}
 
-	public static Document getTaskRunsFromMongoDB(int task_id, String contributor_name) {
+	public static Document getTaskRunsFromMongoDB(int task_id, String contributor_name, String text) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
-
-			// MongoCollection<Document> collection = database
-			// .getCollection(Config.taskCollection);
-			// Document myDoc = collection.find(
-			// eq("pybossa_task_id", pybossa_task_id)).limit(1);
-
 			FindIterable<Document> iterable = database.getCollection(Config.taskRunCollection)
-					.find(new Document("task_id", task_id).append("contributor_name", contributor_name));
-
+					.find(new Document("task_id", task_id).append("contributor_name", contributor_name)
+							.append("task_text", text));
 			Document document = iterable.first();
 			mongoClient.close();
 			return document;

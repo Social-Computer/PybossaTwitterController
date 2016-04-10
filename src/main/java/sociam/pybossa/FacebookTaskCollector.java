@@ -44,10 +44,8 @@ import sociam.pybossa.util.FacebookAccount;
 public class FacebookTaskCollector {
 
 	final static Logger logger = Logger.getLogger(FacebookTaskCollector.class);
-	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat(
-			"yyyy-MM-dd HH:mm:ss");
-	final static SimpleDateFormat PyBossaformatter = new SimpleDateFormat(
-			"yyyy-mm-dd'T'hh:mm:ss.SSSSSS");
+	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	final static SimpleDateFormat PyBossaformatter = new SimpleDateFormat("yyyy-mm-dd'T'hh:mm:ss.SSSSSS");
 	final static String SOURCE = "Facebook";
 
 	static Facebook facebook;
@@ -56,14 +54,12 @@ public class FacebookTaskCollector {
 
 		PropertyConfigurator.configure("log4j.properties");
 		facebook = FacebookAccount.setFacebookAccount(1);
-		logger.info("TaskCollector will be repeated every "
-				+ Config.TaskCollectorTrigger + " ms");
+		logger.info("TaskCollector will be repeated every " + Config.TaskCollectorTrigger + " ms");
 		try {
 			while (true) {
 				Config.reload();
 				run();
-				logger.info("Sleeping for " + Config.TaskCollectorTrigger
-						+ " ms");
+				logger.info("Sleeping for " + Config.TaskCollectorTrigger + " ms");
 				Thread.sleep(Integer.valueOf(Config.TaskCollectorTrigger));
 			}
 		} catch (InterruptedException e) {
@@ -78,8 +74,7 @@ public class FacebookTaskCollector {
 			logger.debug("Getting time line from facebook");
 			ArrayList<Post> postsfromFacebook = getLatestPosts(facebook);
 			if (postsfromFacebook != null) {
-				logger.debug("There are "
-						+ postsfromFacebook.size()
+				logger.debug("There are " + postsfromFacebook.size()
 						+ " facebook posts with at least one message to be processed");
 				for (Post post : postsfromFacebook) {
 					String postMessage = post.getMessage();
@@ -90,18 +85,15 @@ public class FacebookTaskCollector {
 						logger.debug("Found a taskID in the orginal post");
 						taskID = matcher.group(1).replaceAll("#t", "");
 						Integer intTaskID = Integer.valueOf(taskID);
-						logger.debug("Retriving Task id from Collection: "
-								+ Config.taskCollection);
+						logger.debug("Retriving Task id from Collection: " + Config.taskCollection);
 						Document doc = getTaskFromMongoDB(intTaskID);
 						if (doc != null) {
 							int project_id = doc.getInteger("project_id");
 							PagableList<Comment> comments = post.getComments();
 							for (Comment comment : comments) {
 								String taskResponse = comment.getMessage();
-								String contributorName = comment.getFrom()
-										.getName();
-								if (insertTaskRun(taskResponse, intTaskID,
-										project_id, contributorName, SOURCE)) {
+								String contributorName = comment.getFrom().getName();
+								if (insertTaskRun(taskResponse, intTaskID, project_id, contributorName, SOURCE)) {
 									logger.debug("Task run was completely processed");
 								} else {
 									logger.error("Failed to process the task run");
@@ -111,8 +103,7 @@ public class FacebookTaskCollector {
 							logger.error("Couldn't find task with ID " + taskID);
 						}
 					} else {
-						logger.error("couldn't find an associated task id with the one in the post "
-								+ postMessage);
+						logger.error("couldn't find an associated task id with the one in the post " + postMessage);
 					}
 				}
 			} else {
@@ -124,26 +115,23 @@ public class FacebookTaskCollector {
 		}
 	}
 
-	public static Boolean insertTaskRun(String text, int task_id,
-			int project_id, String contributor_name, String source) {
+	public static Boolean insertTaskRun(String text, int task_id, int project_id, String contributor_name,
+			String source) {
 
-		// Document taskRun = getTaskRunsFromMongoDB(task_id, contributor_name);
-		// if (taskRun != null) {
-		// logger.error("You are only allowed one contribution for each task.");
-		// logger.error("task_id= " + task_id + " screen_name: "
-		// + contributor_name);
-		// return false;
-		// }
+		Document taskRun = getTaskRunsFromMongoDB(task_id, contributor_name, text);
+		if (taskRun != null) {
+			logger.error("You are only allowed one contribution for each task.");
+			logger.error("task_id= " + task_id + " screen_name: " + contributor_name);
+			return false;
+		}
 
 		JSONObject jsonData = BuildJsonTaskRunContent(text, task_id, project_id);
 		if (insertTaskRunIntoMongoDB(jsonData, contributor_name, source)) {
 			logger.debug("Task run was successfully inserted into MongoDB");
 			// Project has to be reqested before inserting a task run
 			logger.debug("Requesting the project ID from PyBossa before inserting it");
-			String postURL = Config.PyBossahost + Config.taskRunDir
-					+ Config.api_key;
-			JSONObject postResponse = insertTaskRunIntoPyBossa(postURL,
-					jsonData);
+			String postURL = Config.PyBossahost + Config.taskRunDir + Config.api_key;
+			JSONObject postResponse = insertTaskRunIntoPyBossa(postURL, jsonData);
 			if (postResponse != null) {
 				logger.debug("Task run was successfully inserted into PyBossa");
 				return true;
@@ -158,8 +146,7 @@ public class FacebookTaskCollector {
 
 	}
 
-	public static Boolean insertTaskRunIntoMongoDB(JSONObject jsonData,
-			String contributor_name, String source) {
+	public static Boolean insertTaskRunIntoMongoDB(JSONObject jsonData, String contributor_name, String source) {
 
 		try {
 			Date date = new Date();
@@ -168,8 +155,7 @@ public class FacebookTaskCollector {
 			Integer task_id = jsonData.getInt("task_id");
 			String task_run_text = jsonData.getString("info");
 			logger.debug("Inserting a task run into MongoDB");
-			if (pushTaskRunToMongoDB(insertedAt, project_id, task_id,
-					task_run_text, contributor_name, source)) {
+			if (pushTaskRunToMongoDB(insertedAt, project_id, task_id, task_run_text, contributor_name, source)) {
 				return true;
 			} else {
 				return false;
@@ -183,24 +169,18 @@ public class FacebookTaskCollector {
 
 	// maybe it's not needed to check id_str becasue we check it first!
 	// so only do an insert?
-	public static boolean pushTaskRunToMongoDB(String publishedAt,
-			Integer project_id, Integer task_id, String task_text,
-			String contributor_name, String source) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+	public static boolean pushTaskRunToMongoDB(String publishedAt, Integer project_id, Integer task_id,
+			String task_text, String contributor_name, String source) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
-			if (publishedAt != null && project_id != null && task_text != null
-					&& contributor_name != null && source != null) {
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			if (publishedAt != null && project_id != null && task_text != null && contributor_name != null
+					&& source != null) {
 
-				database.getCollection(Config.taskRunCollection).insertOne(
-						new Document().append("publishedAt", publishedAt)
-								.append("project_id", project_id)
-								.append("task_id", task_id)
-								.append("task_text", task_text)
-								.append("contributor_name", contributor_name)
-								.append("source", source));
+				database.getCollection(Config.taskRunCollection)
+						.insertOne(new Document().append("publishedAt", publishedAt).append("project_id", project_id)
+								.append("task_id", task_id).append("task_text", task_text)
+								.append("contributor_name", contributor_name).append("source", source));
 				logger.debug("One task run is inserted into MongoDB");
 				mongoClient.close();
 				return true;
@@ -211,17 +191,15 @@ public class FacebookTaskCollector {
 			}
 
 		} catch (Exception e) {
-			logger.error("Error with inserting the task run " + " publishedAt "
-					+ publishedAt + " project_id " + project_id + " isPushed "
-					+ task_id + " task_id " + task_text + "\n", e);
+			logger.error("Error with inserting the task run " + " publishedAt " + publishedAt + " project_id "
+					+ project_id + " isPushed " + task_id + " task_id " + task_text + "\n", e);
 			mongoClient.close();
 			return false;
 		}
 
 	}
 
-	public static JSONObject insertTaskRunIntoPyBossa(String url,
-			JSONObject jsonData) {
+	public static JSONObject insertTaskRunIntoPyBossa(String url, JSONObject jsonData) {
 		JSONObject jsonResult = null;
 		logger.debug("Json to be inserted into PyBossa:  " + jsonData);
 		HttpClient httpClient = HttpClientBuilder.create().build();
@@ -238,11 +216,9 @@ public class FacebookTaskCollector {
 
 			HttpResponse response = httpClient.execute(request);
 
-			BufferedReader br = new BufferedReader(new InputStreamReader(
-					(response.getEntity().getContent())));
+			BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
 			String output;
-			logger.debug("Output from Server ...."
-					+ response.getStatusLine().getStatusCode() + "\n");
+			logger.debug("Output from Server ...." + response.getStatusLine().getStatusCode() + "\n");
 			StringBuffer responseText = new StringBuffer();
 			while ((output = br.readLine()) != null) {
 
@@ -250,12 +226,10 @@ public class FacebookTaskCollector {
 			}
 			jsonResult = new JSONObject(responseText);
 			logger.debug("Post Response " + responseText);
-			if (response.getStatusLine().getStatusCode() == 200
-					|| response.getStatusLine().getStatusCode() == 204) {
+			if (response.getStatusLine().getStatusCode() == 200 || response.getStatusLine().getStatusCode() == 204) {
 				return jsonResult;
 			} else {
-				logger.error("Failed : HTTP error code : "
-						+ response.getStatusLine().getStatusCode());
+				logger.error("Failed : HTTP error code : " + response.getStatusLine().getStatusCode());
 				logger.error("Message " + response.getStatusLine());
 				logger.error(response.toString());
 				return null;
@@ -281,8 +255,7 @@ public class FacebookTaskCollector {
 	 * @param priority_0
 	 * @return Json string
 	 */
-	public static JSONObject BuildJsonTaskRunContent(String answer,
-			int task_id, int project_id) {
+	public static JSONObject BuildJsonTaskRunContent(String answer, int task_id, int project_id) {
 
 		JSONObject app2 = new JSONObject();
 		app2.put("project_id", project_id);
@@ -298,14 +271,11 @@ public class FacebookTaskCollector {
 	}
 
 	public static Document getTaskFromMongoDB(int pybossa_task_id) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
-			FindIterable<Document> iterable = database.getCollection(
-					Config.taskCollection).find(
-					new Document("pybossa_task_id", pybossa_task_id));
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
+					.find(new Document("pybossa_task_id", pybossa_task_id));
 			Document document = iterable.first();
 			mongoClient.close();
 			return document;
@@ -317,17 +287,13 @@ public class FacebookTaskCollector {
 
 	}
 
-	public static Document getTaskRunsFromMongoDB(int task_id,
-			String contributor_name) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+	public static Document getTaskRunsFromMongoDB(int task_id, String contributor_name, String text) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
-			FindIterable<Document> iterable = database.getCollection(
-					Config.taskRunCollection).find(
-					new Document("task_id", task_id).append("contributor_name",
-							contributor_name));
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			FindIterable<Document> iterable = database.getCollection(Config.taskRunCollection)
+					.find(new Document("task_id", task_id).append("contributor_name", contributor_name)
+							.append("task_text", text));
 			Document document = iterable.first();
 			mongoClient.close();
 			return document;
@@ -343,8 +309,7 @@ public class FacebookTaskCollector {
 
 		try {
 			facebook = FacebookAccount.setFacebookAccount(1);
-			Post onePost = facebook.getPost(post_id,
-					new Reading().fields("comments,message,name"));
+			Post onePost = facebook.getPost(post_id, new Reading().fields("comments,message,name"));
 			return onePost;
 		} catch (Exception e) {
 			logger.error("Error", e);
