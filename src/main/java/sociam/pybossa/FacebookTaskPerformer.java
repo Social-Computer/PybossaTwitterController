@@ -40,21 +40,18 @@ import static com.mongodb.client.model.Filters.*;
 public class FacebookTaskPerformer {
 
 	final static Logger logger = Logger.getLogger(FacebookTaskPerformer.class);
-	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat(
-			"yyyy-MM-dd HH:mm:ss");
+	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	static Boolean wasPushed = false;
 
 	public static void main(String[] args) {
 		PropertyConfigurator.configure("log4j.properties");
-		logger.info("TaskPerformer will be repeated every "
-				+ Config.TaskCreatorTrigger + " ms");
+		logger.info("TaskPerformer will be repeated every " + Config.TaskCreatorTrigger + " ms");
 		try {
 			while (true) {
 				Config.reload();
 				run();
-				logger.info("Sleeping for " + Config.TaskPerformerTrigger
-						+ " ms");
+				logger.info("Sleeping for " + Config.TaskPerformerTrigger + " ms");
 				Thread.sleep(Integer.valueOf(Config.TaskPerformerTrigger));
 			}
 		} catch (InterruptedException e) {
@@ -66,8 +63,7 @@ public class FacebookTaskPerformer {
 		try {
 			ArrayList<Document> tasksToBePushed = getReadyTasksFromMongoDB();
 			if (tasksToBePushed != null) {
-				logger.info("There are "
-						+ tasksToBePushed.size()
+				logger.info("There are " + tasksToBePushed.size()
 						+ " tasks that need to be pushed into facebook, then updating to MongoDB");
 
 				// randomly pick a task
@@ -77,20 +73,18 @@ public class FacebookTaskPerformer {
 				while (taskIDs.size() < tasksToBePushed.size()) {
 					Random random = new Random(seed);
 					seed++;
-					Integer genertatedTaskID = random.nextInt(tasksToBePushed
-							.size());
+					Integer genertatedTaskID = random.nextInt(tasksToBePushed.size());
 					if (taskIDs.contains(genertatedTaskID)) {
 						continue;
 					} else {
 						taskIDs.add(genertatedTaskID);
 					}
 					Document document = tasksToBePushed.get(genertatedTaskID);
-					String facebook_task_status = document
-							.getString("facebook_task_status");
+					String facebook_task_status = document.getString("facebook_task_status");
 					String task_text = document.getString("task_text");
 					if (facebook_task_status.equals("pushed")) {
-						Date facebook_lastPushAt = document
-								.getDate("facebook_lastPushAt");
+						String facebook_lastPushAtString = document.getString("facebook_lastPushAt");
+						Date facebook_lastPushAt = MongoDBformatter.parse(facebook_lastPushAtString);
 						if (!rePush(facebook_lastPushAt)) {
 							continue;
 						} else {
@@ -98,30 +92,25 @@ public class FacebookTaskPerformer {
 						}
 					}
 					ObjectId _id = document.getObjectId("_id");
-					int pybossa_task_id = document
-							.getInteger("pybossa_task_id");
+					int pybossa_task_id = document.getInteger("pybossa_task_id");
 					int project_id = document.getInteger("project_id");
 					String media_url = document.getString("media_url");
 					ArrayList<String> hashtags = getProjectHashTags(project_id);
 					String taskTag = "#t" + pybossa_task_id;
-					String facebook_task_id = sendTaskToFacebook(task_text,
-							media_url, taskTag, hashtags, 1);
+					String facebook_task_id = sendTaskToFacebook(task_text, media_url, taskTag, hashtags, 1);
 					if (facebook_task_id != null) {
-						if (updateTaskToPushedInMongoDB(_id, facebook_task_id,
-								"pushed")) {
-							logger.info("Task with text "
-									+ task_text
-									+ " has been sucessfully pushed to facebook");
+						if (updateTaskToPushedInMongoDB(_id, facebook_task_id, "pushed")) {
+							logger.info("Task with text " + task_text + " has been sucessfully pushed to facebook");
 							wasPushed = true;
 						} else {
-							logger.error("Error with updating "
-									+ Config.taskCollection + " for the _id "
-									+ _id.toString());
+							logger.error(
+									"Error with updating " + Config.taskCollection + " for the _id " + _id.toString());
 						}
 					} else {
 						if (updateTaskToPushedInMongoDB(_id, "", "error")) {
-							logger.debug("pushing post to facebook has encountered an error, but has been updated into MongoDB "
-									+ task_text);
+							logger.debug(
+									"pushing post to facebook has encountered an error, but has been updated into MongoDB "
+											+ task_text);
 						} else {
 							logger.error("Couldn't update the task in MongoDB");
 						}
@@ -130,11 +119,9 @@ public class FacebookTaskPerformer {
 
 					if (wasPushed) {
 						wasPushed = false;
-						logger.debug("waiting for "
-								+ Config.TaskPerformerPushRate
+						logger.debug("waiting for " + Config.TaskPerformerPushRate
 								+ " ms before pushing another post to facebook");
-						Thread.sleep(Integer
-								.valueOf(Config.TaskPerformerPushRate));
+						Thread.sleep(Integer.valueOf(Config.TaskPerformerPushRate));
 					}
 				}
 			}
@@ -174,33 +161,25 @@ public class FacebookTaskPerformer {
 		}
 	}
 
-	public static Boolean updateTaskToPushedInMongoDB(ObjectId _id,
-			String facebook_task_id, String facebook_task_status) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+	public static Boolean updateTaskToPushedInMongoDB(ObjectId _id, String facebook_task_id,
+			String facebook_task_status) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			Date date = new Date();
 			String lastPushAt = MongoDBformatter.format(date);
 			UpdateResult result = database.getCollection(Config.taskCollection)
-					.updateOne(
-							new Document("_id", _id),
-							new Document().append(
-									"$set",
-									new Document("facebook_task_status",
-											facebook_task_status).append(
-											"facebook_lastPushAt", lastPushAt)
-											.append("facebook_task_id",
+					.updateOne(new Document("_id", _id),
+							new Document().append("$set",
+									new Document("facebook_task_status", facebook_task_status)
+											.append("facebook_lastPushAt", lastPushAt).append("facebook_task_id",
 													facebook_task_id)));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
-					logger.debug(Config.taskCollection
-							+ " Collection was updated where _id= "
-							+ _id.toString() + " to facebook_task_status="
-							+ facebook_task_status);
+					logger.debug(Config.taskCollection + " Collection was updated where _id= " + _id.toString()
+							+ " to facebook_task_status=" + facebook_task_status);
 					mongoClient.close();
 					return true;
 				}
@@ -214,13 +193,11 @@ public class FacebookTaskPerformer {
 		}
 	}
 
-	public static String sendTaskToFacebook(String taskContent,
-			String media_url, String taskTag, ArrayList<String> hashtags,
-			int project_type) {
+	public static String sendTaskToFacebook(String taskContent, String media_url, String taskTag,
+			ArrayList<String> hashtags, int project_type) {
 		String facebook_task_id;
 		try {
-			Facebook facebook = FacebookAccount
-					.setFacebookAccount(project_type);
+			Facebook facebook = FacebookAccount.setFacebookAccount(project_type);
 
 			// defualt
 			String question = "";
@@ -246,8 +223,7 @@ public class FacebookTaskPerformer {
 			// convert taskContent and question into an image
 			File image = null;
 			if (!media_url.equals("")) {
-				image = StringToImage.combineTextWithImage(taskContent,
-						media_url);
+				image = StringToImage.combineTextWithImage(taskContent, media_url);
 			} else {
 				image = StringToImage.convertStringToImage(taskContent);
 			}
@@ -281,14 +257,11 @@ public class FacebookTaskPerformer {
 
 	public static ArrayList<Document> getReadyTasksFromMongoDB() {
 		ArrayList<Document> NotPushedTasksjsons = new ArrayList<Document>();
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
-			FindIterable<Document> iterable = database.getCollection(
-					Config.taskCollection).find(
-					new Document("task_status", "ready"));
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
+					.find(new Document("task_status", "ready"));
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
 					NotPushedTasksjsons.add(document);
@@ -304,17 +277,14 @@ public class FacebookTaskPerformer {
 	}
 
 	public static JSONObject getProjectByID(int project_id) {
-		logger.debug("getting project by project_id from "
-				+ Config.projectCollection + " collection");
+		logger.debug("getting project by project_id from " + Config.projectCollection + " collection");
 		MongoClient mongoClient = null;
 		try {
 			mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			JSONObject json = null;
-			FindIterable<Document> iterable = database.getCollection(
-					Config.projectCollection).find(
-					new Document("project_id", project_id));
+			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
+					.find(new Document("project_id", project_id));
 			if (iterable.first() != null) {
 				Document document = iterable.first();
 				json = new JSONObject(document);
@@ -331,18 +301,14 @@ public class FacebookTaskPerformer {
 	public static JSONObject getTasks(Integer offset) {
 		JSONObject tasks = new JSONObject();
 		JSONArray tasksArray = new JSONArray();
-		logger.debug("Getting not completed tasks from "
-				+ Config.taskCollection + " collection");
+		logger.debug("Getting not completed tasks from " + Config.taskCollection + " collection");
 		MongoClient mongoClient = null;
 		JSONObject json = null;
 		try {
 			mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
-			FindIterable<Document> iterable = database
-					.getCollection(Config.taskCollection)
-					.find(ne("task_status", "completed")).limit(200)
-					.skip(offset);
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
+					.find(ne("task_status", "completed")).limit(200).skip(offset);
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
 					json = new JSONObject(document);
@@ -367,19 +333,15 @@ public class FacebookTaskPerformer {
 		MongoClient mongoClient = null;
 		try {
 			mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
-			FindIterable<Document> iterable = database
-					.getCollection(Config.taskCollection)
-					.find(ne("task_status", "completed"))
-					.sort(new Document("publishedAt", -1)).limit(1);
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
+					.find(ne("task_status", "completed")).sort(new Document("publishedAt", -1)).limit(1);
 			if (iterable.first() != null) {
 				Document doc = iterable.first();
 				JSONObject task = new JSONObject(doc);
 				mongoClient.close();
 
-				ArrayList<String> hashtags = getProjectHashTags(task
-						.getInt("project_id"));
+				ArrayList<String> hashtags = getProjectHashTags(task.getInt("project_id"));
 				if (hashtags != null) {
 					Collections.sort(hashtags);
 					task.put("hashtags", hashtags);
@@ -402,17 +364,14 @@ public class FacebookTaskPerformer {
 		MongoClient mongoClient = null;
 		try {
 			mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			Boolean foundTask = false;
 			int pybossa_task_id;
 			int offset = 0;
 			JSONObject task = new JSONObject();
 			while (!foundTask) {
-				FindIterable<Document> iterable = database
-						.getCollection(Config.taskCollection).find()
-						.sort(new Document("publishedAt", -1)).limit(1)
-						.skip(offset);
+				FindIterable<Document> iterable = database.getCollection(Config.taskCollection).find()
+						.sort(new Document("publishedAt", -1)).limit(1).skip(offset);
 				if (iterable.first() != null) {
 					Document doc = iterable.first();
 					pybossa_task_id = doc.getInteger("pybossa_task_id");
@@ -439,8 +398,7 @@ public class FacebookTaskPerformer {
 				task.put("question", Config.project_validation_question + "?");
 			}
 
-			ArrayList<String> hashtags = getProjectHashTags(task
-					.getInt("project_id"));
+			ArrayList<String> hashtags = getProjectHashTags(task.getInt("project_id"));
 			if (hashtags != null) {
 				Collections.sort(hashtags);
 				task.put("hashtags", hashtags);
@@ -460,10 +418,8 @@ public class FacebookTaskPerformer {
 		try {
 			Boolean exist = false;
 			mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
-			FindIterable<Document> iterable = database
-					.getCollection(Config.taskRunCollection)
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			FindIterable<Document> iterable = database.getCollection(Config.taskRunCollection)
 					.find(new Document("task_id", pybossa_task_id)).limit(1);
 			if (iterable.first() != null) {
 				exist = true;
