@@ -49,7 +49,7 @@ public class TaskCreator {
 	public static void run() {
 		try {
 			// Check for started projects
-			HashSet<JSONObject> projectsAsJsons = MongodbMethods.getReadyProjects();
+			HashSet<JSONObject> projectsAsJsons = MongodbMethods.getnotCompletedProjects();
 			if (projectsAsJsons != null) {
 				logger.info("There are "
 						+ projectsAsJsons.size()

@@ -74,8 +74,8 @@ public class FacebookTaskPerformer {
 							.getString("facebook_task_status");
 					String task_text = document.getString("task_text");
 					if (facebook_task_status.equals("pushed")) {
-						Date facebook_lastPushAt = document
-								.getDate("facebook_lastPushAt");
+						String facebook_lastPushAtString = document.getString("facebook_lastPushAt");
+						Date facebook_lastPushAt = MongoDBformatter.parse(facebook_lastPushAtString);
 						if (!GeneralMethods.rePush(facebook_lastPushAt)) {
 							continue;
 						} else {

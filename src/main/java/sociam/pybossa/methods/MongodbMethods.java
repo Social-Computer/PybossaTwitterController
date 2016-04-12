@@ -24,7 +24,7 @@ import com.mongodb.client.result.UpdateResult;
 
 public class MongodbMethods {
 	final static Logger logger = Logger.getLogger(MongodbMethods.class);
-	
+
 	public final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat(
 			"yyyy-MM-dd HH:mm:ss");
 
@@ -60,10 +60,6 @@ public class MongodbMethods {
 
 	}
 
-	
-	
-	
-	
 	public static HashSet<Document> getAllProjects() {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost,
 				Config.mongoPort);
@@ -89,8 +85,7 @@ public class MongodbMethods {
 			return null;
 		}
 	}
-	
-	
+
 	public static Boolean updateProjectToInsertedInMongoDB(int project_id) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost,
 				Config.mongoPort);
@@ -120,7 +115,6 @@ public class MongodbMethods {
 			return false;
 		}
 	}
-	
 
 	// For encoding issue that makes the text changed after inserting it into
 	// PyBossa
@@ -151,7 +145,7 @@ public class MongodbMethods {
 			return false;
 		}
 	}
-	
+
 	public static HashSet<Document> getTweetsFromBinInMongoDB(
 			String collectionName) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost,
@@ -177,9 +171,8 @@ public class MongodbMethods {
 			return tweetsjsons;
 		}
 	}
-	
-	
-	public static HashSet<JSONObject> getReadyProjects() {
+
+	public static HashSet<JSONObject> getnotCompletedProjects() {
 		logger.debug("getting projects from collection "
 				+ Config.projectCollection);
 		HashSet<JSONObject> startedProjectsJsons = new HashSet<JSONObject>();
@@ -190,7 +183,7 @@ public class MongodbMethods {
 					.getDatabase(Config.projectsDatabaseName);
 			FindIterable<Document> iterable = database.getCollection(
 					Config.projectCollection).find(
-					new Document("project_status", "ready"));
+					ne("project_status", "completed"));
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
 					JSONObject app2 = new JSONObject(document);
@@ -214,8 +207,7 @@ public class MongodbMethods {
 			return null;
 		}
 	}
-	
-	
+
 	public static Boolean insertTaskIntoMongoDB(JSONObject response,
 			String task_status, String task_type) {
 
@@ -243,7 +235,7 @@ public class MongodbMethods {
 		}
 
 	}
-	
+
 	public static boolean pushTaskToMongoDB(Integer pybossa_task_id,
 			String publishedAt, Integer project_id, String task_status,
 			String task_text, String media_url, String task_type) {
@@ -261,18 +253,22 @@ public class MongodbMethods {
 						new Document("project_id", project_id).append(
 								"task_text", task_text));
 				if (iterable.first() == null) {
-					database.getCollection(Config.taskCollection).insertOne(
-							new Document()
-									.append("pybossa_task_id", pybossa_task_id)
-									.append("publishedAt", publishedAt)
-									.append("project_id", project_id)
-									.append("task_status", task_status)
-									.append("twitter_task_status", task_status)
-									.append("facebook_task_status", task_status)
-									.append("task_status", task_status)
-									.append("task_text", task_text)
-									.append("media_url", media_url)
-									.append("task_type", task_type));
+					database.getCollection(Config.taskCollection)
+							.insertOne(
+									new Document()
+											.append("pybossa_task_id",
+													pybossa_task_id)
+											.append("publishedAt", publishedAt)
+											.append("project_id", project_id)
+											.append("task_status", task_status)
+											.append("twitter_task_status",
+													task_status)
+											.append("facebook_task_status",
+													task_status)
+											.append("task_status", task_status)
+											.append("task_text", task_text)
+											.append("media_url", media_url)
+											.append("task_type", task_type));
 					logger.debug("One task is inserted into MongoDB");
 
 				} else {
@@ -292,7 +288,6 @@ public class MongodbMethods {
 		}
 
 	}
-	
 
 	public static JSONObject getProjectByID(int project_id) {
 		logger.debug("getting project by project_id from "
@@ -318,7 +313,7 @@ public class MongodbMethods {
 			return null;
 		}
 	}
-	
+
 	public static JSONObject getTasks(Integer offset) {
 		JSONObject tasks = new JSONObject();
 		JSONArray tasksArray = new JSONArray();
@@ -352,7 +347,7 @@ public class MongodbMethods {
 		}
 
 	}
-	
+
 	public static JSONObject getLatestUncompletedAnsweredTask() {
 		logger.debug("Retriving the last uncompleted task");
 		MongoClient mongoClient = null;
@@ -387,7 +382,7 @@ public class MongodbMethods {
 			return null;
 		}
 	}
-	
+
 	public static ArrayList<String> getProjectHashTags(int project_id) {
 		JSONObject project = getProjectByID(project_id);
 		ArrayList<String> hashtags = new ArrayList<>();
@@ -402,7 +397,7 @@ public class MongodbMethods {
 		}
 		return hashtags;
 	}
-	
+
 	public static Boolean updateTaskToPushedInMongoDB(ObjectId _id,
 			String twitter_task_status) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost,
@@ -438,7 +433,7 @@ public class MongodbMethods {
 			return false;
 		}
 	}
-	
+
 	public static JSONObject getLatestUnAnsweredTask() {
 		logger.debug("Retriving the last unanswered task");
 		MongoClient mongoClient = null;
@@ -496,7 +491,7 @@ public class MongodbMethods {
 			return null;
 		}
 	}
-	
+
 	public static Boolean wasAnsweredBefore(int pybossa_task_id) {
 		MongoClient mongoClient = null;
 		try {
@@ -520,7 +515,7 @@ public class MongodbMethods {
 			return null;
 		}
 	}
-	
+
 	public static ArrayList<Document> getReadyTasksFromMongoDB() {
 		ArrayList<Document> NotPushedTasksjsons = new ArrayList<Document>();
 		MongoClient mongoClient = new MongoClient(Config.mongoHost,
@@ -544,8 +539,9 @@ public class MongodbMethods {
 			return null;
 		}
 	}
-	
-	public static Boolean insertTaskRunIntoMongoDB(JSONObject jsonData, String contributor_name, String source) {
+
+	public static Boolean insertTaskRunIntoMongoDB(JSONObject jsonData,
+			String contributor_name, String source) {
 
 		try {
 			// Integer pybossa_task_run_id = PyBossaResponse.getInt("id");
@@ -557,7 +553,8 @@ public class MongodbMethods {
 			Integer task_id = jsonData.getInt("task_id");
 			String task_run_text = jsonData.getString("info");
 			logger.debug("Inserting a task run into MongoDB");
-			if (pushTaskRunToMongoDB(insertedAt, project_id, task_id, task_run_text, contributor_name, source)) {
+			if (pushTaskRunToMongoDB(insertedAt, project_id, task_id,
+					task_run_text, contributor_name, source)) {
 				return true;
 			} else {
 				return false;
@@ -568,21 +565,27 @@ public class MongodbMethods {
 		}
 
 	}
-	
+
 	// maybe it's not needed to check id_str becasue we check it first!
 	// so only do an insert?
-	public static boolean pushTaskRunToMongoDB(String publishedAt, Integer project_id, Integer task_id,
-			String task_text, String contributor_name, String source) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+	public static boolean pushTaskRunToMongoDB(String publishedAt,
+			Integer project_id, Integer task_id, String task_text,
+			String contributor_name, String source) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost,
+				Config.mongoPort);
 		try {
-			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
-			if (publishedAt != null && project_id != null && task_text != null && contributor_name != null
-					&& source != null) {
+			MongoDatabase database = mongoClient
+					.getDatabase(Config.projectsDatabaseName);
+			if (publishedAt != null && project_id != null && task_text != null
+					&& contributor_name != null && source != null) {
 
-				database.getCollection(Config.taskRunCollection)
-						.insertOne(new Document().append("publishedAt", publishedAt).append("project_id", project_id)
-								.append("task_id", task_id).append("task_text", task_text)
-								.append("contributor_name", contributor_name).append("source", source));
+				database.getCollection(Config.taskRunCollection).insertOne(
+						new Document().append("publishedAt", publishedAt)
+								.append("project_id", project_id)
+								.append("task_id", task_id)
+								.append("task_text", task_text)
+								.append("contributor_name", contributor_name)
+								.append("source", source));
 				logger.debug("One task run is inserted into MongoDB");
 				mongoClient.close();
 				return true;
@@ -593,26 +596,32 @@ public class MongodbMethods {
 			}
 
 		} catch (Exception e) {
-			logger.error("Error with inserting the task run " + " publishedAt " + publishedAt + " project_id "
-					+ project_id + " isPushed " + task_id + " task_id " + task_text + "\n", e);
+			logger.error("Error with inserting the task run " + " publishedAt "
+					+ publishedAt + " project_id " + project_id + " isPushed "
+					+ task_id + " task_id " + task_text + "\n", e);
 			mongoClient.close();
 			return false;
 		}
 
 	}
-	
-	public static Document getTaskRunsFromMongoDB(int task_id, String contributor_name) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+
+	public static Document getTaskRunsFromMongoDB(int task_id,
+			String contributor_name, String text) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost,
+				Config.mongoPort);
 		try {
-			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			MongoDatabase database = mongoClient
+					.getDatabase(Config.projectsDatabaseName);
 
 			// MongoCollection<Document> collection = database
 			// .getCollection(Config.taskCollection);
 			// Document myDoc = collection.find(
 			// eq("pybossa_task_id", pybossa_task_id)).limit(1);
 
-			FindIterable<Document> iterable = database.getCollection(Config.taskRunCollection)
-					.find(new Document("task_id", task_id).append("contributor_name", contributor_name));
+			FindIterable<Document> iterable = database.getCollection(
+					Config.taskRunCollection).find(
+					new Document("task_id", task_id).append("contributor_name",
+							contributor_name).append("task_text", text));
 
 			Document document = iterable.first();
 			mongoClient.close();
@@ -624,7 +633,7 @@ public class MongodbMethods {
 		}
 
 	}
-	
+
 	public static Boolean updateTaskToPushedInMongoDB(ObjectId _id,
 			String facebook_task_id, String facebook_task_status) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost,
@@ -664,19 +673,22 @@ public class MongodbMethods {
 			return false;
 		}
 	}
-	
+
 	public static Document getTaskFromMongoDB(int pybossa_task_id) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+		MongoClient mongoClient = new MongoClient(Config.mongoHost,
+				Config.mongoPort);
 		try {
-			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			MongoDatabase database = mongoClient
+					.getDatabase(Config.projectsDatabaseName);
 
 			// MongoCollection<Document> collection = database
 			// .getCollection(Config.taskCollection);
 			// Document myDoc = collection.find(
 			// eq("pybossa_task_id", pybossa_task_id)).limit(1);
 
-			FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
-					.find(new Document("pybossa_task_id", pybossa_task_id));
+			FindIterable<Document> iterable = database.getCollection(
+					Config.taskCollection).find(
+					new Document("pybossa_task_id", pybossa_task_id));
 
 			Document document = iterable.first();
 			mongoClient.close();
@@ -688,7 +700,7 @@ public class MongodbMethods {
 		}
 
 	}
-	
+
 	// public static Document getTaskRunsFromMongoDB(String contribution_id) {
 	// MongoClient mongoClient = new MongoClient(Config.mongoHost,
 	// Config.mongoPort);

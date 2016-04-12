@@ -180,7 +180,7 @@ public class TaskCollector {
 			int project_id, String contributor_name, String source) {
 
 		Document taskRun = MongodbMethods.getTaskRunsFromMongoDB(task_id,
-				contributor_name);
+				contributor_name, text);
 		if (taskRun != null) {
 			logger.error("You are only allowed one contribution for each task.");
 			logger.error("task_id= " + task_id + " screen_name: "

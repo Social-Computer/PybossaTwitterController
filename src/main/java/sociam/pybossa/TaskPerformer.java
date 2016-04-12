@@ -75,8 +75,8 @@ public class TaskPerformer {
 							.getString("twitter_task_status");
 					String task_text = document.getString("task_text");
 					if (twitter_task_status.equals("pushed")) {
-						Date twitter_lastPushAt = document
-								.getDate("twitter_lastPushAt");
+						String twitter_lastPushAtString = document.getString("twitter_lastPushAt");
+						Date twitter_lastPushAt = MongoDBformatter.parse(twitter_lastPushAtString);
 						if (!GeneralMethods.rePush(twitter_lastPushAt)) {
 							continue;
 						} else {
