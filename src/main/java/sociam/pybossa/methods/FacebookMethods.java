@@ -15,7 +15,12 @@ import facebook4j.PhotoUpdate;
 import facebook4j.Post;
 import facebook4j.Reading;
 import facebook4j.ResponseList;
-
+/**
+ * 
+ * @author user Saud Aljaloud
+ * @author email sza1g10@ecs.soton.ac.uk
+ *
+ */
 public class FacebookMethods {
 
 	

@@ -6,7 +6,12 @@ import java.util.Date;
 import org.apache.log4j.Logger;
 
 import sociam.pybossa.config.Config;
-
+/**
+ * 
+ * @author user Saud Aljaloud
+ * @author email sza1g10@ecs.soton.ac.uk
+ *
+ */
 public class GeneralMethods {
 	
 	final static Logger logger = Logger.getLogger(GeneralMethods.class);

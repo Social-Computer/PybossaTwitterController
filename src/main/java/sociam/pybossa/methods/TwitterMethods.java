@@ -16,7 +16,12 @@ import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterObjectFactory;
-
+/**
+ * 
+ * @author user Saud Aljaloud
+ * @author email sza1g10@ecs.soton.ac.uk
+ *
+ */
 public class TwitterMethods {
 
 	final static Logger logger = Logger.getLogger(TwitterMethods.class);

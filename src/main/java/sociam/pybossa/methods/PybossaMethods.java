@@ -21,7 +21,12 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import sociam.pybossa.config.Config;
-
+/**
+ * 
+ * @author user Saud Aljaloud
+ * @author email sza1g10@ecs.soton.ac.uk
+ *
+ */
 public class PybossaMethods {
 	
 	final static Logger logger = Logger.getLogger(PybossaMethods.class);

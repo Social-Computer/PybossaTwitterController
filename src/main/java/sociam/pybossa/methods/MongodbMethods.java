@@ -21,13 +21,51 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.UpdateResult;
-
+/**
+ * 
+ * @author user Saud Aljaloud
+ * @author email sza1g10@ecs.soton.ac.uk
+ *
+ */
 public class MongodbMethods {
 	final static Logger logger = Logger.getLogger(MongodbMethods.class);
 
 	public final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat(
 			"yyyy-MM-dd HH:mm:ss");
 
+	public static Boolean updateProjectIntoMongoDB(ObjectId _id,
+			String project_status, String project_type) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost,
+				Config.mongoPort);
+
+		try {
+			MongoDatabase database = mongoClient
+					.getDatabase(Config.projectsDatabaseName);
+
+			UpdateResult result = database.getCollection(
+					Config.projectCollection)
+					.updateOne(
+							new Document("_id", _id),
+							new Document("$set", new Document("project_status",
+									project_status).append("project_type",
+									"validate")));
+			logger.debug(result.toString());
+			if (result.wasAcknowledged()) {
+				if (result.getMatchedCount() > 0) {
+					mongoClient.close();
+					return true;
+				}
+			}
+			mongoClient.close();
+			return false;
+		} catch (Exception e) {
+			mongoClient.close();
+			logger.error("Error ", e);
+			return false;
+		}
+
+	}
+	
 	public static Boolean updateProjectIntoMongoDB(ObjectId _id,
 			int project_id, String project_status, String project_type) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost,
@@ -57,7 +95,6 @@ public class MongodbMethods {
 			logger.error("Error ", e);
 			return false;
 		}
-
 	}
 
 	public static HashSet<Document> getAllProjects() {
@@ -87,6 +124,36 @@ public class MongodbMethods {
 	}
 
 	public static Boolean updateProjectToInsertedInMongoDB(int project_id) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost,
+				Config.mongoPort);
+		try {
+			MongoDatabase database = mongoClient
+					.getDatabase(Config.projectsDatabaseName);
+			UpdateResult result = database.getCollection(
+					Config.projectCollection).updateOne(
+					new Document("project_id", project_id),
+					new Document().append("$set", new Document(
+							"project_status", "inserted").append("task_type",
+							"validate")));
+			logger.debug(result.toString());
+			if (result.wasAcknowledged()) {
+				if (result.getMatchedCount() > 0) {
+					logger.debug(Config.projectCollection
+							+ " Collection was updated with project_status: inserted");
+					mongoClient.close();
+					return true;
+				}
+			}
+			mongoClient.close();
+			return false;
+		} catch (Exception e) {
+			logger.error("Error ", e);
+			mongoClient.close();
+			return false;
+		}
+	}
+	
+	public static Boolean updateProjectToInsertedInMongoDB(ObjectId project_id) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost,
 				Config.mongoPort);
 		try {
@@ -207,6 +274,8 @@ public class MongodbMethods {
 			return null;
 		}
 	}
+	
+
 
 	public static Boolean insertTaskIntoMongoDB(JSONObject response,
 			String task_status, String task_type) {
@@ -231,6 +300,81 @@ public class MongodbMethods {
 			}
 		} catch (Exception e) {
 			logger.error("Error ", e);
+			return false;
+		}
+
+	}
+	
+	public static Boolean insertTaskIntoMongoDB(ObjectId project_id,
+			String task_text, String media_url, String task_status,
+			String task_type) {
+
+		try {
+			// String created_String = response.getString("created");
+			// Date publishedAt = PyBossaformatter.parse(created_String);
+			Date date = new Date();
+			String publishedAt = MongoDBformatter.format(date);
+			// String targettedFormat = MongoDBformatter.format(publishedAt);
+			logger.debug("Inserting a task into MongoDB");
+			if (pushTaskToMongoDB(publishedAt, project_id, task_status,
+					task_text, media_url, task_type)) {
+				return true;
+			} else {
+				return false;
+			}
+		} catch (Exception e) {
+			logger.error("Error ", e);
+			return false;
+		}
+
+	}
+	
+	public static boolean pushTaskToMongoDB(String publishedAt,
+			ObjectId project_id, String task_status, String task_text,
+			String media_url, String task_type) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost,
+				Config.mongoPort);
+		try {
+
+			if (publishedAt != null && project_id != null
+					&& task_status != null && task_text != null
+					&& media_url != null && task_type != null) {
+				MongoDatabase database = mongoClient
+						.getDatabase(Config.projectsDatabaseName);
+				FindIterable<Document> iterable = database.getCollection(
+						Config.taskCollection).find(
+						new Document("project_id", project_id).append(
+								"task_text", task_text));
+				if (iterable.first() == null) {
+					database.getCollection(Config.taskCollection)
+							.insertOne(
+									new Document()
+											.append("publishedAt", publishedAt)
+											.append("project_id", project_id)
+											.append("task_status", task_status)
+											.append("twitter_task_status",
+													task_status)
+											.append("facebook_task_status",
+													task_status)
+											.append("task_status", task_status)
+											.append("task_text", task_text)
+											.append("media_url", media_url)
+											.append("task_type", task_type));
+					logger.debug("One task is inserted into MongoDB");
+
+				} else {
+					logger.error("task is already in the collection!!");
+				}
+
+			}
+			mongoClient.close();
+			return true;
+		} catch (Exception e) {
+			logger.error("Error with inserting the task " + " "
+					+ " publishedAt " + publishedAt + " project_id "
+					+ project_id + " task_status " + task_status
+					+ " task_text " + task_text + "\n" + e);
+			mongoClient.close();
 			return false;
 		}
 
