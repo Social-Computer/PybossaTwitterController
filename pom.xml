@@ -1,11 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>sociam.pybossa</groupId>
-	<artifactId>PybossaTwitterController</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<groupId>Social-Computer</groupId>
+	<artifactId>TwitterCrowdSourcingController</artifactId>
+	<version>0.0.1</version>
 	<name>Saud Aljaloud</name>
-	<description>This is process that manibulate twitter for the use within Pybossa for croudsourcing</description>
+	<description>A middleware for ad-hoc real-time crowdsourcing via social media. Bridges between the APIs of popular social media services (Twitter and Facebook to begin with).</description>
 	<dependencies>
 		<dependency>
 			<groupId>org.twitter4j</groupId>
