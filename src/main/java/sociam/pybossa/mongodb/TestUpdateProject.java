@@ -34,11 +34,11 @@ public class TestUpdateProject {
 		// JSONObject app2 = new JSONObject(document);
 		// ObjectId id = document.getObjectId("_id");
 		// System.out.println(id);
-		UpdateResult result = database.getCollection(Config.projectCollection)
+		UpdateResult result = database.getCollection(Config.taskCollection)
 				.updateMany(
-						new Document(),
-						new Document("$set", new Document("project_status",
-								"empty")));
+						new Document("facebook_task_status","error"),
+						new Document("$set", new Document("facebook_task_status",
+								"ready")));
 		if (result.wasAcknowledged()) {
 			if (result.getMatchedCount() > 0) {
 				System.out.println("fould a match " + result.getMatchedCount());
