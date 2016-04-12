@@ -84,7 +84,7 @@ public class TaskPerformer {
 						}
 					}
 					ObjectId _id = document.getObjectId("_id");
-					ObjectId task_id = document.getObjectId("pybossa_task_id");
+					Integer task_id = document.getInteger("pybossa_task_id");
 					int project_id = document.getInteger("project_id");
 					String media_url = document.getString("media_url");
 					ArrayList<String> hashtags = MongodbMethods
