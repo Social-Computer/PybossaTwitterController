@@ -22,9 +22,9 @@ import sociam.pybossa.methods.TwitterMethods;
  * @author email sza1g10@ecs.soton.ac.uk
  *
  */
-public class TaskPerformer {
+public class TwitterTaskPerformer {
 
-	final static Logger logger = Logger.getLogger(TaskPerformer.class);
+	final static Logger logger = Logger.getLogger(TwitterTaskPerformer.class);
 	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat(
 			"yyyy-MM-dd HH:mm:ss");
 
@@ -50,7 +50,7 @@ public class TaskPerformer {
 	public static void run() {
 		try {
 			ArrayList<Document> tasksToBePushed = MongodbMethods
-					.getReadyTasksFromMongoDB();
+					.getIncompletedTasksFromMongoDB("twitter_task_status");
 			if (tasksToBePushed != null) {
 				logger.info("There are "
 						+ tasksToBePushed.size()

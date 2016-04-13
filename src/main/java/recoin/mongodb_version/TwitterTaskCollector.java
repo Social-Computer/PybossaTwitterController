@@ -24,9 +24,9 @@ import twitter4j.Twitter;
  * @author email sza1g10@ecs.soton.ac.uk
  *
  */
-public class TaskCollector {
+public class TwitterTaskCollector {
 
-	final static Logger logger = Logger.getLogger(TaskCollector.class);
+	final static Logger logger = Logger.getLogger(TwitterTaskCollector.class);
 	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat(
 			"yyyy-MM-dd HH:mm:ss");
 	final static SimpleDateFormat PyBossaformatter = new SimpleDateFormat(
