@@ -8,7 +8,6 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.bson.Document;
-import org.json.JSONObject;
 
 import facebook4j.Comment;
 import facebook4j.Facebook;
@@ -17,7 +16,6 @@ import facebook4j.Post;
 import sociam.pybossa.config.Config;
 import sociam.pybossa.methods.FacebookMethods;
 import sociam.pybossa.methods.MongodbMethods;
-import sociam.pybossa.methods.PybossaMethods;
 import sociam.pybossa.util.FacebookAccount;
 
 /**
@@ -115,29 +113,17 @@ public class FacebookTaskCollector {
 		Document taskRun = MongodbMethods.getTaskRunsFromMongoDB(task_id,
 				contributor_name, text);
 		if (taskRun != null) {
-			logger.error("You are only allowed one contribution for each task.");
+			logger.error("The contribution is already stored.");
 			logger.error("task_id= " + task_id + " screen_name: "
-					+ contributor_name);
+					+ contributor_name + " text " + text);
 			return false;
 		}
 
-		JSONObject jsonData = PybossaMethods.BuildJsonTaskRunContent(text,
-				task_id, project_id);
-		if (MongodbMethods.insertTaskRunIntoMongoDB(jsonData, contributor_name,
-				source)) {
+		if (MongodbMethods.insertTaskRunIntoMongoDB(project_id, task_id, text,
+				contributor_name, source)) {
 			logger.debug("Task run was successfully inserted into MongoDB");
 			// Project has to be reqested before inserting a task run
-			logger.debug("Requesting the project ID from PyBossa before inserting it");
-			String postURL = Config.PyBossahost + Config.taskRunDir
-					+ Config.api_key;
-			JSONObject postResponse = PybossaMethods.insertTaskRunIntoPyBossa(
-					postURL, jsonData);
-			if (postResponse != null) {
-				logger.debug("Task run was successfully inserted into PyBossa");
-				return true;
-			} else {
-				return false;
-			}
+			return true;
 		} else {
 			logger.error("Task run was not inserted into MongoDB!");
 			return false;

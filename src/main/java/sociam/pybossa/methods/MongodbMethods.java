@@ -709,6 +709,29 @@ public class MongodbMethods {
 		}
 
 	}
+	
+	public static Boolean insertTaskRunIntoMongoDB(Integer project_id, Integer task_id, String task_run_text,
+			String contributor_name, String source) {
+
+		try {
+			// Integer pybossa_task_run_id = PyBossaResponse.getInt("id");
+			// String created_String = response.getString("created");
+			// Date publishedAt = PyBossaformatter.parse(created_String);
+			Date date = new Date();
+			String insertedAt = MongoDBformatter.format(date);
+			logger.debug("Inserting a task run into MongoDB");
+			if (pushTaskRunToMongoDB(insertedAt, project_id, task_id,
+					task_run_text, contributor_name, source)) {
+				return true;
+			} else {
+				return false;
+			}
+		} catch (Exception e) {
+			logger.error("Error ", e);
+			return false;
+		}
+
+	}
 
 	// maybe it's not needed to check id_str becasue we check it first!
 	// so only do an insert?
@@ -727,7 +750,7 @@ public class MongodbMethods {
 						new Document().append("publishedAt", publishedAt)
 								.append("project_id", project_id)
 								.append("task_id", task_id)
-								.append("task_text", task_text)
+								.append("task_run_text", task_text)
 								.append("contributor_name", contributor_name)
 								.append("source", source));
 				logger.debug("One task run is inserted into MongoDB");
@@ -765,7 +788,7 @@ public class MongodbMethods {
 			FindIterable<Document> iterable = database.getCollection(
 					Config.taskRunCollection).find(
 					new Document("task_id", task_id).append("contributor_name",
-							contributor_name).append("task_text", text));
+							contributor_name).append("task_run_text", text));
 
 			Document document = iterable.first();
 			mongoClient.close();

@@ -13,7 +13,6 @@ import org.json.JSONObject;
 
 import sociam.pybossa.config.Config;
 import sociam.pybossa.methods.MongodbMethods;
-import sociam.pybossa.methods.PybossaMethods;
 import sociam.pybossa.methods.TwitterMethods;
 import sociam.pybossa.util.TwitterAccount;
 import twitter4j.Twitter;
@@ -185,29 +184,15 @@ public class TwitterTaskCollector {
 			return false;
 		}
 
-		JSONObject jsonData = PybossaMethods.BuildJsonTaskRunContent(text,
-				task_id, project_id);
-		if (MongodbMethods.insertTaskRunIntoMongoDB(jsonData, contributor_name,
-				source)) {
+		if (MongodbMethods.insertTaskRunIntoMongoDB(project_id, task_id, text,
+				contributor_name, source)) {
 			logger.debug("Task run was successfully inserted into MongoDB");
 			// Project has to be reqested before inserting a task run
-			logger.debug("Requesting the project ID from PyBossa before inserting it");
-			String postURL = Config.PyBossahost + Config.taskRunDir
-					+ Config.api_key;
-			JSONObject postResponse = PybossaMethods.insertTaskRunIntoPyBossa(
-					postURL, jsonData);
-			if (postResponse != null) {
-				logger.debug("Task run was successfully inserted into PyBossa");
-				return true;
-			} else {
-				return false;
-			}
-
+			return true;
 		} else {
 			logger.error("Task run was not inserted into MongoDB!");
 			return false;
 		}
-
 	}
 
 }
