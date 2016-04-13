@@ -62,7 +62,7 @@ public class TwitterMethods {
 			post = post + " " + taskTag;
 			
 			if (userTobeShared!=null){
-				post = post + " " + userTobeShared;
+				post = userTobeShared + " " + post;
 			}
 
 			System.out.println(post);
