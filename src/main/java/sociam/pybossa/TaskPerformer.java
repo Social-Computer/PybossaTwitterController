@@ -50,7 +50,7 @@ public class TaskPerformer {
 	public static void run() {
 		try {
 			ArrayList<Document> tasksToBePushed = MongodbMethods
-					.getReadyTasksFromMongoDB();
+					.getIncompletedTasksFromMongoDB("twitter_task_status");
 			if (tasksToBePushed != null) {
 				logger.info("There are "
 						+ tasksToBePushed.size()
@@ -84,7 +84,7 @@ public class TaskPerformer {
 						}
 					}
 					ObjectId _id = document.getObjectId("_id");
-					Integer task_id = document.getInteger("pybossa_task_id");
+					Integer task_id = _id.getCounter();
 					int project_id = document.getInteger("project_id");
 					String media_url = document.getString("media_url");
 					ArrayList<String> hashtags = MongodbMethods

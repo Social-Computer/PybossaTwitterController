@@ -135,6 +135,7 @@ public class TwitterTaskCollector {
 												intTaskID, project_id,
 												screen_name, SOURCE)) {
 											logger.debug("Task run was completely processed");
+
 										} else {
 											logger.error("Failed to process the task run");
 										}
@@ -151,26 +152,22 @@ public class TwitterTaskCollector {
 													.get(intTaskID),
 											screen_name, SOURCE);
 								}
-
 							} else {
 								logger.error("reply: \\"
 										+ reply
 										+ " was not being identified with an associated task in the original text: \\"
 										+ orgTweetText);
 							}
-
 						}
 					}
-					// else {
-					// logger.debug("This is not a reply tweet");
-					//
-					// }
-
 				}
 			} else {
 				logger.info("Time line was null");
 			}
 
+			logger.debug("Adding task_id field to collection "
+					+ Config.taskRunCollection);
+			MongodbMethods.updateTaskRunsByAddingCounters();
 		} catch (Exception e) {
 			logger.error("Error ", e);
 		}

@@ -10,7 +10,6 @@ import org.bson.types.ObjectId;
 import sociam.pybossa.config.Config;
 import sociam.pybossa.methods.MongodbMethods;
 
-
 /**
  * 
  * @author user Saud Aljaloud
@@ -61,8 +60,9 @@ public class ProjectCreator {
 
 							logger.debug("Project: " + project_name
 									+ " was sucessfully inserted into PyBossa");
-							Boolean wasUpdated = MongodbMethods.updateProjectIntoMongoDB(_id,
-									"ready", "validate");
+							Boolean wasUpdated = MongodbMethods
+									.updateProjectIntoMongoDB(_id, "ready",
+											"validate");
 							if (wasUpdated) {
 								logger.debug("Project "
 										+ project_name
@@ -85,6 +85,12 @@ public class ProjectCreator {
 				logger.debug("There are no projects in the collection "
 						+ Config.projectCollection);
 			}
+
+			// add counter as project_id
+			logger.debug("Adding project_id field to collection "
+					+ Config.projectCollection);
+			MongodbMethods.updateProjectsByAddingCounters();
+
 		} catch (Exception e) {
 			logger.error("Error ", e);
 		}

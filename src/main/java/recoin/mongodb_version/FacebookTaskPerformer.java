@@ -77,11 +77,11 @@ public class FacebookTaskPerformer {
 						}
 					}
 					ObjectId _id = document.getObjectId("_id");
-					int pybossa_task_id = document.getInteger("pybossa_task_id");
+					int task_id = document.getInteger("task_id");
 					int project_id = document.getInteger("project_id");
 					String media_url = document.getString("media_url");
 					ArrayList<String> hashtags = MongodbMethods.getProjectHashTags(project_id);
-					String taskTag = "#t" + pybossa_task_id;
+					String taskTag = "#t" + task_id;
 					String facebook_task_id = FacebookMethods.sendTaskToFacebook(task_text, media_url, taskTag,
 							hashtags, 1);
 					if (facebook_task_id != null) {

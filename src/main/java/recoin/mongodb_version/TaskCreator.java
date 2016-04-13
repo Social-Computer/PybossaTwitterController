@@ -61,7 +61,7 @@ public class TaskCreator {
 					// Get project name and id for these started projects
 					for (Document jsonObject : projectsAsJsons) {
 						String bin_id = jsonObject.getString("bin_id");
-						ObjectId project_id = jsonObject.getObjectId("_id");
+						int project_id = jsonObject.getInteger("project_id");
 						int tasksPerProjectlimit = Integer
 								.valueOf(Config.TasksPerProject);
 						ArrayList<String> tasksTexts = getAllTasksTextsFromMongodb(project_id);
@@ -70,7 +70,8 @@ public class TaskCreator {
 								logger.debug("Project with id " + project_id
 										+ " has already got "
 										+ tasksPerProjectlimit + " tasks");
-								MongodbMethods.updateProjectToInsertedInMongoDB(project_id);
+								MongodbMethods
+										.updateProjectToInsertedInMongoDB(project_id);
 								logger.debug("changing to another project");
 								continue;
 							}
@@ -81,7 +82,8 @@ public class TaskCreator {
 						if (tasksPerProjectCounter >= tasksPerProjectlimit) {
 							logger.info("tasksPerProjectlimit was reached "
 									+ tasksPerProjectCounter);
-							MongodbMethods.updateProjectToInsertedInMongoDB(project_id);
+							MongodbMethods
+									.updateProjectToInsertedInMongoDB(project_id);
 							logger.debug("changing to another project");
 							continue;
 
@@ -90,20 +92,22 @@ public class TaskCreator {
 						// pushed
 						// to
 						// crowd and not completed by crowd, from Ramine
-						HashSet<Document> tweets = MongodbMethods.getTweetsFromBinInMongoDB(bin_id);
+						HashSet<Document> bins = MongodbMethods
+								.getTweetsFromBinInMongoDB(bin_id);
 						HashSet<String> originalBinText = new HashSet<>();
-						logger.info("There are \"" + tweets.size()
+						logger.info("There are \"" + bins.size()
 								+ "\" tweets for projectID " + project_id);
-						for (Document tweet : tweets) {
+						for (Document bin : bins) {
 
 							logger.debug("Processing a new task");
 							// for each bin, get the text/tweet
-							String text = tweet.getString("text");
+							String text = bin.getString("text");
 							logger.debug("tweet text " + text);
 							if (!originalBinText.contains(text)) {
 								originalBinText.add(text);
 
-								ObjectId _id = tweet.getObjectId("_id");
+								ObjectId _id = bin.getObjectId("_id");
+								String bin_id_String = _id.toString();
 								if (tasksTexts != null) {
 									if (!tasksTexts.contains(text)) {
 
@@ -112,8 +116,7 @@ public class TaskCreator {
 										// of a
 										// task
 										String media_url = "";
-										media_url = tweet
-												.getString("media_url");
+										media_url = bin.getString("media_url");
 
 										tasksTexts.add(text);
 
@@ -121,8 +124,12 @@ public class TaskCreator {
 										// PyBossa
 										// into
 										// MongoDB
-										if (MongodbMethods.insertTaskIntoMongoDB(_id, text,
-												media_url, "ready", "validate")) {
+										if (MongodbMethods
+												.insertTaskIntoMongoDB(
+														project_id,
+														bin_id_String, text,
+														media_url, "ready",
+														"validate")) {
 											tasksPerProjectCounter++;
 										} else {
 											logger.error("Task was not inserted Into MongoDB");
@@ -136,15 +143,20 @@ public class TaskCreator {
 								}
 							} else {
 								logger.error("Tweet is already processed "
-										+ tweet.toString());
+										+ bin.toString());
 							}
 						}
-
 					}
 				} else {
 					logger.debug("There are no ready projects' tasks to be inserted into PyBossa!");
 				}
 			}
+
+			// add counter for tasks as task_id
+			logger.debug("Adding task_id field to collection "
+					+ Config.taskCollection);
+			MongodbMethods.updateTasksByAddingCounters();
+
 		} catch (
 
 		Exception e)
@@ -155,7 +167,6 @@ public class TaskCreator {
 
 	}
 
-	
 	public static HashSet<Document> getnotCompletedProjects() {
 		logger.debug("getting projects from collection "
 				+ Config.projectCollection);
@@ -181,9 +192,8 @@ public class TaskCreator {
 			return null;
 		}
 	}
-	
-	public static ArrayList<String> getAllTasksTextsFromMongodb(
-			ObjectId project_id) {
+
+	public static ArrayList<String> getAllTasksTextsFromMongodb(int project_id) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost,
 				Config.mongoPort);
 		ArrayList<String> tasks = new ArrayList<String>();

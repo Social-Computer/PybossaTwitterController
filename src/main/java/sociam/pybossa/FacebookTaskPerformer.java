@@ -49,7 +49,7 @@ public class FacebookTaskPerformer {
 
 	public static void run() {
 		try {
-			ArrayList<Document> tasksToBePushed = MongodbMethods.getReadyTasksFromMongoDB();
+			ArrayList<Document> tasksToBePushed = MongodbMethods.getIncompletedTasksFromMongoDB("facebook_task_status");
 			if (tasksToBePushed != null) {
 				logger.info("There are "
 						+ tasksToBePushed.size()
