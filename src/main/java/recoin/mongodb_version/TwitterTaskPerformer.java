@@ -91,7 +91,7 @@ public class TwitterTaskPerformer {
 							.getProjectHashTags(project_id);
 					String taskTag = "#t" + task_id;
 					int responseCode = TwitterMethods.sendTaskToTwitter(
-							task_text, media_url, taskTag, hashtags, 2);
+							task_text, media_url, taskTag, hashtags, 2, null);
 					if (responseCode == 1) {
 						if (MongodbMethods.updateTaskToPushedInMongoDB(_id, "pushed")) {
 							logger.info("Task with text " + task_text

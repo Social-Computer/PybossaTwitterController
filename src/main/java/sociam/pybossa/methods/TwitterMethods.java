@@ -35,7 +35,7 @@ public class TwitterMethods {
 	 *            the content of the tweet to be published
 	 */
 	public static int sendTaskToTwitter(String taskContent, String media_url,
-			String taskTag, ArrayList<String> hashtags, int project_type) {
+			String taskTag, ArrayList<String> hashtags, int project_type, String userTobeShared) {
 		try {
 			Twitter twitter = TwitterAccount.setTwitterAccount(project_type);
 
@@ -60,6 +60,10 @@ public class TwitterMethods {
 			// }
 			// post = post + "?";
 			post = post + " " + taskTag;
+			
+			if (userTobeShared!=null){
+				post = post + " " + userTobeShared;
+			}
 
 			System.out.println(post);
 

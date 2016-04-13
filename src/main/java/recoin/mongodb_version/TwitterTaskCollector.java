@@ -78,7 +78,6 @@ public class TwitterTaskCollector {
 								.getString("in_reply_to_screen_name");
 						String taskResponse = reply.replaceAll("@"
 								+ in_reply_to_screen_name, "");
-
 						// // store the reply id
 						// String id_str = jsonObject.getString("id_str");
 
