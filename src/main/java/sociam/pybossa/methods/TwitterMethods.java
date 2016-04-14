@@ -59,13 +59,12 @@ public class TwitterMethods {
 			// }
 			// }
 			// post = post + "?";
-			post = post + " " + taskTag;
+			String tag = taskTag.replaceAll("#", "");
+			post = post + " " + taskTag + " & monitor the task " + Config.domainURI+tag;
 			
 			if (userTobeShared!=null){
 				post = userTobeShared + " " + post;
 			}
-
-			System.out.println(post);
 
 			// convert taskContent and question into an image
 			File image = null;

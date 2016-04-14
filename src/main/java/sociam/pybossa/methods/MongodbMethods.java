@@ -807,7 +807,7 @@ public class MongodbMethods {
 	public static ArrayList<Document> getTaskRunsFromMongoDB(int task_id) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost,
 				Config.mongoPort);
-		ArrayList<Document> docs = new ArrayList<>();
+		ArrayList<Document> docs = new ArrayList<Document>();
 		try {
 			MongoDatabase database = mongoClient
 					.getDatabase(Config.projectsDatabaseName);
