@@ -804,6 +804,28 @@ public class MongodbMethods {
 
 	}
 
+	public static Document getTaskRunsFromMongoDB(int task_id) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost,
+				Config.mongoPort);
+		try {
+			MongoDatabase database = mongoClient
+					.getDatabase(Config.projectsDatabaseName);
+
+			FindIterable<Document> iterable = database.getCollection(
+					Config.taskRunCollection).find(
+					new Document("task_id", task_id));
+
+			Document document = iterable.first();
+			mongoClient.close();
+			return document;
+		} catch (Exception e) {
+			logger.error("Error ", e);
+			mongoClient.close();
+			return null;
+		}
+
+	}
+
 	public static Boolean updateTaskToPushedInMongoDB(ObjectId _id,
 			String facebook_task_id, String facebook_task_status) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost,
@@ -844,7 +866,7 @@ public class MongodbMethods {
 		}
 	}
 
-	public static Document getTaskFromMongoDB(int pybossa_task_id) {
+	public static Document getTaskFromMongoDB(int task_id) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost,
 				Config.mongoPort);
 		try {
@@ -858,7 +880,7 @@ public class MongodbMethods {
 
 			FindIterable<Document> iterable = database.getCollection(
 					Config.taskCollection).find(
-					new Document("task_id", pybossa_task_id));
+					new Document("task_id", task_id));
 
 			Document document = iterable.first();
 			mongoClient.close();
@@ -1013,18 +1035,20 @@ public class MongodbMethods {
 			return false;
 		}
 	}
-	
+
 	public static Boolean updateTaskToBeCompleted(int task_id) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost,
 				Config.mongoPort);
 		try {
 			MongoDatabase database = mongoClient
 					.getDatabase(Config.projectsDatabaseName);
-			UpdateResult result = database.getCollection(
-					Config.taskCollection).updateOne(
-					new Document("task_id", task_id),
-					new Document().append("$set", new Document("facebook_task_status",
-							"completed").append("twitter_task_status", "completed").append("task_status", "completed")));
+			UpdateResult result = database.getCollection(Config.taskCollection)
+					.updateOne(
+							new Document("task_id", task_id),
+							new Document().append("$set", new Document(
+									"facebook_task_status", "completed")
+									.append("twitter_task_status", "completed")
+									.append("task_status", "completed")));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {

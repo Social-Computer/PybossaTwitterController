@@ -19,7 +19,7 @@ public class TestImageinTweet {
 		// Twitter twitter = TwitterFactory.getSingleton();
 
 		try {
-			File image = StringToImage.convertStringToImage("俄罗斯的英文翻译，免费在线翻译。俄语翻译");
+			File image = StringToImage.convertStringToImage("महिलाओं को #HIV से बचने के लिए, मोदी सरकार ने लॉन्च किया एक खास कंडोम ! - https:/");
 
 			StatusUpdate status = new StatusUpdate(taskContent);
 			status.setMedia(image);
