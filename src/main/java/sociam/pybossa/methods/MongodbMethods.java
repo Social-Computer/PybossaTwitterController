@@ -804,9 +804,10 @@ public class MongodbMethods {
 
 	}
 
-	public static Document getTaskRunsFromMongoDB(int task_id) {
+	public static ArrayList<Document> getTaskRunsFromMongoDB(int task_id) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost,
 				Config.mongoPort);
+		ArrayList<Document> docs = new ArrayList<>();
 		try {
 			MongoDatabase database = mongoClient
 					.getDatabase(Config.projectsDatabaseName);
@@ -814,10 +815,13 @@ public class MongodbMethods {
 			FindIterable<Document> iterable = database.getCollection(
 					Config.taskRunCollection).find(
 					new Document("task_id", task_id));
-
-			Document document = iterable.first();
+			if (iterable.first() != null) {
+				for (Document document : iterable) {
+					docs.add(document);
+				}
+			}
 			mongoClient.close();
-			return document;
+			return docs;
 		} catch (Exception e) {
 			logger.error("Error ", e);
 			mongoClient.close();
