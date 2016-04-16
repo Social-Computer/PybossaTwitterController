@@ -17,8 +17,9 @@ public class TestQueue2 {
 		Queue<Document> queue = TwitterTaskPerformer.stackQueue(tasksToBePushed, seed);
 		System.out.println("List: " + queue.size());
 		for (Document document : queue) {
+			Integer task_id = document.getInteger("task_id");
 			Integer priority = document.getInteger("priority");
-			System.out.println(priority);
+			System.out.println(priority + "|" + task_id);
 		}
 	}
 }

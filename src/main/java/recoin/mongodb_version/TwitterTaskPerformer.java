@@ -139,7 +139,7 @@ public class TwitterTaskPerformer {
 			@Override
 			public int compare(Document doc1, Document doc2) {
 
-				return doc1.getInteger("priority").compareTo(doc2.getInteger("priority"));
+				return doc2.getInteger("priority").compareTo(doc1.getInteger("priority"));
 			}
 		});
 
@@ -163,7 +163,7 @@ public class TwitterTaskPerformer {
 			@Override
 			public int compare(Document doc1, Document doc2) {
 
-				return doc2.getInteger("priority").compareTo(doc1.getInteger("priority"));
+				return doc1.getInteger("priority").compareTo(doc2.getInteger("priority"));
 			}
 		});
 
