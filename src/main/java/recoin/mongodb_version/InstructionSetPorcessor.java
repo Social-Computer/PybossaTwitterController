@@ -22,20 +22,17 @@ import sociam.pybossa.methods.TwitterMethods;
  */
 public class InstructionSetPorcessor {
 
-	final static Logger logger = Logger
-			.getLogger(InstructionSetPorcessor.class);
+	final static Logger logger = Logger.getLogger(InstructionSetPorcessor.class);
 
 	public static void main(String[] args) {
 
 		PropertyConfigurator.configure("log4j.properties");
-		logger.info("InstructionSetPorcessor will be repeated every "
-				+ Config.TaskCollectorTrigger + " ms");
+		logger.info("InstructionSetPorcessor will be repeated every " + Config.TaskCollectorTrigger + " ms");
 		try {
 			while (true) {
 				Config.reload();
 				run();
-				logger.info("Sleeping for " + Config.TaskCollectorTrigger
-						+ " ms");
+				logger.info("Sleeping for " + Config.TaskCollectorTrigger + " ms");
 				Thread.sleep(Integer.valueOf(Config.TaskCollectorTrigger));
 			}
 		} catch (InterruptedException e) {
@@ -47,17 +44,14 @@ public class InstructionSetPorcessor {
 		try {
 
 			logger.debug("Getting Task runs");
-			HashSet<Document> taskRunsDocuments = MongodbMethods
-					.getUnPorcessedTaskRuns();
+			HashSet<Document> taskRunsDocuments = MongodbMethods.getUnPorcessedTaskRuns();
 			if (taskRunsDocuments != null) {
-				logger.info("There are " + taskRunsDocuments.size()
-						+ " taskRuns to be processed");
+				logger.info("There are " + taskRunsDocuments.size() + " taskRuns to be processed");
 				if (!taskRunsDocuments.isEmpty()) {
 
 					for (Document document : taskRunsDocuments) {
 						ObjectId _id = document.getObjectId("_id");
-						String task_run_text = document
-								.getString("task_run_text");
+						String task_run_text = document.getString("task_run_text");
 						String instructionSet = determineInstructionSetType(task_run_text);
 						if (instructionSet != null) {
 							switch (instructionSet) {
@@ -82,8 +76,7 @@ public class InstructionSetPorcessor {
 							logger.debug("Task Run was not identifed with any known instruction set");
 							logger.debug(document.toString());
 						}
-						Boolean updated = MongodbMethods
-								.updatetaskRunsToBeProcessed(_id);
+						Boolean updated = MongodbMethods.updatetaskRunsToBeProcessed(_id);
 						if (updated) {
 							logger.info("TaskRun was sucessfully updated to be processed");
 						}
@@ -98,7 +91,27 @@ public class InstructionSetPorcessor {
 
 	public static Boolean process_Prio_instrctionSet(Document document) {
 
-		return true;
+		String task_run_text = document.getString("task_run_text");
+		int task_id = document.getInteger("task_id");
+		Document doc = MongodbMethods.getTaskFromMongoDB(task_id);
+		Integer OldPriority = doc.getInteger("priority");
+		if (OldPriority== null){
+			OldPriority = 0;
+		}
+		Pattern patter = Pattern.compile("-?[0-9]+");
+		Matcher matcher = patter.matcher(task_run_text);
+		Integer priority_number = null;
+		if (matcher.find()) {
+			priority_number = Integer.valueOf(matcher.group(0));
+		}
+
+		if (priority_number == null) {
+			return false;
+		}
+
+		Integer result = OldPriority + priority_number;
+		Boolean updated = MongodbMethods.updatePriorityInTask(task_id, result);
+		return updated;
 	}
 
 	public static Boolean process_Share_instrctionSet(Document document) {
@@ -113,14 +126,12 @@ public class InstructionSetPorcessor {
 			String media_url = taskDoc.getString("media_url");
 			String taskTag = "#t" + task_id;
 			int project_id = document.getInteger("project_id");
-			ArrayList<String> hashtags = MongodbMethods
-					.getProjectHashTags(project_id);
+			ArrayList<String> hashtags = MongodbMethods.getProjectHashTags(project_id);
 
 			HashSet<String> users = extractUserToBeSharedWith(task_run_text);
 			if (!users.isEmpty()) {
 				for (String string : users) {
-					int response = TwitterMethods.sendTaskToTwitter(task_text,
-							media_url, taskTag, hashtags, 2, string);
+					int response = TwitterMethods.sendTaskToTwitter(task_text, media_url, taskTag, hashtags, 2, string);
 					if (response == 1) {
 						logger.debug("Task was shared with " + string);
 						return true;
@@ -165,8 +176,7 @@ public class InstructionSetPorcessor {
 
 	}
 
-	public static HashSet<String> extractUserToBeSharedWith(
-			String instrcutionSetText) {
+	public static HashSet<String> extractUserToBeSharedWith(String instrcutionSetText) {
 
 		HashSet<String> users = new HashSet<String>();
 		Pattern pattern = Pattern.compile("@([A-Za-z0-9_]+)");

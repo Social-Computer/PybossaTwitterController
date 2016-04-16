@@ -155,6 +155,29 @@ public class MongodbMethods {
 		}
 	}
 
+	public static Boolean updatePriorityInTask(int task_id, int priority) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+		try {
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			UpdateResult result = database.getCollection(Config.taskCollection).updateOne(new Document("task_id", task_id),
+					new Document().append("$set", new Document("priority", priority)));
+			logger.debug(result.toString());
+			if (result.wasAcknowledged()) {
+				if (result.getMatchedCount() > 0) {
+					logger.debug(Config.projectCollection + " Collection was updated with priority: " + priority);
+					mongoClient.close();
+					return true;
+				}
+			}
+			mongoClient.close();
+			return false;
+		} catch (Exception e) {
+			logger.error("Error ", e);
+			mongoClient.close();
+			return false;
+		}
+	}
+
 	// For encoding issue that makes the text changed after inserting it into
 	// PyBossa
 	public static Boolean updateBinString(ObjectId _id, String text_encoded, String binItem) {
@@ -300,7 +323,7 @@ public class MongodbMethods {
 									.append("task_status", task_status).append("twitter_task_status", task_status)
 									.append("facebook_task_status", task_status).append("task_status", task_status)
 									.append("task_text", task_text).append("media_url", media_url)
-									.append("task_type", task_type));
+									.append("task_type", task_type).append("priority", 0));
 					logger.debug("One task is inserted into MongoDB");
 
 				} else {
@@ -646,20 +669,17 @@ public class MongodbMethods {
 
 	}
 
-	public static Boolean insertTaskRun(String text, int task_id,
-			int project_id, String contributor_name, String source) {
+	public static Boolean insertTaskRun(String text, int task_id, int project_id, String contributor_name,
+			String source) {
 
-		Document taskRun = MongodbMethods.getTaskRunsFromMongoDB(task_id,
-				contributor_name, text);
+		Document taskRun = MongodbMethods.getTaskRunsFromMongoDB(task_id, contributor_name, text);
 		if (taskRun != null) {
 			logger.error("You are only allowed one contribution for each task.");
-			logger.error("task_id= " + task_id + " screen_name: "
-					+ contributor_name);
+			logger.error("task_id= " + task_id + " screen_name: " + contributor_name);
 			return false;
 		}
 
-		if (MongodbMethods.insertTaskRunIntoMongoDB(project_id, task_id, text,
-				contributor_name, source)) {
+		if (MongodbMethods.insertTaskRunIntoMongoDB(project_id, task_id, text, contributor_name, source)) {
 			logger.debug("Task run was successfully inserted into MongoDB");
 			// Project has to be reqested before inserting a task run
 			return true;
@@ -668,7 +688,7 @@ public class MongodbMethods {
 			return false;
 		}
 	}
-	
+
 	public static Boolean insertTaskRunIntoMongoDB(Integer project_id, Integer task_id, String task_run_text,
 			String contributor_name, String source) {
 

@@ -15,7 +15,7 @@ public class UpdateTaskPerofrmer {
 	public static void main(String[] args) {
 
 		UpdateResult result = database.getCollection(Config.taskCollection).updateMany(new Document(),
-				new Document().append("$set", new Document("task_status", "ready")));
+				new Document().append("$set", new Document("priority", 0)));
 		System.out.println(result.toString());
 		
 
