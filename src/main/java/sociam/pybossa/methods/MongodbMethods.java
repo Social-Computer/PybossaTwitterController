@@ -159,7 +159,8 @@ public class MongodbMethods {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
-			UpdateResult result = database.getCollection(Config.taskCollection).updateOne(new Document("task_id", task_id),
+			UpdateResult result = database.getCollection(Config.taskCollection).updateOne(
+					new Document("task_id", task_id),
 					new Document().append("$set", new Document("priority", priority)));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
@@ -672,11 +673,13 @@ public class MongodbMethods {
 	public static Boolean insertTaskRun(String text, int task_id, int project_id, String contributor_name,
 			String source) {
 
-		Document taskRun = MongodbMethods.getTaskRunsFromMongoDB(task_id, contributor_name, text);
-		if (taskRun != null) {
-			logger.error("You are only allowed one contribution for each task.");
-			logger.error("task_id= " + task_id + " screen_name: " + contributor_name);
-			return false;
+		if (!(source.equals("TaskView") && text.contains("PRIO"))) {
+			Document taskRun = MongodbMethods.getTaskRunsFromMongoDB(task_id, contributor_name, text);
+			if (taskRun != null) {
+				logger.error("You are only allowed one contribution for each task.");
+				logger.error("task_id= " + task_id + " screen_name: " + contributor_name);
+				return false;
+			}
 		}
 
 		if (MongodbMethods.insertTaskRunIntoMongoDB(project_id, task_id, text, contributor_name, source)) {
