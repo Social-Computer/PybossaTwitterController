@@ -59,7 +59,7 @@ public class TwitterMethods {
 			// }
 			// }
 			// post = post + "?";
-			String tag = taskTag.replaceAll("#", "");
+			String tag = taskTag.replaceAll("#t", "");
 			post = post + " " + taskTag + " & monitor the task " + Config.domainURI+tag;
 			
 			if (userTobeShared!=null){
