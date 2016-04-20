@@ -157,4 +157,38 @@ public class TwitterMethods {
 		return jsons;
 
 	}
+	
+	
+	public static ArrayList<JSONObject> getMentionsTimelineAsJsons(Twitter twitter) {
+
+		ArrayList<JSONObject> jsons = new ArrayList<JSONObject>();
+		try {
+			Paging p = new Paging();
+			p.setCount(200);
+			List<Status> statuses = twitter.getMentionsTimeline(p);
+			for (Status status : statuses) {
+
+				String rawJSON = TwitterObjectFactory.getRawJSON(status);
+				JSONObject jsonObject = new JSONObject(rawJSON);
+				jsons.add(jsonObject);
+			}
+		} catch (TwitterException te) {
+			logger.error("Failed to get timeline: ", te);
+			if (te.exceededRateLimitation()) {
+				try {
+					logger.debug("Twitter rate limit is exceeded waiting for 300000 ms");
+					Thread.sleep(300000);
+					getTimeLineAsJsons(twitter);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
+			return null;
+		}
+
+		return jsons;
+
+	}
 }
