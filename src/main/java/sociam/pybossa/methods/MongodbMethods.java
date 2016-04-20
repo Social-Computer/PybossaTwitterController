@@ -792,7 +792,6 @@ public class MongodbMethods {
 					Config.taskRunCollection).find(
 					new Document("task_id", task_id).append("contributor_name",
 							contributor_name).append("task_run_text", text));
-
 			Document document = iterable.first();
 			mongoClient.close();
 			return document;
@@ -801,7 +800,6 @@ public class MongodbMethods {
 			mongoClient.close();
 			return null;
 		}
-
 	}
 
 	public static Document getTaskRunsFromMongoDB(int task_id) {
