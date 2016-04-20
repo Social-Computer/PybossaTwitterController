@@ -129,7 +129,7 @@ public class TwitterTaskCollector {
 												.getInteger("project_id");
 										cachedTaskIDsAndProjectsIDs.put(
 												intTaskID, project_id);
-										if (insertTaskRun(taskResponse,
+										if (MongodbMethods.insertTaskRun(taskResponse,
 												intTaskID, project_id,
 												screen_name, SOURCE)) {
 											logger.debug("Task run was completely processed");
@@ -145,7 +145,7 @@ public class TwitterTaskCollector {
 									}
 								} else {
 									logger.debug("Task ID was found in the cache");
-									insertTaskRun(taskResponse, intTaskID,
+									MongodbMethods.insertTaskRun(taskResponse, intTaskID,
 											cachedTaskIDsAndProjectsIDs
 													.get(intTaskID),
 											screen_name, SOURCE);
@@ -171,27 +171,6 @@ public class TwitterTaskCollector {
 		}
 	}
 
-	public static Boolean insertTaskRun(String text, int task_id,
-			int project_id, String contributor_name, String source) {
 
-		Document taskRun = MongodbMethods.getTaskRunsFromMongoDB(task_id,
-				contributor_name, text);
-		if (taskRun != null) {
-			logger.error("You are only allowed one contribution for each task.");
-			logger.error("task_id= " + task_id + " screen_name: "
-					+ contributor_name);
-			return false;
-		}
-
-		if (MongodbMethods.insertTaskRunIntoMongoDB(project_id, task_id, text,
-				contributor_name, source)) {
-			logger.debug("Task run was successfully inserted into MongoDB");
-			// Project has to be reqested before inserting a task run
-			return true;
-		} else {
-			logger.error("Task run was not inserted into MongoDB!");
-			return false;
-		}
-	}
 
 }

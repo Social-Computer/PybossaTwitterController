@@ -52,8 +52,8 @@ public class FacebookMethods {
 					post = post + " " + string;
 				}
 			}
-			post = post + "?";
-			post = post + " " + taskTag;
+			String tag = taskTag.replaceAll("#t", "");
+			post = post + " " + taskTag + " " + "you can also monitor this task " + Config.domainURI + tag;
 
 			// convert taskContent and question into an image
 			File image = null;

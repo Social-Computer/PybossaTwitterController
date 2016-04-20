@@ -47,6 +47,8 @@ public class Config {
 	public static String Facebook_appSecret;
 	public static String Facebook_accessToken;
 	public static String Facebook_permissions;
+	
+	public static String domainURI;
 
 	public static void reload() {
 
@@ -110,6 +112,8 @@ public class Config {
 		Facebook_appSecret = p.getProperty("Facebook_appSecret");
 		Facebook_accessToken = p.getProperty("Facebook_accessToken");
 		Facebook_permissions = p.getProperty("Facebook_permissions");
+		
+		domainURI = p.getProperty("domainURI");
 
 	}
 
@@ -175,6 +179,7 @@ public class Config {
 		Facebook_accessToken = p.getProperty("Facebook_accessToken");
 		Facebook_permissions = p.getProperty("Facebook_permissions");
 
+		domainURI = p.getProperty("domainURI");
 	}
 
 }

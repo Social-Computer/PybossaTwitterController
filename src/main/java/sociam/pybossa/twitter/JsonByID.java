@@ -11,7 +11,7 @@ public class JsonByID {
 
 	public static void main(String[] args) {
 		Twitter twitter = TwitterAccount.setTwitterAccount(2);
-		JSONObject json = TwitterMethods.getTweetByID("706939442578194432",
+		JSONObject json = TwitterMethods.getTweetByID("721304143697219584",
 				twitter);
 		System.out.println(json);
 

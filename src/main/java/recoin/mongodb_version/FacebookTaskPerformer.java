@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Queue;
 import java.util.Random;
 
 import org.apache.log4j.Logger;
@@ -53,18 +54,9 @@ public class FacebookTaskPerformer {
 
 				// randomly pick a task
 				// for (Document document : tasksToBePushed) {
-				HashSet<Integer> taskIDs = new HashSet<Integer>();
 				int seed = 300;
-				while (taskIDs.size() < tasksToBePushed.size()) {
-					Random random = new Random(seed);
-					seed++;
-					Integer genertatedTaskID = random.nextInt(tasksToBePushed.size());
-					if (taskIDs.contains(genertatedTaskID)) {
-						continue;
-					} else {
-						taskIDs.add(genertatedTaskID);
-					}
-					Document document = tasksToBePushed.get(genertatedTaskID);
+				Queue<Document> queue = TwitterTaskPerformer.stackQueue(tasksToBePushed, seed);
+				for (Document document : queue) {
 					String facebook_task_status = document.getString("facebook_task_status");
 					String task_text = document.getString("task_text");
 					if (facebook_task_status.equals("pushed")) {
