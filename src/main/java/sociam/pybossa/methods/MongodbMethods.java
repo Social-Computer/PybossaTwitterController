@@ -556,7 +556,7 @@ public class MongodbMethods {
 						String url = mapBinURLwithTask(json);
 						if (url != null) {
 							json.put("twitter_url",
-									"https://twitter.com/YouCompute/status/" + url);
+									"https://twitter.com/statuses/" + url);
 						}
 					}
 					tasksArray.put(json);
