@@ -552,6 +552,13 @@ public class MongodbMethods {
 				Integer counter = 0;
 				for (Document document : iterable) {
 					json = new JSONObject(document);
+					if (collection.equals(Config.taskCollection)) {
+						String url = mapBinURLwithTask(json);
+						if (url != null) {
+							json.put("twitter_url",
+									"https://twitter.com/BayerUS/status/" + url);
+						}
+					}
 					tasksArray.put(json);
 					counter++;
 				}
@@ -570,6 +577,55 @@ public class MongodbMethods {
 			logger.error("Error ", e);
 			mongoClient.close();
 			return null;
+		}
+	}
+
+	public static String mapBinURLwithTask(JSONObject task_json) {
+		String url = null;
+		JSONObject project = null;
+		String project_name = null;
+		Long id = null;
+		JSONObject bin = null;
+		String bin_id_String = task_json.getString("bin_id_String");
+		Integer project_id = task_json.getInt("project_id");
+		if (project_id != null) {
+			project = getProjectByID(project_id);
+			if (project != null) {
+				project_name = project.getString("bin_id");
+				if (project_name != null) {
+					bin = getBinByID(project_name, bin_id_String);
+					if (bin != null) {
+						id = bin.getLong("id");
+						url = id.toString();
+					}
+				}
+			}
+		}
+
+		return url;
+	}
+
+	public static JSONObject getBinByID(String collection, String bin_id_String) {
+		ObjectId _id = new ObjectId(bin_id_String);
+		MongoClient mongoClient = new MongoClient(Config.mongoHost,
+				Config.mongoPort);
+
+		JSONObject tweetsjsons = null;
+		try {
+			MongoDatabase binsDatabase = mongoClient
+					.getDatabase(Config.binsDatabaseName);
+			FindIterable<Document> iterable = binsDatabase.getCollection(
+					collection).find(new Document("_id", _id));
+			if (iterable.first() != null) {
+				// JSONObject app2 = new JSONObject(document);
+				tweetsjsons = new JSONObject(iterable.first());
+			}
+			mongoClient.close();
+			return tweetsjsons;
+		} catch (Exception e) {
+			logger.error("Error ", e);
+			mongoClient.close();
+			return tweetsjsons;
 		}
 	}
 
