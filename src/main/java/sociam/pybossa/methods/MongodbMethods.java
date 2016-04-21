@@ -933,8 +933,8 @@ public class MongodbMethods {
 
 	}
 
-	public static ArrayList<JSONObject> getTasksORRunsByProjectID(
-			int project_id, String collection) {
+	public static ArrayList<JSONObject> getTasksORRunsByProjectID(String field,
+			int field_value, String collection) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost,
 				Config.mongoPort);
 		ArrayList<JSONObject> docs = new ArrayList<JSONObject>();
@@ -944,7 +944,7 @@ public class MongodbMethods {
 
 			FindIterable<Document> iterable = database
 					.getCollection(collection).find(
-							new Document("project_id", project_id));
+							new Document(field, field_value));
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
 					JSONObject json = new JSONObject(document);
