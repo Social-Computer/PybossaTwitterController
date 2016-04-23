@@ -457,8 +457,7 @@ public class MongodbMethods {
 					json = new JSONObject(document);
 					if (collection.equals(Config.taskCollection)) {
 						String url;
-						String twitter_url = json.getString("twitter_url");
-						if (twitter_url == null) {
+						if (!json.has("twitter_url")) {
 							url = mapBinURLwithTask(json);
 							if (url != null) {
 
@@ -467,17 +466,15 @@ public class MongodbMethods {
 										"https://twitter.com/statuses/" + url);
 							}
 						}
-						String embed = json.getString("embed");
 						String tweet_id = json.getString("twitter_url");
-						if (embed == null) {
+						if (!json.has("embed")) {
 							tweet_id = tweet_id.replaceAll("https://twitter.com/statuses/", "");
 							JSONObject embedJson = TwitterMethods
 									.getOembed("https://api.twitter.com/1/statuses/oembed.json?id=" + tweet_id);
 							json.put("embed", embedJson);
 							updateTaskByAddingJsonObjectField(_id, "embed", embedJson);
 						}
-						String embed_nomedia = json.getString("embed_nomedia");
-						if (embed_nomedia == null) {
+						if (!json.has("embed_nomedia")) {
 							JSONObject embed_nomediaJson = TwitterMethods.getOembed(
 									"https://api.twitter.com/1/statuses/oembed.json?hide_media=true&id=" + tweet_id);
 							json.put("embed_nomedia", embed_nomediaJson);
@@ -500,6 +497,7 @@ public class MongodbMethods {
 			return tasks;
 		} catch (Exception e) {
 			logger.error("Error ", e);
+			System.out.println("heeeeer");
 			mongoClient.close();
 			return null;
 		}
