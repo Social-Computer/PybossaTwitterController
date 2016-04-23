@@ -20,6 +20,7 @@ import sociam.pybossa.config.Config;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 
 /**
@@ -471,6 +472,12 @@ public class MongodbMethods {
 							JSONObject embedJson = TwitterMethods
 									.getOembed("https://api.twitter.com/1/statuses/oembed.json?id=" + tweet_id);
 							if (embedJson != null) {
+								if (embedJson.has("error")) {
+									if (embedJson.getString("error").equals("not there")) {
+										deleteDocByID(_id, Config.taskCollection);
+										continue;
+									}
+								}
 								json.put("embed", embedJson);
 								updateTaskByAddingJsonObjectField(_id, "embed", embedJson);
 							}
@@ -506,10 +513,30 @@ public class MongodbMethods {
 		}
 	}
 
+	public static Boolean deleteDocByID(ObjectId _id, String collection) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+		try {
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			DeleteResult result = database.getCollection(collection).deleteOne(new Document("_id", _id));
+			logger.debug(result.toString());
+			if (result.wasAcknowledged()) {
+				logger.debug("Doc with id " + _id + " has beeb deleted from collection " + collection);
+				mongoClient.close();
+				return true;
+			}
+			mongoClient.close();
+			return false;
+		} catch (Exception e) {
+			logger.error("Error ", e);
+			mongoClient.close();
+			return false;
+		}
+	}
+
 	public static Boolean updateTaskByAddingJsonObjectField(ObjectId _id, String FieldName, JSONObject FieldValue) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-			Document doc = Document.parse( FieldValue.toString() );
+			Document doc = Document.parse(FieldValue.toString());
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			UpdateResult result = database.getCollection(Config.taskCollection).updateOne(new Document("_id", _id),
 					new Document().append("$set", new Document(FieldName, doc)));

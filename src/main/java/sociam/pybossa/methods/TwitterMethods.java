@@ -203,24 +203,30 @@ public class TwitterMethods {
 			System.out.println("\nSending 'GET' request to URL : " + url);
 			System.out.println("Response Code : " + responseCode);
 
-			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-			String inputLine;
-			StringBuffer response = new StringBuffer();
+			if (responseCode == 200) {
+				BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+				String inputLine;
+				StringBuffer response = new StringBuffer();
 
-			while ((inputLine = in.readLine()) != null) {
-				response.append(inputLine);
+				while ((inputLine = in.readLine()) != null) {
+					response.append(inputLine);
+				}
+
+				jsons = new JSONObject(response.toString());
+				in.close();
 			}
-
-			jsons = new JSONObject(response.toString());
-			in.close();
+			if (responseCode == 404){
+				JSONObject json = new JSONObject();
+				json.put("error", "not there");
+				return json;
+			}
+			
 
 			return jsons;
 		} catch (Exception te) {
 			logger.error("Failed to get Oembed: ", te);
 			return null;
 		}
-
-		
 
 	}
 }
