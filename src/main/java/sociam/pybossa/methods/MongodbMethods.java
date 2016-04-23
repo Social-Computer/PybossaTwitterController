@@ -31,25 +31,17 @@ import com.mongodb.client.result.UpdateResult;
 public class MongodbMethods {
 	final static Logger logger = Logger.getLogger(MongodbMethods.class);
 
-	public final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat(
-			"yyyy-MM-dd HH:mm:ss");
+	public final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-	public static Boolean updateProjectIntoMongoDB(ObjectId _id,
-			String project_status, String project_type) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+	public static Boolean updateProjectIntoMongoDB(ObjectId _id, String project_status, String project_type) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 
 		try {
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 
-			UpdateResult result = database.getCollection(
-					Config.projectCollection)
-					.updateOne(
-							new Document("_id", _id),
-							new Document("$set", new Document("project_status",
-									project_status).append("project_type",
-									"validate")));
+			UpdateResult result = database.getCollection(Config.projectCollection).updateOne(new Document("_id", _id),
+					new Document("$set",
+							new Document("project_status", project_status).append("project_type", "validate")));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
@@ -67,20 +59,15 @@ public class MongodbMethods {
 
 	}
 
-	public static Boolean updateProjectIntoMongoDB(ObjectId _id,
-			int project_id, String project_status, String project_type) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+	public static Boolean updateProjectIntoMongoDB(ObjectId _id, int project_id, String project_status,
+			String project_type) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 
 		try {
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 
-			UpdateResult result = database.getCollection(
-					Config.projectCollection).updateOne(
-					new Document("_id", _id),
-					new Document("$set", new Document("project_status",
-							project_status).append("project_id", project_id)
+			UpdateResult result = database.getCollection(Config.projectCollection).updateOne(new Document("_id", _id),
+					new Document("$set", new Document("project_status", project_status).append("project_id", project_id)
 							.append("project_type", "validate")));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
@@ -99,15 +86,11 @@ public class MongodbMethods {
 	}
 
 	public static HashSet<Document> getAllProjects() {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			HashSet<Document> jsons = new LinkedHashSet<Document>();
-			FindIterable<Document> iterable = database
-					.getCollection(Config.projectCollection)
-					.find(new Document())
+			FindIterable<Document> iterable = database.getCollection(Config.projectCollection).find(new Document())
 					.limit(Integer.valueOf(Config.ProjectLimit));
 
 			if (iterable.first() != null) {
@@ -125,22 +108,16 @@ public class MongodbMethods {
 	}
 
 	public static Boolean updateProjectToInsertedInMongoDB(int project_id) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
-			UpdateResult result = database.getCollection(
-					Config.projectCollection).updateOne(
-					new Document("project_id", project_id),
-					new Document().append("$set", new Document(
-							"project_status", "inserted").append("task_type",
-							"validate")));
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			UpdateResult result = database.getCollection(Config.projectCollection)
+					.updateOne(new Document("project_id", project_id), new Document().append("$set",
+							new Document("project_status", "inserted").append("task_type", "validate")));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
-					logger.debug(Config.projectCollection
-							+ " Collection was updated with project_status: inserted");
+					logger.debug(Config.projectCollection + " Collection was updated with project_status: inserted");
 					mongoClient.close();
 					return true;
 				}
@@ -155,22 +132,16 @@ public class MongodbMethods {
 	}
 
 	public static Boolean updateProjectToInsertedInMongoDB(ObjectId project_id) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
-			UpdateResult result = database.getCollection(
-					Config.projectCollection).updateOne(
-					new Document("project_id", project_id),
-					new Document().append("$set", new Document(
-							"project_status", "inserted").append("task_type",
-							"validate")));
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			UpdateResult result = database.getCollection(Config.projectCollection)
+					.updateOne(new Document("project_id", project_id), new Document().append("$set",
+							new Document("project_status", "inserted").append("task_type", "validate")));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
-					logger.debug(Config.projectCollection
-							+ " Collection was updated with project_status: inserted");
+					logger.debug(Config.projectCollection + " Collection was updated with project_status: inserted");
 					mongoClient.close();
 					return true;
 				}
@@ -185,22 +156,16 @@ public class MongodbMethods {
 	}
 
 	public static Boolean updatePriorityInTask(int task_id, int priority) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
-			UpdateResult result = database.getCollection(Config.taskCollection)
-					.updateOne(
-							new Document("task_id", task_id),
-							new Document().append("$set", new Document(
-									"priority", priority)));
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			UpdateResult result = database.getCollection(Config.taskCollection).updateOne(
+					new Document("task_id", task_id),
+					new Document().append("$set", new Document("priority", priority)));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
-					logger.debug(Config.projectCollection
-							+ " Collection was updated with priority: "
-							+ priority);
+					logger.debug(Config.projectCollection + " Collection was updated with priority: " + priority);
 					mongoClient.close();
 					return true;
 				}
@@ -216,18 +181,12 @@ public class MongodbMethods {
 
 	// For encoding issue that makes the text changed after inserting it into
 	// PyBossa
-	public static Boolean updateBinString(ObjectId _id, String text_encoded,
-			String binItem) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+	public static Boolean updateBinString(ObjectId _id, String text_encoded, String binItem) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-			MongoDatabase binsDatabase = mongoClient
-					.getDatabase(Config.binsDatabaseName);
-			UpdateResult result = binsDatabase.getCollection(binItem)
-					.updateOne(
-							new Document("_id", _id),
-							new Document().append("$set", new Document(
-									"text_encoded", text_encoded)));
+			MongoDatabase binsDatabase = mongoClient.getDatabase(Config.binsDatabaseName);
+			UpdateResult result = binsDatabase.getCollection(binItem).updateOne(new Document("_id", _id),
+					new Document().append("$set", new Document("text_encoded", text_encoded)));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
@@ -244,16 +203,12 @@ public class MongodbMethods {
 		}
 	}
 
-	public static HashSet<Document> getTweetsFromBinInMongoDB(
-			String collectionName) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+	public static HashSet<Document> getTweetsFromBinInMongoDB(String collectionName) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		HashSet<Document> tweetsjsons = new LinkedHashSet<Document>();
 		try {
-			MongoDatabase binsDatabase = mongoClient
-					.getDatabase(Config.binsDatabaseName);
-			FindIterable<Document> iterable = binsDatabase
-					.getCollection(collectionName).find()
+			MongoDatabase binsDatabase = mongoClient.getDatabase(Config.binsDatabaseName);
+			FindIterable<Document> iterable = binsDatabase.getCollection(collectionName).find()
 					.limit(Integer.valueOf(Config.TasksPerProject));
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
@@ -271,17 +226,13 @@ public class MongodbMethods {
 	}
 
 	public static HashSet<JSONObject> getnotCompletedProjects() {
-		logger.debug("getting projects from collection "
-				+ Config.projectCollection);
+		logger.debug("getting projects from collection " + Config.projectCollection);
 		HashSet<JSONObject> startedProjectsJsons = new HashSet<JSONObject>();
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
-			FindIterable<Document> iterable = database.getCollection(
-					Config.projectCollection).find(
-					ne("project_status", "completed"));
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
+					.find(ne("project_status", "completed"));
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
 					JSONObject app2 = new JSONObject(document);
@@ -306,8 +257,7 @@ public class MongodbMethods {
 		}
 	}
 
-	public static Boolean insertTaskIntoMongoDB(JSONObject response,
-			String task_status, String task_type) {
+	public static Boolean insertTaskIntoMongoDB(JSONObject response, String task_status, String task_type) {
 
 		try {
 			Integer pybossa_task_id = response.getInt("id");
@@ -321,8 +271,8 @@ public class MongodbMethods {
 			String task_text = info.getString("text");
 			String media_url = info.getString("media_url");
 			logger.debug("Inserting a task into MongoDB");
-			if (pushTaskToMongoDB(pybossa_task_id, publishedAt, project_id,
-					task_status, task_text, media_url, task_type)) {
+			if (pushTaskToMongoDB(pybossa_task_id, publishedAt, project_id, task_status, task_text, media_url,
+					task_type)) {
 				return true;
 			} else {
 				return false;
@@ -334,9 +284,8 @@ public class MongodbMethods {
 
 	}
 
-	public static Boolean insertTaskIntoMongoDB(Integer project_id,
-			String bin_id_String, String task_text, String media_url,
-			String task_status, String task_type) {
+	public static Boolean insertTaskIntoMongoDB(Integer project_id, String bin_id_String, String task_text,
+			String media_url, String task_status, String task_type) {
 
 		try {
 			// String created_String = response.getString("created");
@@ -345,8 +294,8 @@ public class MongodbMethods {
 			String publishedAt = MongoDBformatter.format(date);
 			// String targettedFormat = MongoDBformatter.format(publishedAt);
 			logger.debug("Inserting a task into MongoDB");
-			if (pushTaskToMongoDB(publishedAt, project_id, bin_id_String,
-					task_status, task_text, media_url, task_type)) {
+			if (pushTaskToMongoDB(publishedAt, project_id, bin_id_String, task_status, task_text, media_url,
+					task_type)) {
 				return true;
 			} else {
 				return false;
@@ -358,41 +307,24 @@ public class MongodbMethods {
 
 	}
 
-	public static boolean pushTaskToMongoDB(String publishedAt,
-			Integer project_id, String bin_id_String, String task_status,
-			String task_text, String media_url, String task_type) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+	public static boolean pushTaskToMongoDB(String publishedAt, Integer project_id, String bin_id_String,
+			String task_status, String task_text, String media_url, String task_type) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 
-			if (publishedAt != null && project_id != null
-					&& task_status != null && task_text != null
-					&& media_url != null && task_type != null
-					&& bin_id_String != null) {
-				MongoDatabase database = mongoClient
-						.getDatabase(Config.projectsDatabaseName);
-				FindIterable<Document> iterable = database.getCollection(
-						Config.taskCollection).find(
-						new Document("project_id", project_id).append(
-								"task_text", task_text));
+			if (publishedAt != null && project_id != null && task_status != null && task_text != null
+					&& media_url != null && task_type != null && bin_id_String != null) {
+				MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+				FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
+						.find(new Document("project_id", project_id).append("task_text", task_text));
 				if (iterable.first() == null) {
 					database.getCollection(Config.taskCollection)
-							.insertOne(
-									new Document()
-											.append("publishedAt", publishedAt)
-											.append("project_id", project_id)
-											.append("bin_id_String",
-													bin_id_String)
-											.append("task_status", task_status)
-											.append("twitter_task_status",
-													task_status)
-											.append("facebook_task_status",
-													task_status)
-											.append("task_status", task_status)
-											.append("task_text", task_text)
-											.append("media_url", media_url)
-											.append("task_type", task_type)
-											.append("priority", 0));
+							.insertOne(new Document().append("publishedAt", publishedAt)
+									.append("project_id", project_id).append("bin_id_String", bin_id_String)
+									.append("task_status", task_status).append("twitter_task_status", task_status)
+									.append("facebook_task_status", task_status).append("task_status", task_status)
+									.append("task_text", task_text).append("media_url", media_url)
+									.append("task_type", task_type).append("priority", 0));
 					logger.debug("One task is inserted into MongoDB");
 
 				} else {
@@ -403,49 +335,32 @@ public class MongodbMethods {
 			mongoClient.close();
 			return true;
 		} catch (Exception e) {
-			logger.error("Error with inserting the task " + " "
-					+ " publishedAt " + publishedAt + " project_id "
-					+ project_id + " task_status " + task_status
-					+ " task_text " + task_text + "\n" + e);
+			logger.error("Error with inserting the task " + " " + " publishedAt " + publishedAt + " project_id "
+					+ project_id + " task_status " + task_status + " task_text " + task_text + "\n" + e);
 			mongoClient.close();
 			return false;
 		}
 
 	}
 
-	public static boolean pushTaskToMongoDB(Integer pybossa_task_id,
-			String publishedAt, Integer project_id, String task_status,
-			String task_text, String media_url, String task_type) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+	public static boolean pushTaskToMongoDB(Integer pybossa_task_id, String publishedAt, Integer project_id,
+			String task_status, String task_text, String media_url, String task_type) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 
-			if (publishedAt != null && project_id != null
-					&& task_status != null && task_text != null
+			if (publishedAt != null && project_id != null && task_status != null && task_text != null
 					&& media_url != null && task_type != null) {
-				MongoDatabase database = mongoClient
-						.getDatabase(Config.projectsDatabaseName);
-				FindIterable<Document> iterable = database.getCollection(
-						Config.taskCollection).find(
-						new Document("project_id", project_id).append(
-								"task_text", task_text));
+				MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+				FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
+						.find(new Document("project_id", project_id).append("task_text", task_text));
 				if (iterable.first() == null) {
 					database.getCollection(Config.taskCollection)
-							.insertOne(
-									new Document()
-											.append("pybossa_task_id",
-													pybossa_task_id)
-											.append("publishedAt", publishedAt)
-											.append("project_id", project_id)
-											.append("task_status", task_status)
-											.append("twitter_task_status",
-													task_status)
-											.append("facebook_task_status",
-													task_status)
-											.append("task_status", task_status)
-											.append("task_text", task_text)
-											.append("media_url", media_url)
-											.append("task_type", task_type));
+							.insertOne(new Document().append("pybossa_task_id", pybossa_task_id)
+									.append("publishedAt", publishedAt).append("project_id", project_id)
+									.append("task_status", task_status).append("twitter_task_status", task_status)
+									.append("facebook_task_status", task_status).append("task_status", task_status)
+									.append("task_text", task_text).append("media_url", media_url)
+									.append("task_type", task_type));
 					logger.debug("One task is inserted into MongoDB");
 
 				} else {
@@ -456,10 +371,9 @@ public class MongodbMethods {
 			mongoClient.close();
 			return true;
 		} catch (Exception e) {
-			logger.error("Error with inserting the task " + " pybossa_task_id "
-					+ pybossa_task_id + " publishedAt " + publishedAt
-					+ " project_id " + project_id + " task_status "
-					+ task_status + " task_text " + task_text + "\n" + e);
+			logger.error("Error with inserting the task " + " pybossa_task_id " + pybossa_task_id + " publishedAt "
+					+ publishedAt + " project_id " + project_id + " task_status " + task_status + " task_text "
+					+ task_text + "\n" + e);
 			mongoClient.close();
 			return false;
 		}
@@ -467,17 +381,14 @@ public class MongodbMethods {
 	}
 
 	public static JSONObject getProjectByID(int project_id) {
-		logger.debug("getting project by project_id from "
-				+ Config.projectCollection + " collection");
+		logger.debug("getting project by project_id from " + Config.projectCollection + " collection");
 		MongoClient mongoClient = null;
 		try {
 			mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			JSONObject json = null;
-			FindIterable<Document> iterable = database.getCollection(
-					Config.projectCollection).find(
-					new Document("project_id", project_id));
+			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
+					.find(new Document("project_id", project_id));
 			if (iterable.first() != null) {
 				Document document = iterable.first();
 				json = new JSONObject(document);
@@ -494,18 +405,14 @@ public class MongodbMethods {
 	public static JSONObject getTasks(Integer offset) {
 		JSONObject tasks = new JSONObject();
 		JSONArray tasksArray = new JSONArray();
-		logger.debug("Getting not completed tasks from "
-				+ Config.taskCollection + " collection");
+		logger.debug("Getting not completed tasks from " + Config.taskCollection + " collection");
 		MongoClient mongoClient = null;
 		JSONObject json = null;
 		try {
 			mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
-			FindIterable<Document> iterable = database
-					.getCollection(Config.taskCollection)
-					.find(ne("task_status", "completed")).limit(200)
-					.skip(offset);
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
+					.find(ne("task_status", "completed")).limit(200).skip(offset);
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
 					json = new JSONObject(document);
@@ -525,38 +432,56 @@ public class MongodbMethods {
 
 	}
 
-	public static JSONObject getStatsFroRest(String collection,
-			String field_name, Integer field_value, Integer offset,
+	public static JSONObject getStatsFroRest(String collection, String field_name, Integer field_value, Integer offset,
 			Integer limit) {
 
 		JSONObject tasks = new JSONObject();
 		JSONArray tasksArray = new JSONArray();
-		logger.debug("Getting not completed tasks from "
-				+ Config.taskCollection + " collection");
+		logger.debug("Getting not completed tasks from " + Config.taskCollection + " collection");
 		MongoClient mongoClient = null;
 		JSONObject json = null;
 		try {
 			mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			FindIterable<Document> iterable = null;
 			if (field_name == null) {
-				iterable = database.getCollection(collection).find()
-						.limit(limit).skip(offset);
+				iterable = database.getCollection(collection).find().limit(limit).skip(offset);
 			} else {
-				iterable = database.getCollection(collection)
-						.find(new Document(field_name, field_value))
-						.limit(limit).skip(offset);
+				iterable = database.getCollection(collection).find(new Document(field_name, field_value)).limit(limit)
+						.skip(offset);
 			}
 			if (iterable.first() != null) {
 				Integer counter = 0;
 				for (Document document : iterable) {
+					ObjectId _id = document.getObjectId("_id");
 					json = new JSONObject(document);
 					if (collection.equals(Config.taskCollection)) {
-						String url = mapBinURLwithTask(json);
-						if (url != null) {
-							json.put("twitter_url",
-									"https://twitter.com/statuses/" + url);
+						String url;
+						String twitter_url = json.getString("twitter_url");
+						if (twitter_url == null) {
+							url = mapBinURLwithTask(json);
+							if (url != null) {
+
+								json.put("twitter_url", "https://twitter.com/statuses/" + url);
+								updateTaskByAddingStringField(_id, "twitter_url",
+										"https://twitter.com/statuses/" + url);
+							}
+						}
+						String embed = json.getString("embed");
+						String tweet_id = json.getString("twitter_url");
+						if (embed == null) {
+							tweet_id = tweet_id.replaceAll("https://twitter.com/statuses/", "");
+							JSONObject embedJson = TwitterMethods
+									.getOembed("https://api.twitter.com/1/statuses/oembed.json?id=" + tweet_id);
+							json.put("embed", embedJson);
+							updateTaskByAddingJsonObjectField(_id, "embed", embedJson);
+						}
+						String embed_nomedia = json.getString("embed_nomedia");
+						if (embed_nomedia == null) {
+							JSONObject embed_nomediaJson = TwitterMethods.getOembed(
+									"https://api.twitter.com/1/statuses/oembed.json?hide_media=true&id=" + tweet_id);
+							json.put("embed_nomedia", embed_nomediaJson);
+							updateTaskByAddingJsonObjectField(_id, "embed_nomedia", embed_nomediaJson);
 						}
 					}
 					tasksArray.put(json);
@@ -577,6 +502,52 @@ public class MongodbMethods {
 			logger.error("Error ", e);
 			mongoClient.close();
 			return null;
+		}
+	}
+
+	public static Boolean updateTaskByAddingJsonObjectField(ObjectId _id, String FieldName, JSONObject FieldValue) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+		try {
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			UpdateResult result = database.getCollection(Config.taskCollection).updateOne(new Document("_id", _id),
+					new Document().append("$set", new Document(FieldName, FieldValue)));
+			logger.debug(result.toString());
+			if (result.wasAcknowledged()) {
+				if (result.getMatchedCount() > 0) {
+					logger.debug(Config.taskRunCollection + " Collection was updated with wasProcessed: true");
+					mongoClient.close();
+					return true;
+				}
+			}
+			mongoClient.close();
+			return false;
+		} catch (Exception e) {
+			logger.error("Error ", e);
+			mongoClient.close();
+			return false;
+		}
+	}
+
+	public static Boolean updateTaskByAddingStringField(ObjectId _id, String FieldName, String FieldValue) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+		try {
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			UpdateResult result = database.getCollection(Config.taskCollection).updateOne(new Document("_id", _id),
+					new Document().append("$set", new Document(FieldName, FieldValue)));
+			logger.debug(result.toString());
+			if (result.wasAcknowledged()) {
+				if (result.getMatchedCount() > 0) {
+					logger.debug(Config.taskRunCollection + " Collection was updated with wasProcessed: true");
+					mongoClient.close();
+					return true;
+				}
+			}
+			mongoClient.close();
+			return false;
+		} catch (Exception e) {
+			logger.error("Error ", e);
+			mongoClient.close();
+			return false;
 		}
 	}
 
@@ -607,15 +578,12 @@ public class MongodbMethods {
 
 	public static JSONObject getBinByID(String collection, String bin_id_String) {
 		ObjectId _id = new ObjectId(bin_id_String);
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 
 		JSONObject tweetsjsons = null;
 		try {
-			MongoDatabase binsDatabase = mongoClient
-					.getDatabase(Config.binsDatabaseName);
-			FindIterable<Document> iterable = binsDatabase.getCollection(
-					collection).find(new Document("_id", _id));
+			MongoDatabase binsDatabase = mongoClient.getDatabase(Config.binsDatabaseName);
+			FindIterable<Document> iterable = binsDatabase.getCollection(collection).find(new Document("_id", _id));
 			if (iterable.first() != null) {
 				// JSONObject app2 = new JSONObject(document);
 				tweetsjsons = new JSONObject(iterable.first());
@@ -634,19 +602,15 @@ public class MongodbMethods {
 		MongoClient mongoClient = null;
 		try {
 			mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
-			FindIterable<Document> iterable = database
-					.getCollection(Config.taskCollection)
-					.find(ne("task_status", "completed"))
-					.sort(new Document("publishedAt", -1)).limit(1);
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
+					.find(ne("task_status", "completed")).sort(new Document("publishedAt", -1)).limit(1);
 			if (iterable.first() != null) {
 				Document doc = iterable.first();
 				JSONObject task = new JSONObject(doc);
 				mongoClient.close();
 
-				ArrayList<String> hashtags = getProjectHashTags(task
-						.getInt("project_id"));
+				ArrayList<String> hashtags = getProjectHashTags(task.getInt("project_id"));
 				if (hashtags != null) {
 					Collections.sort(hashtags);
 					task.put("hashtags", hashtags);
@@ -679,29 +643,21 @@ public class MongodbMethods {
 		return hashtags;
 	}
 
-	public static Boolean updateTaskToPushedInMongoDB(ObjectId _id,
-			String twitter_task_status) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+	public static Boolean updateTaskToPushedInMongoDB(ObjectId _id, String twitter_task_status) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			Date date = new Date();
 			String lastPushAt = MongoDBformatter.format(date);
-			UpdateResult result = database.getCollection(Config.taskCollection)
-					.updateOne(
-							new Document("_id", _id),
-							new Document().append("$set", new Document(
-									"twitter_task_status", twitter_task_status)
-									.append("twitter_lastPushAt", lastPushAt)));
+			UpdateResult result = database.getCollection(Config.taskCollection).updateOne(new Document("_id", _id),
+					new Document().append("$set", new Document("twitter_task_status", twitter_task_status)
+							.append("twitter_lastPushAt", lastPushAt)));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
-					logger.debug(Config.taskCollection
-							+ " Collection was updated where _id= "
-							+ _id.toString() + " to twitter_task_status="
-							+ twitter_task_status);
+					logger.debug(Config.taskCollection + " Collection was updated where _id= " + _id.toString()
+							+ " to twitter_task_status=" + twitter_task_status);
 					mongoClient.close();
 					return true;
 				}
@@ -720,17 +676,14 @@ public class MongodbMethods {
 		MongoClient mongoClient = null;
 		try {
 			mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			Boolean foundTask = false;
 			int pybossa_task_id;
 			int offset = 0;
 			JSONObject task = new JSONObject();
 			while (!foundTask) {
-				FindIterable<Document> iterable = database
-						.getCollection(Config.taskCollection).find()
-						.sort(new Document("publishedAt", -1)).limit(1)
-						.skip(offset);
+				FindIterable<Document> iterable = database.getCollection(Config.taskCollection).find()
+						.sort(new Document("publishedAt", -1)).limit(1).skip(offset);
 				if (iterable.first() != null) {
 					Document doc = iterable.first();
 					pybossa_task_id = doc.getInteger("pybossa_task_id");
@@ -757,8 +710,7 @@ public class MongodbMethods {
 				task.put("question", Config.project_validation_question + "?");
 			}
 
-			ArrayList<String> hashtags = getProjectHashTags(task
-					.getInt("project_id"));
+			ArrayList<String> hashtags = getProjectHashTags(task.getInt("project_id"));
 			if (hashtags != null) {
 				Collections.sort(hashtags);
 				task.put("hashtags", hashtags);
@@ -778,10 +730,8 @@ public class MongodbMethods {
 		try {
 			Boolean exist = false;
 			mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
-			FindIterable<Document> iterable = database
-					.getCollection(Config.taskRunCollection)
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			FindIterable<Document> iterable = database.getCollection(Config.taskRunCollection)
 					.find(new Document("task_id", pybossa_task_id)).limit(1);
 			if (iterable.first() != null) {
 				exist = true;
@@ -797,16 +747,13 @@ public class MongodbMethods {
 		}
 	}
 
-	public static ArrayList<Document> getIncompletedTasksFromMongoDB(
-			String source) {
+	public static ArrayList<Document> getIncompletedTasksFromMongoDB(String source) {
 		ArrayList<Document> NotPushedTasksjsons = new ArrayList<Document>();
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
-			FindIterable<Document> iterable = database.getCollection(
-					Config.taskCollection).find(ne(source, "completed"));
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
+					.find(ne(source, "completed"));
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
 					NotPushedTasksjsons.add(document);
@@ -821,8 +768,7 @@ public class MongodbMethods {
 		}
 	}
 
-	public static Boolean insertTaskRunIntoMongoDB(JSONObject jsonData,
-			String contributor_name, String source) {
+	public static Boolean insertTaskRunIntoMongoDB(JSONObject jsonData, String contributor_name, String source) {
 
 		try {
 			// Integer pybossa_task_run_id = PyBossaResponse.getInt("id");
@@ -834,8 +780,7 @@ public class MongodbMethods {
 			Integer task_id = jsonData.getInt("task_id");
 			String task_run_text = jsonData.getString("info");
 			logger.debug("Inserting a task run into MongoDB");
-			if (pushTaskRunToMongoDB(insertedAt, project_id, task_id,
-					task_run_text, contributor_name, source)) {
+			if (pushTaskRunToMongoDB(insertedAt, project_id, task_id, task_run_text, contributor_name, source)) {
 				return true;
 			} else {
 				return false;
@@ -847,22 +792,19 @@ public class MongodbMethods {
 
 	}
 
-	public static Boolean insertTaskRun(String text, int task_id,
-			int project_id, String contributor_name, String source) {
+	public static Boolean insertTaskRun(String text, int task_id, int project_id, String contributor_name,
+			String source) {
 
 		if (!(source.equals("TaskView") && text.contains("PRIO"))) {
-			Document taskRun = MongodbMethods.getTaskRunsFromMongoDB(task_id,
-					contributor_name, text);
+			Document taskRun = MongodbMethods.getTaskRunsFromMongoDB(task_id, contributor_name, text);
 			if (taskRun != null) {
 				logger.error("You are only allowed one contribution for each task.");
-				logger.error("task_id= " + task_id + " screen_name: "
-						+ contributor_name);
+				logger.error("task_id= " + task_id + " screen_name: " + contributor_name);
 				return false;
 			}
 		}
 
-		if (MongodbMethods.insertTaskRunIntoMongoDB(project_id, task_id, text,
-				contributor_name, source)) {
+		if (MongodbMethods.insertTaskRunIntoMongoDB(project_id, task_id, text, contributor_name, source)) {
 			logger.debug("Task run was successfully inserted into MongoDB");
 			// Project has to be reqested before inserting a task run
 			return true;
@@ -872,9 +814,8 @@ public class MongodbMethods {
 		}
 	}
 
-	public static Boolean insertTaskRunIntoMongoDB(Integer project_id,
-			Integer task_id, String task_run_text, String contributor_name,
-			String source) {
+	public static Boolean insertTaskRunIntoMongoDB(Integer project_id, Integer task_id, String task_run_text,
+			String contributor_name, String source) {
 
 		try {
 			// Integer pybossa_task_run_id = PyBossaResponse.getInt("id");
@@ -883,8 +824,7 @@ public class MongodbMethods {
 			Date date = new Date();
 			String insertedAt = MongoDBformatter.format(date);
 			logger.debug("Inserting a task run into MongoDB");
-			if (pushTaskRunToMongoDB(insertedAt, project_id, task_id,
-					task_run_text, contributor_name, source)) {
+			if (pushTaskRunToMongoDB(insertedAt, project_id, task_id, task_run_text, contributor_name, source)) {
 				return true;
 			} else {
 				return false;
@@ -898,24 +838,18 @@ public class MongodbMethods {
 
 	// maybe it's not needed to check id_str becasue we check it first!
 	// so only do an insert?
-	public static boolean pushTaskRunToMongoDB(String publishedAt,
-			Integer project_id, Integer task_id, String task_text,
-			String contributor_name, String source) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+	public static boolean pushTaskRunToMongoDB(String publishedAt, Integer project_id, Integer task_id,
+			String task_text, String contributor_name, String source) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
-			if (publishedAt != null && project_id != null && task_text != null
-					&& contributor_name != null && source != null) {
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			if (publishedAt != null && project_id != null && task_text != null && contributor_name != null
+					&& source != null) {
 
-				database.getCollection(Config.taskRunCollection).insertOne(
-						new Document().append("publishedAt", publishedAt)
-								.append("project_id", project_id)
-								.append("task_id", task_id)
-								.append("task_run_text", task_text)
-								.append("contributor_name", contributor_name)
-								.append("source", source));
+				database.getCollection(Config.taskRunCollection)
+						.insertOne(new Document().append("publishedAt", publishedAt).append("project_id", project_id)
+								.append("task_id", task_id).append("task_run_text", task_text)
+								.append("contributor_name", contributor_name).append("source", source));
 				logger.debug("One task run is inserted into MongoDB");
 				mongoClient.close();
 				return true;
@@ -926,32 +860,27 @@ public class MongodbMethods {
 			}
 
 		} catch (Exception e) {
-			logger.error("Error with inserting the task run " + " publishedAt "
-					+ publishedAt + " project_id " + project_id + " isPushed "
-					+ task_id + " task_id " + task_text + "\n", e);
+			logger.error("Error with inserting the task run " + " publishedAt " + publishedAt + " project_id "
+					+ project_id + " isPushed " + task_id + " task_id " + task_text + "\n", e);
 			mongoClient.close();
 			return false;
 		}
 
 	}
 
-	public static Document getTaskRunsFromMongoDB(int task_id,
-			String contributor_name, String text) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+	public static Document getTaskRunsFromMongoDB(int task_id, String contributor_name, String text) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 
 			// MongoCollection<Document> collection = database
 			// .getCollection(Config.taskCollection);
 			// Document myDoc = collection.find(
 			// eq("pybossa_task_id", pybossa_task_id)).limit(1);
 
-			FindIterable<Document> iterable = database.getCollection(
-					Config.taskRunCollection).find(
-					new Document("task_id", task_id).append("contributor_name",
-							contributor_name).append("task_run_text", text));
+			FindIterable<Document> iterable = database.getCollection(Config.taskRunCollection)
+					.find(new Document("task_id", task_id).append("contributor_name", contributor_name)
+							.append("task_run_text", text));
 
 			Document document = iterable.first();
 			mongoClient.close();
@@ -964,16 +893,13 @@ public class MongodbMethods {
 	}
 
 	public static ArrayList<Document> getTaskRunsFromMongoDB(int task_id) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		ArrayList<Document> docs = new ArrayList<Document>();
 		try {
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 
-			FindIterable<Document> iterable = database.getCollection(
-					Config.taskRunCollection).find(
-					new Document("task_id", task_id));
+			FindIterable<Document> iterable = database.getCollection(Config.taskRunCollection)
+					.find(new Document("task_id", task_id));
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
 					docs.add(document);
@@ -989,18 +915,13 @@ public class MongodbMethods {
 
 	}
 
-	public static ArrayList<JSONObject> getTasksORRunsByProjectID(String field,
-			int field_value, String collection) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+	public static ArrayList<JSONObject> getTasksORRunsByProjectID(String field, int field_value, String collection) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		ArrayList<JSONObject> docs = new ArrayList<JSONObject>();
 		try {
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 
-			FindIterable<Document> iterable = database
-					.getCollection(collection).find(
-							new Document(field, field_value));
+			FindIterable<Document> iterable = database.getCollection(collection).find(new Document(field, field_value));
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
 					JSONObject json = new JSONObject(document);
@@ -1017,33 +938,25 @@ public class MongodbMethods {
 
 	}
 
-	public static Boolean updateTaskToPushedInMongoDB(ObjectId _id,
-			String facebook_task_id, String facebook_task_status) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+	public static Boolean updateTaskToPushedInMongoDB(ObjectId _id, String facebook_task_id,
+			String facebook_task_status) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			Date date = new Date();
 			String lastPushAt = MongoDBformatter.format(date);
 			UpdateResult result = database.getCollection(Config.taskCollection)
-					.updateOne(
-							new Document("_id", _id),
-							new Document().append(
-									"$set",
-									new Document("facebook_task_status",
-											facebook_task_status).append(
-											"facebook_lastPushAt", lastPushAt)
-											.append("facebook_task_id",
+					.updateOne(new Document("_id", _id),
+							new Document().append("$set",
+									new Document("facebook_task_status", facebook_task_status)
+											.append("facebook_lastPushAt", lastPushAt).append("facebook_task_id",
 													facebook_task_id)));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
-					logger.debug(Config.taskCollection
-							+ " Collection was updated where _id= "
-							+ _id.toString() + " to facebook_task_status="
-							+ facebook_task_status);
+					logger.debug(Config.taskCollection + " Collection was updated where _id= " + _id.toString()
+							+ " to facebook_task_status=" + facebook_task_status);
 					mongoClient.close();
 					return true;
 				}
@@ -1058,20 +971,17 @@ public class MongodbMethods {
 	}
 
 	public static Document getTaskFromMongoDB(int task_id) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 
 			// MongoCollection<Document> collection = database
 			// .getCollection(Config.taskCollection);
 			// Document myDoc = collection.find(
 			// eq("pybossa_task_id", pybossa_task_id)).limit(1);
 
-			FindIterable<Document> iterable = database.getCollection(
-					Config.taskCollection).find(
-					new Document("task_id", task_id));
+			FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
+					.find(new Document("task_id", task_id));
 
 			Document document = iterable.first();
 			mongoClient.close();
@@ -1085,22 +995,17 @@ public class MongodbMethods {
 	}
 
 	public static Boolean updateProjectsByAddingCounters() {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
-			FindIterable<Document> iterable = database.getCollection(
-					Config.projectCollection).find(
-					new Document("project_id", new Document("$exists", false)));
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
+					.find(new Document("project_id", new Document("$exists", false)));
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
 					ObjectId _id = document.getObjectId("_id");
 					int project_id = _id.getCounter();
-					database.getCollection(Config.projectCollection).updateOne(
-							new Document("_id", _id),
-							new Document().append("$set", new Document(
-									"project_id", project_id)));
+					database.getCollection(Config.projectCollection).updateOne(new Document("_id", _id),
+							new Document().append("$set", new Document("project_id", project_id)));
 				}
 			}
 
@@ -1115,22 +1020,17 @@ public class MongodbMethods {
 	}
 
 	public static Boolean updateTasksByAddingCounters() {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
-			FindIterable<Document> iterable = database.getCollection(
-					Config.taskCollection).find(
-					new Document("task_id", new Document("$exists", false)));
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
+					.find(new Document("task_id", new Document("$exists", false)));
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
 					ObjectId _id = document.getObjectId("_id");
 					int task_id = _id.getCounter();
-					database.getCollection(Config.taskCollection).updateOne(
-							new Document("_id", _id),
-							new Document().append("$set", new Document(
-									"task_id", task_id)));
+					database.getCollection(Config.taskCollection).updateOne(new Document("_id", _id),
+							new Document().append("$set", new Document("task_id", task_id)));
 				}
 			}
 			mongoClient.close();
@@ -1144,23 +1044,17 @@ public class MongodbMethods {
 	}
 
 	public static Boolean updateTaskRunsByAddingCounters() {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
-			FindIterable<Document> iterable = database.getCollection(
-					Config.taskRunCollection)
-					.find(new Document("task_run_id", new Document("$exists",
-							false)));
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			FindIterable<Document> iterable = database.getCollection(Config.taskRunCollection)
+					.find(new Document("task_run_id", new Document("$exists", false)));
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
 					ObjectId _id = document.getObjectId("_id");
 					int task_run_id = _id.getCounter();
-					database.getCollection(Config.taskRunCollection).updateOne(
-							new Document("_id", _id),
-							new Document().append("$set", new Document(
-									"task_run_id", task_run_id)));
+					database.getCollection(Config.taskRunCollection).updateOne(new Document("_id", _id),
+							new Document().append("$set", new Document("task_run_id", task_run_id)));
 				}
 			}
 			mongoClient.close();
@@ -1174,16 +1068,13 @@ public class MongodbMethods {
 	}
 
 	public static HashSet<Document> getUnPorcessedTaskRuns() {
-		logger.debug("getting taskRuns from collection "
-				+ Config.taskRunCollection);
+		logger.debug("getting taskRuns from collection " + Config.taskRunCollection);
 		HashSet<Document> taskRunsDocuments = new HashSet<Document>();
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
-			FindIterable<Document> iterable = database.getCollection(
-					Config.taskRunCollection).find(ne("wasProcessed", true));
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			FindIterable<Document> iterable = database.getCollection(Config.taskRunCollection)
+					.find(ne("wasProcessed", true));
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
 					taskRunsDocuments.add(document);
@@ -1199,21 +1090,15 @@ public class MongodbMethods {
 	}
 
 	public static Boolean updatetaskRunsToBeProcessed(ObjectId _id) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
-			UpdateResult result = database.getCollection(
-					Config.taskRunCollection).updateOne(
-					new Document("_id", _id),
-					new Document().append("$set", new Document("wasProcessed",
-							true)));
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			UpdateResult result = database.getCollection(Config.taskRunCollection).updateOne(new Document("_id", _id),
+					new Document().append("$set", new Document("wasProcessed", true)));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
-					logger.debug(Config.taskRunCollection
-							+ " Collection was updated with wasProcessed: true");
+					logger.debug(Config.taskRunCollection + " Collection was updated with wasProcessed: true");
 					mongoClient.close();
 					return true;
 				}
@@ -1228,23 +1113,17 @@ public class MongodbMethods {
 	}
 
 	public static Boolean updateTaskToBeCompleted(int task_id) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
-			MongoDatabase database = mongoClient
-					.getDatabase(Config.projectsDatabaseName);
-			UpdateResult result = database.getCollection(Config.taskCollection)
-					.updateOne(
-							new Document("task_id", task_id),
-							new Document().append("$set", new Document(
-									"facebook_task_status", "completed")
-									.append("twitter_task_status", "completed")
-									.append("task_status", "completed")));
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			UpdateResult result = database.getCollection(Config.taskCollection).updateOne(
+					new Document("task_id", task_id),
+					new Document().append("$set", new Document("facebook_task_status", "completed")
+							.append("twitter_task_status", "completed").append("task_status", "completed")));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
-					logger.debug(Config.taskRunCollection
-							+ " Collection was updated with wasProcessed: true");
+					logger.debug(Config.taskRunCollection + " Collection was updated with wasProcessed: true");
 					mongoClient.close();
 					return true;
 				}

@@ -1,6 +1,10 @@
 package sociam.pybossa.methods;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,12 +14,14 @@ import org.json.JSONObject;
 import sociam.pybossa.config.Config;
 import sociam.pybossa.util.StringToImage;
 import sociam.pybossa.util.TwitterAccount;
+import twitter4j.OEmbedRequest;
 import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterObjectFactory;
+
 /**
  * 
  * @author user Saud Aljaloud
@@ -34,8 +40,8 @@ public class TwitterMethods {
 	 * @param taskContent
 	 *            the content of the tweet to be published
 	 */
-	public static int sendTaskToTwitter(String taskContent, String media_url,
-			String taskTag, ArrayList<String> hashtags, int project_type, String userTobeShared) {
+	public static int sendTaskToTwitter(String taskContent, String media_url, String taskTag,
+			ArrayList<String> hashtags, int project_type, String userTobeShared) {
 		try {
 			Twitter twitter = TwitterAccount.setTwitterAccount(project_type);
 
@@ -60,17 +66,16 @@ public class TwitterMethods {
 			// }
 			// post = post + "?";
 			String tag = taskTag.replaceAll("#t", "");
-			post = post + " " + taskTag + " & monitor the task " + Config.domainURI+tag;
-			
-			if (userTobeShared!=null){
+			post = post + " " + taskTag + " & monitor the task " + Config.domainURI + tag;
+
+			if (userTobeShared != null) {
 				post = userTobeShared + " " + post;
 			}
 
 			// convert taskContent and question into an image
 			File image = null;
 			if (!media_url.equals("")) {
-				image = StringToImage.combineTextWithImage(taskContent,
-						media_url);
+				image = StringToImage.combineTextWithImage(taskContent, media_url);
 			} else {
 				image = StringToImage.convertStringToImage(taskContent);
 			}
@@ -84,17 +89,14 @@ public class TwitterMethods {
 					status.setMedia(image);
 					twitter.updateStatus(status);
 
-					logger.debug("Successfully posting a task '"
-							+ status.getStatus() + "'." + status.getPlaceId());
+					logger.debug("Successfully posting a task '" + status.getStatus() + "'." + status.getPlaceId());
 					return 1;
 				} else {
 					logger.error("Image couldn't br generated");
 					return 0;
 				}
 			} else {
-				logger.error("Post \"" + post
-						+ "\" is longer than 140 characters. It has: "
-						+ (post.length()));
+				logger.error("Post \"" + post + "\" is longer than 140 characters. It has: " + (post.length()));
 				return 0;
 			}
 		} catch (Exception e) {
@@ -103,9 +105,6 @@ public class TwitterMethods {
 		}
 	}
 
-
-	
-	
 	public static JSONObject getTweetByID(String status_id_str, Twitter twitter) {
 
 		try {
@@ -122,8 +121,6 @@ public class TwitterMethods {
 			return null;
 		}
 	}
-	
-	
 
 	public static ArrayList<JSONObject> getTimeLineAsJsons(Twitter twitter) {
 
@@ -157,8 +154,7 @@ public class TwitterMethods {
 		return jsons;
 
 	}
-	
-	
+
 	public static ArrayList<JSONObject> getMentionsTimelineAsJsons(Twitter twitter) {
 
 		ArrayList<JSONObject> jsons = new ArrayList<JSONObject>();
@@ -189,6 +185,42 @@ public class TwitterMethods {
 		}
 
 		return jsons;
+
+	}
+
+	public static JSONObject getOembed(String url) {
+
+		JSONObject jsons = new JSONObject();
+		try {
+
+			URL obj = new URL(url);
+			HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+
+			// optional default is GET
+			con.setRequestMethod("GET");
+
+			int responseCode = con.getResponseCode();
+			System.out.println("\nSending 'GET' request to URL : " + url);
+			System.out.println("Response Code : " + responseCode);
+
+			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+			String inputLine;
+			StringBuffer response = new StringBuffer();
+
+			while ((inputLine = in.readLine()) != null) {
+				response.append(inputLine);
+			}
+
+			jsons = new JSONObject(response.toString());
+			in.close();
+
+			return jsons;
+		} catch (Exception te) {
+			logger.error("Failed to get Oembed: ", te);
+			return null;
+		}
+
+		
 
 	}
 }
