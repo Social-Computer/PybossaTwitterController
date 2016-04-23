@@ -460,7 +460,6 @@ public class MongodbMethods {
 						if (!json.has("twitter_url")) {
 							url = mapBinURLwithTask(json);
 							if (url != null) {
-
 								json.put("twitter_url", "https://twitter.com/statuses/" + url);
 								updateTaskByAddingStringField(_id, "twitter_url",
 										"https://twitter.com/statuses/" + url);
@@ -471,14 +470,18 @@ public class MongodbMethods {
 							tweet_id = tweet_id.replaceAll("https://twitter.com/statuses/", "");
 							JSONObject embedJson = TwitterMethods
 									.getOembed("https://api.twitter.com/1/statuses/oembed.json?id=" + tweet_id);
-							json.put("embed", embedJson);
-							updateTaskByAddingJsonObjectField(_id, "embed", embedJson);
+							if (embedJson != null) {
+								json.put("embed", embedJson);
+								updateTaskByAddingJsonObjectField(_id, "embed", embedJson);
+							}
 						}
 						if (!json.has("embed_nomedia")) {
 							JSONObject embed_nomediaJson = TwitterMethods.getOembed(
 									"https://api.twitter.com/1/statuses/oembed.json?hide_media=true&id=" + tweet_id);
-							json.put("embed_nomedia", embed_nomediaJson);
-							updateTaskByAddingJsonObjectField(_id, "embed_nomedia", embed_nomediaJson);
+							if (embed_nomediaJson != null) {
+								json.put("embed_nomedia", embed_nomediaJson);
+								updateTaskByAddingJsonObjectField(_id, "embed_nomedia", embed_nomediaJson);
+							}
 						}
 					}
 					tasksArray.put(json);
@@ -506,9 +509,10 @@ public class MongodbMethods {
 	public static Boolean updateTaskByAddingJsonObjectField(ObjectId _id, String FieldName, JSONObject FieldValue) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
+			Document doc = Document.parse( FieldValue.toString() );
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			UpdateResult result = database.getCollection(Config.taskCollection).updateOne(new Document("_id", _id),
-					new Document().append("$set", new Document(FieldName, FieldValue)));
+					new Document().append("$set", new Document(FieldName, doc)));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
