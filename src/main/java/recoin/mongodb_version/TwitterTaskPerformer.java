@@ -59,7 +59,8 @@ public class TwitterTaskPerformer {
 				// for (Document document : tasksToBePushed) {
 				int seed = 200;
 				Queue<Document> queue = stackQueue(tasksToBePushed, seed);
-				for (Document document : queue) {
+				Document document = null;
+				while ((document = queue.poll()) != null) {
 
 					String twitter_task_status = document.getString("twitter_task_status");
 					String task_text = document.getString("task_text");
@@ -75,11 +76,22 @@ public class TwitterTaskPerformer {
 					ObjectId _id = document.getObjectId("_id");
 					Integer task_id = document.getInteger("task_id");
 					int project_id = document.getInteger("project_id");
-					String media_url = document.getString("media_url");
+					String twitter_url = document.getString("twitter_url");
+					String redirect_tweet_id;
+					if (twitter_url == null) {
+						logger.error("task does not contain twitter_url");
+						continue;
+					} else {
+						redirect_tweet_id = TwitterMethods.redirectStatua(twitter_url);
+						if (redirect_tweet_id == null) {
+							logger.error("coundn't resolve stored tweet_url to its orginal url");
+							continue;
+						}
+					}
 					ArrayList<String> hashtags = MongodbMethods.getProjectHashTags(project_id);
 					String taskTag = "#t" + task_id;
-					int responseCode = TwitterMethods.sendTaskToTwitter(task_text, media_url, taskTag, hashtags, 2,
-							null);
+					int responseCode = TwitterMethods.sendTaskToTwitterWithUrl(taskTag, hashtags, 2, null,
+							redirect_tweet_id);
 					if (responseCode == 1) {
 						if (MongodbMethods.updateTaskToPushedInMongoDB(_id, "pushed")) {
 							logger.info("Task with text " + task_text + " has been sucessfully pushed to Twitter");
@@ -124,9 +136,9 @@ public class TwitterTaskPerformer {
 		ArrayList<Document> downVotedTasks = new ArrayList<>();
 
 		for (Document document : tasksToBePushed) {
-			
+
 			Integer priority = document.getInteger("priority");
-			if (priority == null){
+			if (priority == null) {
 				priority = 0;
 			}
 			if (priority > 0) {

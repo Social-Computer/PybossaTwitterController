@@ -2,9 +2,12 @@ package sociam.pybossa.methods;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -102,6 +105,52 @@ public class TwitterMethods {
 		} catch (Exception e) {
 			logger.error("Error", e);
 			return 2;
+		}
+	}
+
+	public static int sendTaskToTwitterWithUrl(String taskTag, ArrayList<String> hashtags, int project_type,
+			String userTobeShared, String tweet_url) {
+		try {
+			Twitter twitter = TwitterAccount.setTwitterAccount(project_type);
+			String question = "";
+			if (project_type == 2) {
+				question = Config.project_validation_question;
+			}
+			// combine hashtags and tasktag while maintaining the 140 length
+			String post = question;
+			String tag = taskTag.replaceAll("#t", "");
+			post = post + " " + taskTag + " & monitor the task " + Config.domainURI + tag;
+
+			if (userTobeShared != null) {
+				post = userTobeShared + " " + post;
+			}
+
+			if (post.length() < 140) {
+				StatusUpdate status = new StatusUpdate(post + " " + tweet_url);
+				twitter.updateStatus(status);
+				logger.debug("Successfully posting a task '" + status.getStatus() + "'." + status.getPlaceId());
+				return 1;
+			} else {
+				logger.error("Post \"" + post + "\" is longer than 140 characters. It has: " + (post.length()));
+				return 0;
+			}
+		} catch (Exception e) {
+			logger.error("Error", e);
+			return 2;
+		}
+	}
+
+	public static String redirectStatua(String url) {
+		URLConnection con;
+		try {
+			con = new URL("https://twitter.com/statuses/727045905862545408").openConnection();
+			con.connect();
+			InputStream is = con.getInputStream();
+			is.close();
+			return con.getURL().toString();
+		} catch (IOException e) {
+			logger.error("Error", e);
+			return null;
 		}
 	}
 
