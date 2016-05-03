@@ -403,6 +403,31 @@ public class MongodbMethods {
 		}
 	}
 
+	public static JSONObject getProjectByProject_name(String project_name) {
+		logger.debug("getting project by project_id from " + Config.projectCollection + " collection");
+		MongoClient mongoClient = null;
+		try {
+			mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			JSONObject json = null;
+			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
+					.find(new Document("project_name", project_name));
+			if (iterable.first() != null) {
+				Document document = iterable.first();
+				json = new JSONObject(document);
+			} else {
+				mongoClient.close();
+				return null;
+			}
+			mongoClient.close();
+			return json;
+		} catch (Exception e) {
+			logger.error("Error ", e);
+			mongoClient.close();
+			return null;
+		}
+	}
+
 	public static JSONObject getTasks(Integer offset) {
 		JSONObject tasks = new JSONObject();
 		JSONArray tasksArray = new JSONArray();
@@ -863,6 +888,69 @@ public class MongodbMethods {
 			return false;
 		}
 
+	}
+
+	public static ObjectId inserNewtBin(String collection, JSONObject obj) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+		try {
+			MongoDatabase database = mongoClient.getDatabase(Config.binsDatabaseName);
+			Document doc = Document.parse(obj.toString());
+
+			FindIterable<Document> iterable = database.getCollection(collection)
+					.find(new Document("id", obj.getDouble("id")));
+			if (iterable.first() == null) {
+				database.getCollection(collection).insertOne(doc);
+				logger.debug("One task run is inserted into MongoDB");
+				ObjectId id = doc.getObjectId("_id");
+				mongoClient.close();
+				return id;
+			} else {
+				logger.debug("Task is already exiest in the bin");
+				mongoClient.close();
+				return null;
+			}
+		} catch (Exception e) {
+			logger.error("Error with inserting the bin ", e);
+			mongoClient.close();
+			return null;
+		}
+
+	}
+
+	public static Integer insertProject(JSONObject obj) {
+		Integer project_id;
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+		try {
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+			Document doc = Document.parse(obj.toString());
+			database.getCollection(Config.projectCollection).insertOne(doc);
+			logger.debug("One project is inserted into MongoDB " + obj.toString());
+			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
+					.find(new Document("bin_id", obj.getString("bin_id")));
+			if (iterable.first() == null) {
+				Document docuemnt = iterable.first();
+				if (!docuemnt.containsKey("project_id")) {
+					ObjectId id = docuemnt.getObjectId("id");
+					project_id = id.getCounter();
+					UpdateResult result = database.getCollection(Config.projectCollection).updateOne(
+							new Document("_id", id),
+							new Document().append("$set", new Document("project_id", project_id)));
+					if (result.wasAcknowledged()) {
+						logger.debug("project is now being given a project_id " + project_id);
+						mongoClient.close();
+						return project_id;
+					}
+				}
+			}
+
+			mongoClient.close();
+			return null;
+
+		} catch (Exception e) {
+			logger.error("Error with inserting the bin ", e);
+			mongoClient.close();
+			return null;
+		}
 	}
 
 	// maybe it's not needed to check id_str becasue we check it first!

@@ -124,7 +124,11 @@ public class TwitterTaskPerformer {
 		ArrayList<Document> downVotedTasks = new ArrayList<>();
 
 		for (Document document : tasksToBePushed) {
+			
 			Integer priority = document.getInteger("priority");
+			if (priority == null){
+				priority = 0;
+			}
 			if (priority > 0) {
 				upVotedTasks.add(document);
 			} else if (priority.equals(0)) {

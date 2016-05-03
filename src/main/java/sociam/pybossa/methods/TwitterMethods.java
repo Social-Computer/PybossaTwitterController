@@ -122,6 +122,17 @@ public class TwitterMethods {
 		}
 	}
 
+	public static Status getTweetStausByID(String status_id_str, Twitter twitter) {
+
+		try {
+			Status status = twitter.showStatus(Long.parseLong(status_id_str));
+			return status;
+		} catch (Exception e) {
+			logger.error("Error ", e);
+			return null;
+		}
+	}
+
 	public static ArrayList<JSONObject> getTimeLineAsJsons(Twitter twitter) {
 
 		ArrayList<JSONObject> jsons = new ArrayList<JSONObject>();
@@ -160,7 +171,7 @@ public class TwitterMethods {
 		ArrayList<JSONObject> jsons = new ArrayList<JSONObject>();
 		try {
 			Paging p = new Paging();
-			p.setCount(200);
+			p.setCount(40);
 			List<Status> statuses = twitter.getMentionsTimeline(p);
 			for (Status status : statuses) {
 
@@ -174,7 +185,7 @@ public class TwitterMethods {
 				try {
 					logger.debug("Twitter rate limit is exceeded waiting for 300000 ms");
 					Thread.sleep(300000);
-					getTimeLineAsJsons(twitter);
+					getMentionsTimelineAsJsons(twitter);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -215,12 +226,11 @@ public class TwitterMethods {
 				jsons = new JSONObject(response.toString());
 				in.close();
 			}
-			if (responseCode == 404){
+			if (responseCode == 404) {
 				JSONObject json = new JSONObject();
 				json.put("error", "not there");
 				return json;
 			}
-			
 
 			return jsons;
 		} catch (Exception te) {
