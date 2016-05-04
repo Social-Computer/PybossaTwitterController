@@ -54,7 +54,7 @@ public class FacebookTaskPerformer {
 				// randomly pick a task
 				// for (Document document : tasksToBePushed) {
 				int seed = 300;
-				Queue<Document> queue = TwitterTaskPerformer.stackQueue(tasksToBePushed, seed);
+				Queue<Document> queue = TwitterTaskPerformer.stackQueue(tasksToBePushed, seed, "facebook");
 				for (Document document : queue) {
 					String facebook_task_status = document.getString("facebook_task_status");
 					String task_text = document.getString("task_text");

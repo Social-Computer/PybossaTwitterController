@@ -28,11 +28,13 @@ public class FacebookMethods {
 
 	final static Logger logger = Logger.getLogger(FacebookMethods.class);
 
-	public static String sendTaskToFacebook(String taskContent, String media_url, String taskTag,
-			ArrayList<String> hashtags, int project_type) {
+	public static String sendTaskToFacebook(String taskContent,
+			String media_url, String taskTag, ArrayList<String> hashtags,
+			int project_type) {
 		String facebook_task_id;
 		try {
-			Facebook facebook = FacebookAccount.setFacebookAccount(project_type);
+			Facebook facebook = FacebookAccount
+					.setFacebookAccount(project_type);
 
 			// defualt
 			String question = "";
@@ -53,12 +55,15 @@ public class FacebookMethods {
 				}
 			}
 			String tag = taskTag.replaceAll("#t", "");
-			post = post + " " + taskTag + " " + "you can also monitor this task " + Config.domainURI + tag;
+			post = post + " " + taskTag + " "
+					+ "you can also monitor this task " + Config.domainURI
+					+ tag;
 
 			// convert taskContent and question into an image
 			File image = null;
 			if (!media_url.equals("")) {
-				image = StringToImage.combineTextWithImage(taskContent, media_url);
+				image = StringToImage.combineTextWithImage(taskContent,
+						media_url);
 			} else {
 				image = StringToImage.convertStringToImage(taskContent);
 			}
@@ -90,11 +95,12 @@ public class FacebookMethods {
 		}
 	}
 
-	public static String sendTaskToFacebookWithUrl(String taskTag, ArrayList<String> hashtags, int project_type,
-			String url) {
+	public static String sendTaskToFacebookWithUrl(String taskTag,
+			ArrayList<String> hashtags, int project_type, String url) {
 		String facebook_task_id;
 		try {
-			Facebook facebook = FacebookAccount.setFacebookAccount(project_type);
+			Facebook facebook = FacebookAccount
+					.setFacebookAccount(project_type);
 
 			// defualt
 			String question = "";
@@ -115,11 +121,14 @@ public class FacebookMethods {
 				}
 			}
 			String tag = taskTag.replaceAll("#t", "");
-			post = post + " " + taskTag + " " + "you can also monitor this task " + Config.domainURI + tag;
+			post = post + " " + taskTag + " "
+					+ "you can also monitor this task " + Config.domainURI
+					+ tag;
 
 			// status = facebook.updateStatus(post);
 
-			PostUpdate facebookPost =  new PostUpdate(new URL(url)).message(post);
+			PostUpdate facebookPost = new PostUpdate(new URL(url))
+					.message(post);
 			facebook_task_id = facebook.postFeed(facebookPost);
 			logger.debug("Successfully posting a task ");
 			return facebook_task_id;
@@ -140,7 +149,8 @@ public class FacebookMethods {
 
 		try {
 			facebook = FacebookAccount.setFacebookAccount(1);
-			Post onePost = facebook.getPost(post_id, new Reading().fields("comments,message,name"));
+			Post onePost = facebook.getPost(post_id,
+					new Reading().fields("comments,message,name"));
 			return onePost;
 		} catch (Exception e) {
 			logger.error("Error", e);
@@ -164,6 +174,26 @@ public class FacebookMethods {
 			} else {
 				return null;
 			}
+		} catch (Exception e) {
+			logger.error("Error", e);
+			return null;
+		}
+
+	}
+
+	public static ArrayList<Post> getLatestPostsEvenWithoutComments(
+			Facebook facebook) {
+
+		ArrayList<Post> validposts = new ArrayList<Post>();
+		try {
+			ResponseList<Post> feeds = facebook.getFeed("964602923577144",
+					new Reading().limit(100));
+			for (Post post : feeds) {
+				validposts.add(post);
+
+			}
+			return validposts;
+
 		} catch (Exception e) {
 			logger.error("Error", e);
 			return null;

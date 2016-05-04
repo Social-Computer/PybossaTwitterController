@@ -14,12 +14,12 @@ public class TestQueue2 {
 
 		int seed = 200;
 		ArrayList<Document> tasksToBePushed = MongodbMethods.getIncompletedTasksFromMongoDB("twitter_task_status");
-		Queue<Document> queue = TwitterTaskPerformer.stackQueue(tasksToBePushed, seed);
+		Queue<Document> queue = TwitterTaskPerformer.stackQueue(tasksToBePushed, seed, "twitter_task_status");
 		System.out.println("List: " + queue.size());
 		for (Document document : queue) {
 			Integer task_id = document.getInteger("task_id");
 			Integer priority = document.getInteger("priority");
-			System.out.println(priority + "|" + task_id);
+			System.out.println(priority + "|" + task_id + "|"+ document.getString("twitter_task_status"));
 		}
 	}
 }

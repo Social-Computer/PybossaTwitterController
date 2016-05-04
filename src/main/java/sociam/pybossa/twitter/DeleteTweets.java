@@ -27,22 +27,22 @@ public class DeleteTweets {
 		Twitter twitter = TwitterAccount.setTwitterAccount(2);
 		try {
 			Paging p = new Paging();
-			
+
 			p.setCount(200);
 			List<Status> statuses = twitter.getUserTimeline(p);
 
-			while (statuses != null) {
+			while ((statuses = twitter.getUserTimeline(p)) != null) {
 				System.out.println("Number of status " + statuses.size());
 				for (Status status : statuses) {
 					long id = status.getId();
 					twitter.destroyStatus(id);
-					System.out.println("deleted");
+					System.out.println("Id " + id + " is deleted");
 					Thread.sleep(1000);
 				}
 				System.out
-						.println("Waiting 15 minutes before getting 200 responses");
+						.println("Waiting 1 minute before getting 200 responses");
 				statuses = twitter.getUserTimeline(p);
-				Thread.sleep(1000);
+				Thread.sleep(60000);
 			}
 
 			return true;

@@ -17,7 +17,6 @@ import org.json.JSONObject;
 import sociam.pybossa.config.Config;
 import sociam.pybossa.util.StringToImage;
 import sociam.pybossa.util.TwitterAccount;
-import twitter4j.OEmbedRequest;
 import twitter4j.Paging;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
@@ -43,8 +42,9 @@ public class TwitterMethods {
 	 * @param taskContent
 	 *            the content of the tweet to be published
 	 */
-	public static int sendTaskToTwitter(String taskContent, String media_url, String taskTag,
-			ArrayList<String> hashtags, int project_type, String userTobeShared) {
+	public static int sendTaskToTwitter(String taskContent, String media_url,
+			String taskTag, ArrayList<String> hashtags, int project_type,
+			String userTobeShared) {
 		try {
 			Twitter twitter = TwitterAccount.setTwitterAccount(project_type);
 
@@ -69,7 +69,8 @@ public class TwitterMethods {
 			// }
 			// post = post + "?";
 			String tag = taskTag.replaceAll("#t", "");
-			post = post + " " + taskTag + " & monitor the task " + Config.domainURI + tag;
+			post = post + " " + taskTag + " & monitor the task "
+					+ Config.domainURI + tag;
 
 			if (userTobeShared != null) {
 				post = userTobeShared + " " + post;
@@ -78,7 +79,8 @@ public class TwitterMethods {
 			// convert taskContent and question into an image
 			File image = null;
 			if (!media_url.equals("")) {
-				image = StringToImage.combineTextWithImage(taskContent, media_url);
+				image = StringToImage.combineTextWithImage(taskContent,
+						media_url);
 			} else {
 				image = StringToImage.convertStringToImage(taskContent);
 			}
@@ -92,14 +94,17 @@ public class TwitterMethods {
 					status.setMedia(image);
 					twitter.updateStatus(status);
 
-					logger.debug("Successfully posting a task '" + status.getStatus() + "'." + status.getPlaceId());
+					logger.debug("Successfully posting a task '"
+							+ status.getStatus() + "'." + status.getPlaceId());
 					return 1;
 				} else {
 					logger.error("Image couldn't br generated");
 					return 0;
 				}
 			} else {
-				logger.error("Post \"" + post + "\" is longer than 140 characters. It has: " + (post.length()));
+				logger.error("Post \"" + post
+						+ "\" is longer than 140 characters. It has: "
+						+ (post.length()));
 				return 0;
 			}
 		} catch (Exception e) {
@@ -108,7 +113,8 @@ public class TwitterMethods {
 		}
 	}
 
-	public static int sendTaskToTwitterWithUrl(String taskTag, ArrayList<String> hashtags, int project_type,
+	public static int sendTaskToTwitterWithUrl(String taskTag,
+			ArrayList<String> hashtags, int project_type,
 			String userTobeShared, String tweet_url) {
 		try {
 			Twitter twitter = TwitterAccount.setTwitterAccount(project_type);
@@ -119,7 +125,8 @@ public class TwitterMethods {
 			// combine hashtags and tasktag while maintaining the 140 length
 			String post = question;
 			String tag = taskTag.replaceAll("#t", "");
-			post = post + " " + taskTag + " & monitor the task " + Config.domainURI + tag;
+			post = post + " " + taskTag + " & monitor the task "
+					+ Config.domainURI + tag;
 
 			if (userTobeShared != null) {
 				post = userTobeShared + " " + post;
@@ -128,12 +135,33 @@ public class TwitterMethods {
 			if (post.length() < 140) {
 				StatusUpdate status = new StatusUpdate(post + " " + tweet_url);
 				twitter.updateStatus(status);
-				logger.debug("Successfully posting a task '" + status.getStatus() + "'." + status.getPlaceId());
+				logger.debug("Successfully posting a task '"
+						+ status.getStatus() + "'." + status.getPlaceId());
 				return 1;
 			} else {
-				logger.error("Post \"" + post + "\" is longer than 140 characters. It has: " + (post.length()));
+				logger.error("Post \"" + post
+						+ "\" is longer than 140 characters. It has: "
+						+ (post.length()));
 				return 0;
 			}
+		} catch (TwitterException te) {
+			logger.error("Failed to get timeline: ", te);
+			if (te.exceededRateLimitation()) {
+				try {
+					logger.debug("Twitter rate limit is exceeded waiting for 300000 ms");
+					Thread.sleep(300000);
+					sendTaskToTwitterWithUrl(taskTag, hashtags, project_type,
+							userTobeShared, tweet_url);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			} else if (te.getErrorCode() == 187) {
+				return 3;
+			}
+			return 2;
+
 		} catch (Exception e) {
 			logger.error("Error", e);
 			return 2;
@@ -215,7 +243,8 @@ public class TwitterMethods {
 
 	}
 
-	public static ArrayList<JSONObject> getMentionsTimelineAsJsons(Twitter twitter) {
+	public static ArrayList<JSONObject> getMentionsTimelineAsJsons(
+			Twitter twitter) {
 
 		ArrayList<JSONObject> jsons = new ArrayList<JSONObject>();
 		try {
@@ -264,7 +293,8 @@ public class TwitterMethods {
 			System.out.println("Response Code : " + responseCode);
 
 			if (responseCode == 200) {
-				BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+				BufferedReader in = new BufferedReader(new InputStreamReader(
+						con.getInputStream()));
 				String inputLine;
 				StringBuffer response = new StringBuffer();
 
