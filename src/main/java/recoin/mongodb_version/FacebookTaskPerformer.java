@@ -3,9 +3,7 @@ package recoin.mongodb_version;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Queue;
-import java.util.Random;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -16,6 +14,7 @@ import sociam.pybossa.config.Config;
 import sociam.pybossa.methods.FacebookMethods;
 import sociam.pybossa.methods.GeneralMethods;
 import sociam.pybossa.methods.MongodbMethods;
+import sociam.pybossa.methods.TwitterMethods;
 
 /**
  * 
@@ -71,11 +70,22 @@ public class FacebookTaskPerformer {
 					ObjectId _id = document.getObjectId("_id");
 					int task_id = document.getInteger("task_id");
 					int project_id = document.getInteger("project_id");
-					String media_url = document.getString("media_url");
+					String twitter_url = document.getString("twitter_url");
+					String redirect_tweet_id = null;
+					if (twitter_url == null) {
+						logger.error("task does not contain twitter_url");
+						continue;
+					} else {
+						redirect_tweet_id = TwitterMethods.redirectStatua(twitter_url);
+						if (redirect_tweet_id == null) {
+							logger.error("coundn't resolve stored tweet_url to its orginal url");
+							continue;
+						}
+					}
 					ArrayList<String> hashtags = MongodbMethods.getProjectHashTags(project_id);
 					String taskTag = "#t" + task_id;
-					String facebook_task_id = FacebookMethods.sendTaskToFacebook(task_text, media_url, taskTag,
-							hashtags, 1);
+					String facebook_task_id = FacebookMethods.sendTaskToFacebookWithUrl(taskTag, hashtags, 1,
+							redirect_tweet_id);
 					if (facebook_task_id != null) {
 						if (MongodbMethods.updateTaskToPushedInMongoDB(_id, facebook_task_id, "pushed")) {
 							logger.info("Task with text " + task_text + " has been sucessfully pushed to facebook");

@@ -143,7 +143,7 @@ public class TwitterMethods {
 	public static String redirectStatua(String url) {
 		URLConnection con;
 		try {
-			con = new URL("https://twitter.com/statuses/727045905862545408").openConnection();
+			con = new URL(url).openConnection();
 			con.connect();
 			InputStream is = con.getInputStream();
 			is.close();

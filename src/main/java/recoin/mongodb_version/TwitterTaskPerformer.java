@@ -59,9 +59,9 @@ public class TwitterTaskPerformer {
 				// for (Document document : tasksToBePushed) {
 				int seed = 200;
 				Queue<Document> queue = stackQueue(tasksToBePushed, seed);
-				Document document = null;
-				while ((document = queue.poll()) != null) {
-
+				int counter = 1;
+				for (Document document : queue) {
+					logger.debug(counter + " Processing task " + document.toString());
 					String twitter_task_status = document.getString("twitter_task_status");
 					String task_text = document.getString("task_text");
 					if (twitter_task_status.equals("pushed")) {
@@ -77,7 +77,7 @@ public class TwitterTaskPerformer {
 					Integer task_id = document.getInteger("task_id");
 					int project_id = document.getInteger("project_id");
 					String twitter_url = document.getString("twitter_url");
-					String redirect_tweet_id;
+					String redirect_tweet_id = null;
 					if (twitter_url == null) {
 						logger.error("task does not contain twitter_url");
 						continue;

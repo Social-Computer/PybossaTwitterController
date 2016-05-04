@@ -1,6 +1,7 @@
 package sociam.pybossa.methods;
 
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
@@ -13,8 +14,10 @@ import facebook4j.FacebookException;
 import facebook4j.Media;
 import facebook4j.PhotoUpdate;
 import facebook4j.Post;
+import facebook4j.PostUpdate;
 import facebook4j.Reading;
 import facebook4j.ResponseList;
+
 /**
  * 
  * @author user Saud Aljaloud
@@ -23,16 +26,13 @@ import facebook4j.ResponseList;
  */
 public class FacebookMethods {
 
-	
 	final static Logger logger = Logger.getLogger(FacebookMethods.class);
-	
-	public static String sendTaskToFacebook(String taskContent,
-			String media_url, String taskTag, ArrayList<String> hashtags,
-			int project_type) {
+
+	public static String sendTaskToFacebook(String taskContent, String media_url, String taskTag,
+			ArrayList<String> hashtags, int project_type) {
 		String facebook_task_id;
 		try {
-			Facebook facebook = FacebookAccount
-					.setFacebookAccount(project_type);
+			Facebook facebook = FacebookAccount.setFacebookAccount(project_type);
 
 			// defualt
 			String question = "";
@@ -58,8 +58,7 @@ public class FacebookMethods {
 			// convert taskContent and question into an image
 			File image = null;
 			if (!media_url.equals("")) {
-				image = StringToImage.combineTextWithImage(taskContent,
-						media_url);
+				image = StringToImage.combineTextWithImage(taskContent, media_url);
 			} else {
 				image = StringToImage.convertStringToImage(taskContent);
 			}
@@ -90,21 +89,64 @@ public class FacebookMethods {
 			return null;
 		}
 	}
-	
-	
+
+	public static String sendTaskToFacebookWithUrl(String taskTag, ArrayList<String> hashtags, int project_type,
+			String url) {
+		String facebook_task_id;
+		try {
+			Facebook facebook = FacebookAccount.setFacebookAccount(project_type);
+
+			// defualt
+			String question = "";
+			if (project_type == 1) {
+				question = Config.project_validation_question;
+			}
+
+			String post = question;
+			for (String string : hashtags) {
+				if (post.length() == 0) {
+					post = string;
+				} else {
+					String tmpResult = post + " " + string + taskTag;
+					if (tmpResult.length() >= 140) {
+						break;
+					}
+					post = post + " " + string;
+				}
+			}
+			String tag = taskTag.replaceAll("#t", "");
+			post = post + " " + taskTag + " " + "you can also monitor this task " + Config.domainURI + tag;
+
+			// status = facebook.updateStatus(post);
+
+			PostUpdate facebookPost =  new PostUpdate(new URL(url)).message(post);
+			facebook_task_id = facebook.postFeed(facebookPost);
+			logger.debug("Successfully posting a task ");
+			return facebook_task_id;
+
+		} catch (IllegalStateException e) {
+			logger.error("Error", e);
+			return null;
+		} catch (FacebookException e) {
+			logger.error("Error", e);
+			return null;
+		} catch (Exception e) {
+			logger.error("Error", e);
+			return null;
+		}
+	}
+
 	public static Post getPostByID(String post_id, Facebook facebook) {
 
 		try {
 			facebook = FacebookAccount.setFacebookAccount(1);
-			Post onePost = facebook.getPost(post_id,
-					new Reading().fields("comments,message,name"));
+			Post onePost = facebook.getPost(post_id, new Reading().fields("comments,message,name"));
 			return onePost;
 		} catch (Exception e) {
 			logger.error("Error", e);
 			return null;
 		}
 	}
-	
 
 	public static ArrayList<Post> getLatestPosts(Facebook facebook) {
 
