@@ -8,6 +8,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import org.apache.log4j.Logger;
 import org.bson.Document;
@@ -1047,6 +1049,29 @@ public class MongodbMethods {
 			}
 			mongoClient.close();
 			return docs;
+		} catch (Exception e) {
+			logger.error("Error ", e);
+			mongoClient.close();
+			return null;
+		}
+
+	}
+
+	public static Queue<Document> getSortedQueue() {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+		Queue<Document> queue = new LinkedList<Document>();
+		try {
+			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
+
+			FindIterable<Document> iterable = database.getCollection(Config.taskCollection)
+					.find(ne("twitter_task_status", "completed")).sort(new Document("priority",-1).append("twitter_task_status", -1));
+			if (iterable.first() != null) {
+				for (Document document : iterable) {
+					queue.add(document);
+				}
+			}
+			mongoClient.close();
+			return queue;
 		} catch (Exception e) {
 			logger.error("Error ", e);
 			mongoClient.close();
