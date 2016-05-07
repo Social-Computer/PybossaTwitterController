@@ -1,7 +1,9 @@
 package recoin.mongodb_version;
 
+import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -40,10 +42,8 @@ public class Backup {
 		String platformData = "platforms";
 		String facebook = "facebook";
 		String twitter = "twitter";
-		String facbookPath = root + dateString + "/" + platformData + "/"
-				+ facebook;
-		String twitterPath = root + dateString + "/" + platformData + "/"
-				+ twitter;
+		String facbookPath = root + dateString + "/" + platformData + "/" + facebook;
+		String twitterPath = root + dateString + "/" + platformData + "/" + twitter;
 
 		String mongodbPath = root + dateString + "/" + "MongodbBackups";
 		logger.debug("Starting the cleaning process");
@@ -132,8 +132,7 @@ public class Backup {
 				for (Status status : statuses) {
 					try {
 						long id = status.getId();
-						String rawJSON = TwitterObjectFactory
-								.getRawJSON(status);
+						String rawJSON = TwitterObjectFactory.getRawJSON(status);
 						json.put(String.valueOf(id), rawJSON);
 						logger.debug("Id " + id + " " + rawJSON);
 						twitter.destroyStatus(id);
@@ -175,17 +174,14 @@ public class Backup {
 		try {
 			Facebook facebook = FacebookAccount.setFacebookAccount(1);
 			ArrayList<Post> posts;
-			while ((posts = FacebookMethods
-					.getLatestPostsEvenWithoutComments(facebook)) != null) {
+			while ((posts = FacebookMethods.getLatestPostsEvenWithoutComments(facebook)) != null) {
 				logger.debug("post size " + posts.size());
 				for (Post post : posts) {
 					try {
 						String rawJSON = DataObjectFactory.getRawJSON(post);
 						json.put(String.valueOf(post.getId()), rawJSON);
 						logger.debug("ID " + post.getId() + " " + rawJSON);
-						logger.debug("Post with id "
-								+ facebook.deletePost(post.getId())
-								+ " is deleted");
+						logger.debug("Post with id " + facebook.deletePost(post.getId()) + " is deleted");
 					} catch (Exception e) {
 						logger.error("Error", e);
 					}
@@ -204,16 +200,39 @@ public class Backup {
 	public static Boolean mongodbDump(String dateString) {
 
 		try {
-			Process process = Runtime.getRuntime().exec(
-					"mongodump --db " + Config.binsDatabaseName + " --out "
-							+ dateString);
+			Process process = Runtime.getRuntime().exec(new String[] { "/bin/sh", "-c",
+					"/usr/bin/mongodump --db " + Config.binsDatabaseName + " --out " + dateString });
 			process.waitFor();
 			int exitCode = process.exitValue();
+			StringBuffer output = new StringBuffer();
+			BufferedReader reader = null;
 			if (exitCode == 0) {
-				Process process2 = Runtime.getRuntime().exec(
-						"mongodump --db " + Config.projectsDatabaseName
-								+ " --out " + dateString);
+				reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			} else {
+				reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+			}
+			String line = "";
+			while ((line = reader.readLine()) != null) {
+				output.append(line + "\n");
+			}
+			logger.debug("Process output " + output);
+
+			if (exitCode == 0) {
+				output = new StringBuffer();
+				Process process2 = Runtime.getRuntime().exec(new String[] { "/bin/sh", "-c",
+						"/usr/bin/mongodump --db " + Config.projectsDatabaseName + " --out " + dateString });
 				process2.waitFor();
+				exitCode = process2.exitValue();
+				if (exitCode == 0) {
+					reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+				} else {
+					reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+				}
+				line = "";
+				while ((line = reader.readLine()) != null) {
+					output.append(line + "\n");
+				}
+				logger.debug("Process output " + output);
 				if (exitCode == 0) {
 					return true;
 				}
@@ -226,16 +245,14 @@ public class Backup {
 	}
 
 	public static Boolean deleteCollections(String databaseName) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 			MongoDatabase database = mongoClient.getDatabase(databaseName);
 			MongoIterable<String> iterable = database.listCollectionNames();
 			if (iterable.first() != null) {
 				for (String string : iterable) {
 					database.getCollection(string).drop();
-					logger.debug("Deleted Collection " + string
-							+ " from Database " + databaseName);
+					logger.debug("Deleted Collection " + string + " from Database " + databaseName);
 				}
 			}
 			mongoClient.close();
