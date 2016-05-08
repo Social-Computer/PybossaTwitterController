@@ -47,7 +47,7 @@ public class ProjectCreator {
 			if (projectsAsdocs != null) {
 				logger.info("There are "
 						+ projectsAsdocs.size()
-						+ " projects need to be inserted into PyBossa and then updated within MongoDB");
+						+ " projects need to be inserted and updated within MoagoDB");
 				logger.info("ProjectLimit " + Config.ProjectLimit);
 				if (!projectsAsdocs.isEmpty()) {
 					for (Document document : projectsAsdocs) {
@@ -59,7 +59,7 @@ public class ProjectCreator {
 							ObjectId _id = document.getObjectId("_id");
 
 							logger.debug("Project: " + project_name
-									+ " was sucessfully inserted into PyBossa");
+									+ " was sucessfully inserted into Mongodb");
 							Boolean wasUpdated = MongodbMethods
 									.updateProjectIntoMongoDB(_id, "ready",
 											"validate");

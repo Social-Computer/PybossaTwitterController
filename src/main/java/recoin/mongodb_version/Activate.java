@@ -18,6 +18,7 @@ import org.json.JSONObject;
 import sociam.pybossa.config.Config;
 import sociam.pybossa.methods.MongodbMethods;
 import twitter4j.Status;
+import twitter4j.TwitterObjectFactory;
 
 public class Activate {
 	final static Logger logger = Logger.getLogger(Activate.class);
@@ -37,16 +38,17 @@ public class Activate {
 			} else {
 				logger.debug("Project is already existed");
 			}
+			
+			Long tweet_id = status.getId();
 			project_id = projectJson.getInt("project_id");
 			JSONObject json = statusToJson(status, screen_name);
 			if (json != null) {
 				logger.debug("Inserting task to bin");
 				ObjectId id = MongodbMethods.inserNewtBin(projectName, json);
-				String media_url = "";
 				if (id != null) {
 					logger.debug("task to be inserted into " + Config.taskCollection);
 					Boolean result = MongodbMethods.insertTaskIntoMongoDB(project_id, id.toString(), orgTweetText,
-							media_url, "ready", "validate");
+							tweet_id, "ready", "validate");
 					if (result) {
 						logger.debug("The insertion of activate process has been successful");
 					} else {
@@ -183,7 +185,12 @@ public class Activate {
 				tweetUrls.put(status.getURLEntities()[i].getURL());
 			}
 			tweetObj.put("urls", tweetUrls);
-
+			try {
+				String rawJson = TwitterObjectFactory.getRawJSON(status);
+				tweetObj.put("status_raw", rawJson);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			return tweetObj;
 		} catch (Exception e) {
 			logger.error("Error", e);

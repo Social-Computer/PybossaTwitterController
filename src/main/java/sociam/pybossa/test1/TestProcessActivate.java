@@ -32,9 +32,9 @@ public class TestProcessActivate {
 		System.out.println(json.toString());
 		ObjectId id = MongodbMethods.inserNewtBin("saud", json);
 		System.out.println(id);
-		String media_url = "";
+		Long tweet_id = 234234L;
 		if (id != null) {
-			if (MongodbMethods.insertTaskIntoMongoDB(445, id.toString(), status.getText(), media_url, "ready", "validate")) {
+			if (MongodbMethods.insertTaskIntoMongoDB(445, id.toString(), status.getText(), tweet_id, "ready", "validate")) {
 			} else {
 				System.err.println("Task was not inserted Into MongoDB");
 			}
