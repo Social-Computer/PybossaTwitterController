@@ -34,6 +34,11 @@ public class Backup {
 	final static Logger logger = Logger.getLogger(Backup.class);
 	static DateFormat dateFormat = new SimpleDateFormat("dd_MM_yyyy");
 
+	public static void main(String[] args) {
+
+		processBackup();
+	}
+
 	public static void processBackup() {
 
 		String root = "/data/SocialComputerBuackups/";
