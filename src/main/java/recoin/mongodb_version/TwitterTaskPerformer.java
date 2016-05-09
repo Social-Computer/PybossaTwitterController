@@ -49,6 +49,11 @@ public class TwitterTaskPerformer {
 
 	public static void run() {
 		try {
+			
+			// add counter for tasks as task_id
+			logger.debug("Adding task_id field to collection " + Config.taskCollection);
+			MongodbMethods.updateTasksByAddingCounters();
+			
 			ArrayList<Document> tasksToBePushed = MongodbMethods.getIncompletedTasksFromMongoDB("twitter_task_status");
 			if (tasksToBePushed != null) {
 				logger.info("There are " + tasksToBePushed.size()
