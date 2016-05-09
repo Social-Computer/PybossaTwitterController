@@ -132,7 +132,7 @@ public class TwitterMethods {
 				post = userTobeShared + " " + post;
 			}
 
-			if (post.length() < 140) {
+			if (post.length() < 160) {
 				StatusUpdate status = new StatusUpdate(post + " " + tweet_url);
 				twitter.updateStatus(status);
 				logger.debug("Successfully posting a task '"
@@ -249,7 +249,7 @@ public class TwitterMethods {
 		ArrayList<JSONObject> jsons = new ArrayList<JSONObject>();
 		try {
 			Paging p = new Paging();
-			p.setCount(40);
+			p.setCount(200);
 			List<Status> statuses = twitter.getMentionsTimeline(p);
 			for (Status status : statuses) {
 
@@ -289,9 +289,6 @@ public class TwitterMethods {
 			con.setRequestMethod("GET");
 
 			int responseCode = con.getResponseCode();
-			System.out.println("\nSending 'GET' request to URL : " + url);
-			System.out.println("Response Code : " + responseCode);
-
 			if (responseCode == 200) {
 				BufferedReader in = new BufferedReader(new InputStreamReader(
 						con.getInputStream()));

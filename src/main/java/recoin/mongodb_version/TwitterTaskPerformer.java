@@ -56,8 +56,7 @@ public class TwitterTaskPerformer {
 
 				// randomly pick a task
 				// for (Document document : tasksToBePushed) {
-				int seed = 200;
-				Queue<Document> queue = stackQueue(tasksToBePushed, seed, "twitter");
+				Queue<Document> queue = stackTwitterQueue(tasksToBePushed);
 				for (Document document : queue) {
 					logger.debug("The queue size is " + queue.size() + " Task to be processed " + document.toString());
 					String twitter_task_status = document.getString("twitter_task_status");
@@ -128,7 +127,7 @@ public class TwitterTaskPerformer {
 		}
 	}
 
-	public static Queue<Document> stackQueue(ArrayList<Document> tasksToBePushed, int seed, String task_status) {
+	public static Queue<Document> stackTwitterQueue(ArrayList<Document> tasksToBePushed) {
 
 		Collections.sort(tasksToBePushed, new Comparator<Document>() {
 			@Override

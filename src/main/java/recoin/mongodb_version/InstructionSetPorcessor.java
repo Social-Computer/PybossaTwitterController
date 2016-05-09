@@ -53,22 +53,23 @@ public class InstructionSetPorcessor {
 						ObjectId _id = document.getObjectId("_id");
 						String task_run_text = document.getString("task_run_text");
 						String instructionSet = determineInstructionSetType(task_run_text);
+						Boolean wasProcessed = false;
 						if (instructionSet != null) {
 							switch (instructionSet) {
 							case "PRIO":
-								process_Prio_instrctionSet(document);
+								wasProcessed = process_Prio_instrctionSet(document);
 								break;
 							case "SHARE":
-								process_Share_instrctionSet(document);
+								wasProcessed = process_Share_instrctionSet(document);
 								break;
 							case "ENRICH":
-								process_Enrich_instrctionSet(document);
+								wasProcessed = process_Enrich_instrctionSet(document);
 								break;
 							case "TRANS":
-								process_Trans_instrctionSet(document);
+								wasProcessed = process_Trans_instrctionSet(document);
 								break;
 							case "RESOLVE":
-								process_Resolve_instrctionSet(document);
+								wasProcessed = process_Resolve_instrctionSet(document);
 								break;
 							}
 
@@ -76,9 +77,11 @@ public class InstructionSetPorcessor {
 							logger.debug("Task Run was not identifed with any known instruction set");
 							logger.debug(document.toString());
 						}
-						Boolean updated = MongodbMethods.updatetaskRunsToBeProcessed(_id);
-						if (updated) {
-							logger.info("TaskRun was sucessfully updated to be processed");
+						if (wasProcessed) {
+							Boolean updated = MongodbMethods.updatetaskRunsToBeProcessed(_id);
+							if (updated) {
+								logger.info("TaskRun was sucessfully updated to be processed");
+							}
 						}
 					}
 				}
@@ -95,7 +98,7 @@ public class InstructionSetPorcessor {
 		int task_id = document.getInteger("task_id");
 		Document doc = MongodbMethods.getTaskFromMongoDB(task_id);
 		Integer OldPriority = doc.getInteger("priority");
-		if (OldPriority== null){
+		if (OldPriority == null) {
 			OldPriority = 0;
 		}
 		Pattern patter = Pattern.compile("-?[0-9]+");
@@ -120,23 +123,25 @@ public class InstructionSetPorcessor {
 		String task_run_text = document.getString("task_run_text");
 		String source = document.getString("source");
 		int task_id = document.getInteger("task_id");
-		if (source.equals("Twitter")) {
+		if (source.equals("Twitter") || task_run_text.contains("http://twitter.com/")) {
 			Document taskDoc = MongodbMethods.getTaskFromMongoDB(task_id);
-			String task_text = taskDoc.getString("task_text");
-			String media_url = taskDoc.getString("media_url");
 			String taskTag = "#t" + task_id;
 			int project_id = document.getInteger("project_id");
 			ArrayList<String> hashtags = MongodbMethods.getProjectHashTags(project_id);
-
+			String twitter_url = taskDoc.getString("twitter_url");
 			HashSet<String> users = extractUserToBeSharedWith(task_run_text);
 			if (!users.isEmpty()) {
 				for (String string : users) {
-					int response = TwitterMethods.sendTaskToTwitter(task_text, media_url, taskTag, hashtags, 2, string);
+					int response = TwitterMethods.sendTaskToTwitterWithUrl(taskTag, hashtags, 2, string, twitter_url);
 					if (response == 1) {
 						logger.debug("Task was shared with " + string);
 						return true;
+					}else{
+						logger.error("Couldn't post tweet to Twitter");
 					}
 				}
+			}else{
+				logger.error("Couldn't identify users!");
 			}
 		}
 		return false;
@@ -179,10 +184,16 @@ public class InstructionSetPorcessor {
 	public static HashSet<String> extractUserToBeSharedWith(String instrcutionSetText) {
 
 		HashSet<String> users = new HashSet<String>();
-		Pattern pattern = Pattern.compile("@([A-Za-z0-9_]+)");
+		Pattern pattern = Pattern.compile("http://twitter.com/([A-Za-z0-9_]+)");
+		Pattern pattern2 = Pattern.compile("@([A-Za-z0-9_]+)");
 		Matcher matcher = pattern.matcher(instrcutionSetText);
-		while (matcher.find()) {
-			users.add(matcher.group());
+		if (matcher.find()) {
+			users.add("@" + matcher.group(1));
+		}else{
+			Matcher matcher2 = pattern2.matcher(instrcutionSetText);
+			if (matcher2.find()) {
+				users.add(matcher2.group());
+			}
 		}
 		return users;
 

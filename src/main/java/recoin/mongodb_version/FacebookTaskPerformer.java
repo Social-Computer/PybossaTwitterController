@@ -2,9 +2,13 @@ package recoin.mongodb_version;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.Queue;
 
+import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.bson.Document;
@@ -53,8 +57,7 @@ public class FacebookTaskPerformer {
 
 				// randomly pick a task
 				// for (Document document : tasksToBePushed) {
-				int seed = 300;
-				Queue<Document> queue = TwitterTaskPerformer.stackQueue(tasksToBePushed, seed, "facebook");
+				Queue<Document> queue = stackFacebookQueue(tasksToBePushed);
 				for (Document document : queue) {
 					String facebook_task_status = document.getString("facebook_task_status");
 					String task_text = document.getString("task_text");
@@ -117,5 +120,17 @@ public class FacebookTaskPerformer {
 			logger.error("Error ", e);
 		}
 	}
+	public static Queue<Document> stackFacebookQueue(ArrayList<Document> tasksToBePushed) {
 
+		Collections.sort(tasksToBePushed, new Comparator<Document>() {
+			@Override
+			public int compare(Document p1, Document p2) {
+				return new CompareToBuilder().append(p2.getInteger("priority"), p1.getInteger("priority"))
+						.append(p2.getString("facebook_task_status"), p1.getString("facebook_task_status"))
+						.append(p2.getString("task_text").length(), p1.getString("task_text").length()).toComparison();
+			}
+		});
+		Queue<Document> queue = new LinkedList<Document>(tasksToBePushed);
+		return queue;
+	}
 }

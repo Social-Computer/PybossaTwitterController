@@ -57,7 +57,7 @@ public class TwitterTaskCollector {
 		try {
 
 			logger.debug("Getting time line from Twitter");
-			ArrayList<JSONObject> ResponsesFromTwitter = TwitterMethods.getTimeLineAsJsons(twitter);
+			ArrayList<JSONObject> ResponsesFromTwitter = TwitterMethods.getMentionsTimelineAsJsons(twitter);
 			if (ResponsesFromTwitter != null) {
 				logger.debug("There are " + ResponsesFromTwitter.size() + " tweets to be processed");
 				for (JSONObject jsonObject : ResponsesFromTwitter) {

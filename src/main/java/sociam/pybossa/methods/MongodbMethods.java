@@ -299,11 +299,12 @@ public class MongodbMethods {
 			String publishedAt = MongoDBformatter.format(date);
 			JSONObject embedJson = TwitterMethods
 					.getOembed("https://api.twitter.com/1/statuses/oembed.json?id=" + tweet_id);
-			JSONObject embed_nomediaJson = TwitterMethods.getOembed(
-					"https://api.twitter.com/1/statuses/oembed.json?hide_media=true&id=" + tweet_id);
+			JSONObject embed_nomediaJson = TwitterMethods
+					.getOembed("https://api.twitter.com/1/statuses/oembed.json?hide_media=true&id=" + tweet_id);
+			String redirect_tweet_id = TwitterMethods.redirectStatua("https://twitter.com/statuses/" + tweet_id);
 			// String targettedFormat = MongoDBformatter.format(publishedAt);
 			logger.debug("Inserting a task into MongoDB");
-			if (pushTaskToMongoDB(publishedAt, project_id, bin_id_String, task_status, task_text, tweet_id,
+			if (pushTaskToMongoDB(publishedAt, project_id, bin_id_String, task_status, task_text, redirect_tweet_id,
 					task_type, embedJson, embed_nomediaJson)) {
 				return true;
 			} else {
@@ -317,12 +318,13 @@ public class MongodbMethods {
 	}
 
 	public static boolean pushTaskToMongoDB(String publishedAt, Integer project_id, String bin_id_String,
-			String task_status, String task_text, Long tweet_id, String task_type,JSONObject embedJson,JSONObject embed_nomediaJson) {
+			String task_status, String task_text, String tweet_url, String task_type, JSONObject embedJson,
+			JSONObject embed_nomediaJson) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 
-			Document doc1 = Document.parse( embedJson.toString() );
-			Document doc2 = Document.parse( embed_nomediaJson.toString() );
+			Document doc1 = Document.parse(embedJson.toString());
+			Document doc2 = Document.parse(embed_nomediaJson.toString());
 			if (publishedAt != null && project_id != null && task_status != null && task_text != null
 					&& task_type != null && bin_id_String != null) {
 				MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
@@ -334,9 +336,9 @@ public class MongodbMethods {
 									.append("project_id", project_id).append("bin_id_String", bin_id_String)
 									.append("task_status", task_status).append("twitter_task_status", task_status)
 									.append("facebook_task_status", task_status).append("task_status", task_status)
-									.append("task_text", task_text)
-									.append("twitter_url", "https://twitter.com/statuses/" + String.valueOf(tweet_id))
-									.append("task_type", task_type).append("priority", 0).append("embed", doc1).append("embed_nomedia", doc2));
+									.append("task_text", task_text).append("twitter_url", tweet_url)
+									.append("task_type", task_type).append("priority", 0).append("embed", doc1)
+									.append("embed_nomedia", doc2));
 					logger.debug("One task is inserted into MongoDB");
 
 				} else {
