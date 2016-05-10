@@ -124,7 +124,7 @@ public class FacebookMethods {
 			// post = post + " " + taskTag + " " +
 			// "you can also monitor this task " + Config.domainURI + tag;
 			post = post
-					+ "Reply or go to "
+					+ " Reply or go to "
 					+ Config.domainURI
 					+ tag
 					+ " to contribute instructions. HowTo: http://social-computer.org "
