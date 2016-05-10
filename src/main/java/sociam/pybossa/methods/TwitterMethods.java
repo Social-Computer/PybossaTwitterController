@@ -75,7 +75,6 @@ public class TwitterMethods {
 			if (userTobeShared != null) {
 				post = userTobeShared + " " + post;
 			}
-
 			// convert taskContent and question into an image
 			File image = null;
 			if (!media_url.equals("")) {
@@ -84,16 +83,13 @@ public class TwitterMethods {
 			} else {
 				image = StringToImage.convertStringToImage(taskContent);
 			}
-
 			if (post.length() < 140) {
 				// image must exist
 				if (image != null) {
 					// status = twitter.updateStatus(post);
-
 					StatusUpdate status = new StatusUpdate(post);
 					status.setMedia(image);
 					twitter.updateStatus(status);
-
 					logger.debug("Successfully posting a task '"
 							+ status.getStatus() + "'." + status.getPlaceId());
 					return 1;
@@ -125,8 +121,15 @@ public class TwitterMethods {
 			// combine hashtags and tasktag while maintaining the 140 length
 			String post = question;
 			String tag = taskTag.replaceAll("#t", "");
-			post = post + " " + taskTag + " & monitor the task "
-					+ Config.domainURI + tag;
+			// post = post + " " + taskTag + " & monitor the task "
+			// + Config.domainURI + tag;
+
+			post = post
+					+ "Reply or go to "
+					+ Config.domainURI
+					+ tag
+					+ " to contribute instructions. HowTo: http://social-computer.org "
+					+ taskTag;
 
 			if (userTobeShared != null) {
 				post = userTobeShared + " " + post;
@@ -156,7 +159,6 @@ public class TwitterMethods {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-
 			} else if (te.getErrorCode() == 187) {
 				return 3;
 			}
@@ -193,6 +195,20 @@ public class TwitterMethods {
 				JSONObject json = new JSONObject(rawJSON);
 				return json;
 			}
+		} catch (TwitterException te) {
+			logger.error("Failed to get timeline: ", te);
+			if (te.exceededRateLimitation()) {
+				try {
+					logger.debug("Twitter rate limit is exceeded waiting for 300000 ms");
+					Thread.sleep(300000);
+					getTweetByID(status_id_str, twitter);
+				} catch (InterruptedException e) {
+					logger.error("Error ", e);
+					return null;
+				}
+			}
+			return null;
+
 		} catch (Exception e) {
 			logger.error("Error ", e);
 			return null;
@@ -204,6 +220,20 @@ public class TwitterMethods {
 		try {
 			Status status = twitter.showStatus(Long.parseLong(status_id_str));
 			return status;
+		} catch (TwitterException te) {
+			logger.error("Failed to get timeline: ", te);
+			if (te.exceededRateLimitation()) {
+				try {
+					logger.debug("Twitter rate limit is exceeded waiting for 300000 ms");
+					Thread.sleep(300000);
+					getTweetStausByID(status_id_str, twitter);
+				} catch (InterruptedException e) {
+					logger.error("Error ", e);
+					e.printStackTrace();
+					return null;
+				}
+			}
+			return null;
 		} catch (Exception e) {
 			logger.error("Error ", e);
 			return null;
@@ -218,7 +248,6 @@ public class TwitterMethods {
 			p.setCount(200);
 			List<Status> statuses = twitter.getHomeTimeline(p);
 			for (Status status : statuses) {
-
 				String rawJSON = TwitterObjectFactory.getRawJSON(status);
 				JSONObject jsonObject = new JSONObject(rawJSON);
 				jsons.add(jsonObject);
@@ -234,25 +263,21 @@ public class TwitterMethods {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-
 			}
 			return null;
 		}
-
 		return jsons;
 
 	}
 
 	public static ArrayList<JSONObject> getMentionsTimelineAsJsons(
 			Twitter twitter) {
-
 		ArrayList<JSONObject> jsons = new ArrayList<JSONObject>();
 		try {
 			Paging p = new Paging();
 			p.setCount(200);
 			List<Status> statuses = twitter.getMentionsTimeline(p);
 			for (Status status : statuses) {
-
 				String rawJSON = TwitterObjectFactory.getRawJSON(status);
 				JSONObject jsonObject = new JSONObject(rawJSON);
 				jsons.add(jsonObject);
@@ -268,26 +293,20 @@ public class TwitterMethods {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-
 			}
 			return null;
 		}
-
 		return jsons;
-
 	}
 
 	public static JSONObject getOembed(String url) {
 
 		JSONObject jsons = new JSONObject();
 		try {
-
 			URL obj = new URL(url);
 			HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-
 			// optional default is GET
 			con.setRequestMethod("GET");
-
 			int responseCode = con.getResponseCode();
 			if (responseCode == 200) {
 				BufferedReader in = new BufferedReader(new InputStreamReader(
@@ -298,7 +317,6 @@ public class TwitterMethods {
 				while ((inputLine = in.readLine()) != null) {
 					response.append(inputLine);
 				}
-
 				jsons = new JSONObject(response.toString());
 				in.close();
 			}
@@ -307,12 +325,10 @@ public class TwitterMethods {
 				json.put("error", "not there");
 				return json;
 			}
-
 			return jsons;
 		} catch (Exception te) {
 			logger.error("Failed to get Oembed: ", te);
 			return null;
 		}
-
 	}
 }

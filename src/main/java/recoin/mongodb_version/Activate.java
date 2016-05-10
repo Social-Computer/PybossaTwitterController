@@ -34,6 +34,9 @@ public class Activate {
 				logger.debug("Project has to be created");
 				ArrayList<String> identifiers = getIdentifers(status);
 				projectJson = createProjectObject(projectName, identifiers);
+				logger.debug("Adding project_id field to collection "
+						+ Config.projectCollection);
+				MongodbMethods.updateProjectsByAddingCounters();
 				project_id = MongodbMethods.insertProject(projectJson);
 			} else {
 				logger.debug("Project is already existed");
