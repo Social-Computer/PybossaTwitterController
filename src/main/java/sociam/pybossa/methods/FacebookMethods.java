@@ -109,6 +109,16 @@ public class FacebookMethods {
 			}
 
 			String post = question;
+			
+			String tag = taskTag.replaceAll("#t", "");
+			// post = post + " " + taskTag + " " +
+			// "you can also monitor this task " + Config.domainURI + tag;
+			post = post
+					+ "Reply or go to "
+					+ Config.domainURI
+					+ tag
+					+ " to contribute instructions. HowTo: http://social-computer.org "
+					+ taskTag + " ";
 			for (String string : hashtags) {
 				if (post.length() == 0) {
 					post = string;
@@ -120,16 +130,6 @@ public class FacebookMethods {
 					post = post + " " + string;
 				}
 			}
-			String tag = taskTag.replaceAll("#t", "");
-			// post = post + " " + taskTag + " " +
-			// "you can also monitor this task " + Config.domainURI + tag;
-			post = post
-					+ " Reply or go to "
-					+ Config.domainURI
-					+ tag
-					+ " to contribute instructions. HowTo: http://social-computer.org "
-					+ taskTag;
-
 			// status = facebook.updateStatus(post);
 
 			PostUpdate facebookPost = new PostUpdate(new URL(url))
