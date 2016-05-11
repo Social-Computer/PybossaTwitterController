@@ -41,7 +41,7 @@ public class Backup {
 
 	public static void processBackup() {
 
-		String root = "/data/SocialComputerBuackups/";
+		String root = "Users/user/backup/";
 		Date date = new Date();
 		String dateString = dateFormat.format(date);
 		String platformData = "platforms";
@@ -53,19 +53,19 @@ public class Backup {
 		String mongodbPath = root + dateString + "/" + "MongodbBackups";
 		logger.debug("Starting the cleaning process");
 
-		logger.debug("==============================");
-		logger.debug("Removing posts from Facebook!");
-		JSONObject facebookJson = removeFacebookPosts();
-		if (facebookJson != null) {
-			logger.debug("posts were successfuly deelted!");
-			logger.debug("Storing data from facebook to  " + facbookPath);
-			Boolean result = writeJsonToFile(facbookPath, facebookJson);
-			if (result) {
-				logger.debug("Successful storing of facebook JSON to file");
-			} else {
-				logger.error("Error in storing facebook JSON to file");
-			}
-		}
+		// logger.debug("==============================");
+		// logger.debug("Removing posts from Facebook!");
+		// JSONObject facebookJson = removeFacebookPosts();
+		// if (facebookJson != null) {
+		// logger.debug("posts were successfuly deelted!");
+		// logger.debug("Storing data from facebook to " + facbookPath);
+		// Boolean result = writeJsonToFile(facbookPath, facebookJson);
+		// if (result) {
+		// logger.debug("Successful storing of facebook JSON to file");
+		// } else {
+		// logger.error("Error in storing facebook JSON to file");
+		// }
+		// }
 
 		logger.debug("==============================");
 		logger.debug("Removing tweets from Twitter!");
