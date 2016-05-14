@@ -290,8 +290,16 @@ public class TwitterMethods {
 					Thread.sleep(300000);
 					getMentionsTimelineAsJsons(twitter);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.error("Error", e);
+				}
+			}else if (te.resourceNotFound()){
+				try {
+					logger.debug("resource does not exsits, waiting for 60000 ms");
+					Thread.sleep(60000);
+					return null;
+				} catch (InterruptedException e) {
+					logger.error("Error", e);
+					return null;
 				}
 			}
 			return null;
