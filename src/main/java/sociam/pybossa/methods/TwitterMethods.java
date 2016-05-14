@@ -292,9 +292,9 @@ public class TwitterMethods {
 				} catch (InterruptedException e) {
 					logger.error("Error", e);
 				}
-			}else if (te.resourceNotFound()){
+			}else {
 				try {
-					logger.debug("resource does not exsits, waiting for 60000 ms");
+					logger.debug("error, waiting for 60000 ms");
 					Thread.sleep(60000);
 					return null;
 				} catch (InterruptedException e) {
@@ -302,7 +302,6 @@ public class TwitterMethods {
 					return null;
 				}
 			}
-			return null;
 		}
 		return jsons;
 	}
