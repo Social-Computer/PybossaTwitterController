@@ -275,7 +275,7 @@ public class TwitterMethods {
 		ArrayList<JSONObject> jsons = new ArrayList<JSONObject>();
 		try {
 			Paging p = new Paging();
-			p.setCount(200);
+			p.setCount(20);
 			List<Status> statuses = twitter.getMentionsTimeline(p);
 			for (Status status : statuses) {
 				String rawJSON = TwitterObjectFactory.getRawJSON(status);
