@@ -156,11 +156,25 @@ public class TwitterMethods {
 					sendTaskToTwitterWithUrl(taskTag, hashtags, project_type,
 							userTobeShared, tweet_url);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logger.error("Error ", e);
 				}
 			} else if (te.getErrorCode() == 187) {
+				logger.debug("Waiting 1 minute!");
+				try {
+					Thread.sleep(60000);
+				} catch (InterruptedException e) {
+					logger.error("Error ", e);
+					return 3;
+				}
 				return 3;
+			} else {
+				logger.debug("Waiting 1 minute!");
+				try {
+					Thread.sleep(60000);
+				} catch (InterruptedException e) {
+					logger.error("Error ", e);
+					return 2;
+				}
 			}
 			return 2;
 
@@ -206,9 +220,18 @@ public class TwitterMethods {
 					logger.error("Error ", e);
 					return null;
 				}
+			} else {
+				logger.error("Error ", te);
+				logger.debug("Waiting 1 minute!");
+				try {
+					Thread.sleep(60000);
+				} catch (InterruptedException e) {
+					logger.error("Error ", e);
+					return null;
+				}
+				return null;
 			}
 			return null;
-
 		} catch (Exception e) {
 			logger.error("Error ", e);
 			return null;
@@ -292,7 +315,7 @@ public class TwitterMethods {
 				} catch (InterruptedException e) {
 					logger.error("Error", e);
 				}
-			}else {
+			} else {
 				try {
 					logger.debug("error, waiting for 60000 ms");
 					Thread.sleep(60000);

@@ -17,7 +17,6 @@ public class TestQueue2 {
 
 	public static void main(String[] args) {
 
-		int seed = 200;
 		ArrayList<Document> tasksToBePushed = MongodbMethods.getIncompletedTasksFromMongoDB("twitter_task_status");
 		Queue<Document> queue = TwitterTaskPerformer.stackTwitterQueue(tasksToBePushed);
 		System.out.println("List: " + queue.size());

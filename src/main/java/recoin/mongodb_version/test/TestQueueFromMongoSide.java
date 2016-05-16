@@ -1,11 +1,9 @@
 package recoin.mongodb_version.test;
 
-import java.util.ArrayList;
 import java.util.Queue;
 
 import org.bson.Document;
 
-import recoin.mongodb_version.TwitterTaskPerformer;
 import sociam.pybossa.methods.MongodbMethods;
 
 public class TestQueueFromMongoSide {

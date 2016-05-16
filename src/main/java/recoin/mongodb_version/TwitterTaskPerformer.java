@@ -28,18 +28,21 @@ import sociam.pybossa.methods.TwitterMethods;
 public class TwitterTaskPerformer {
 
 	final static Logger logger = Logger.getLogger(TwitterTaskPerformer.class);
-	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat(
+			"yyyy-MM-dd HH:mm:ss");
 
 	static Boolean wasPushed = false;
 
 	public static void main(String[] args) {
 		PropertyConfigurator.configure("log4j.properties");
-		logger.info("TaskPerformer will be repeated every " + Config.TaskCreatorTrigger + " ms");
+		logger.info("TaskPerformer will be repeated every "
+				+ Config.TaskCreatorTrigger + " ms");
 		try {
 			while (true) {
 				Config.reload();
 				run();
-				logger.info("Sleeping for " + Config.TaskPerformerTrigger + " ms");
+				logger.info("Sleeping for " + Config.TaskPerformerTrigger
+						+ " ms");
 				Thread.sleep(Integer.valueOf(Config.TaskPerformerTrigger));
 			}
 		} catch (InterruptedException e) {
@@ -49,26 +52,33 @@ public class TwitterTaskPerformer {
 
 	public static void run() {
 		try {
-			
+
 			// add counter for tasks as task_id
-			logger.debug("Adding task_id field to collection " + Config.taskCollection);
+			logger.debug("Adding task_id field to collection "
+					+ Config.taskCollection);
 			MongodbMethods.updateTasksByAddingCounters();
-			
-			ArrayList<Document> tasksToBePushed = MongodbMethods.getIncompletedTasksFromMongoDB("twitter_task_status");
+
+			ArrayList<Document> tasksToBePushed = MongodbMethods
+					.getIncompletedTasksFromMongoDB("twitter_task_status");
 			if (tasksToBePushed != null) {
-				logger.info("There are " + tasksToBePushed.size()
+				logger.info("There are "
+						+ tasksToBePushed.size()
 						+ " tasks that need to be pushed into Twitter, then updating to MongoDB");
 
 				// randomly pick a task
 				// for (Document document : tasksToBePushed) {
 				Queue<Document> queue = stackTwitterQueue(tasksToBePushed);
 				for (Document document : queue) {
-					logger.debug("The queue size is " + queue.size() + " Task to be processed " + document.toString());
-					String twitter_task_status = document.getString("twitter_task_status");
+					logger.debug("The queue size is " + queue.size()
+							+ " Task to be processed " + document.toString());
+					String twitter_task_status = document
+							.getString("twitter_task_status");
 					String task_text = document.getString("task_text");
 					if (twitter_task_status.equals("pushed")) {
-						String twitter_lastPushAtString = document.getString("twitter_lastPushAt");
-						Date twitter_lastPushAt = MongoDBformatter.parse(twitter_lastPushAtString);
+						String twitter_lastPushAtString = document
+								.getString("twitter_lastPushAt");
+						Date twitter_lastPushAt = MongoDBformatter
+								.parse(twitter_lastPushAtString);
 						if (!GeneralMethods.rePush(twitter_lastPushAt)) {
 							continue;
 						} else {
@@ -80,35 +90,45 @@ public class TwitterTaskPerformer {
 					int project_id = document.getInteger("project_id");
 					String twitter_url = document.getString("twitter_url");
 					String redirect_tweet_id = null;
+					logger.debug("twitter_url " + twitter_url);
 					if (twitter_url == null) {
 						logger.error("task does not contain twitter_url");
 						continue;
 					} else {
-						redirect_tweet_id = TwitterMethods.redirectStatua(twitter_url);
+						redirect_tweet_id = TwitterMethods
+								.redirectStatua(twitter_url);
 						if (redirect_tweet_id == null) {
 							logger.error("coundn't resolve stored tweet_url to its orginal url");
 							continue;
 						}
+						logger.debug("redirect_tweet_id " + redirect_tweet_id);
 					}
-					ArrayList<String> hashtags = MongodbMethods.getProjectHashTags(project_id);
+					ArrayList<String> hashtags = MongodbMethods
+							.getProjectHashTags(project_id);
 					String taskTag = "#t" + task_id;
-					int responseCode = TwitterMethods.sendTaskToTwitterWithUrl(taskTag, hashtags, 2, null,
-							redirect_tweet_id);
+					int responseCode = TwitterMethods.sendTaskToTwitterWithUrl(
+							taskTag, hashtags, 2, null, redirect_tweet_id);
 					if (responseCode == 1) {
-						if (MongodbMethods.updateTaskToPushedInMongoDB(_id, "pushed")) {
-							logger.info("Task with text " + task_text + " has been sucessfully pushed to Twitter");
+						if (MongodbMethods.updateTaskToPushedInMongoDB(_id,
+								"pushed")) {
+							logger.info("Task with text " + task_text
+									+ " has been sucessfully pushed to Twitter");
 							wasPushed = true;
 						} else {
-							logger.error(
-									"Error with updating " + Config.taskCollection + " for the _id " + _id.toString());
+							logger.error("Error with updating "
+									+ Config.taskCollection + " for the _id "
+									+ _id.toString());
 						}
 					} else if (responseCode == 0) {
-						if (MongodbMethods.updateTaskToPushedInMongoDB(_id, "notValied")) {
-							logger.debug("Tweeet is not valid because of length, but updated in Mongodb" + task_text);
+						if (MongodbMethods.updateTaskToPushedInMongoDB(_id,
+								"notValied")) {
+							logger.debug("Tweeet is not valid because of length, but updated in Mongodb"
+									+ task_text);
 						}
 						logger.error("Couldn't update the task in MongoDB");
 					} else if (responseCode == 2) {
-						if (MongodbMethods.updateTaskToPushedInMongoDB(_id, "error")) {
+						if (MongodbMethods.updateTaskToPushedInMongoDB(_id,
+								"error")) {
 							logger.debug("pushing tweet has encountered an error, but has been updated into MongoDB "
 									+ task_text);
 						} else {
@@ -121,9 +141,11 @@ public class TwitterTaskPerformer {
 
 					if (wasPushed) {
 						wasPushed = false;
-						logger.debug(
-								"waiting for " + Config.TaskPerformerPushRate + " ms before pushing another tweet");
-						Thread.sleep(Integer.valueOf(Config.TaskPerformerPushRate));
+						logger.debug("waiting for "
+								+ Config.TaskPerformerPushRate
+								+ " ms before pushing another tweet");
+						Thread.sleep(Integer
+								.valueOf(Config.TaskPerformerPushRate));
 					}
 				}
 			}
@@ -132,14 +154,20 @@ public class TwitterTaskPerformer {
 		}
 	}
 
-	public static Queue<Document> stackTwitterQueue(ArrayList<Document> tasksToBePushed) {
+	public static Queue<Document> stackTwitterQueue(
+			ArrayList<Document> tasksToBePushed) {
 
 		Collections.sort(tasksToBePushed, new Comparator<Document>() {
 			@Override
 			public int compare(Document p1, Document p2) {
-				return new CompareToBuilder().append(p2.getInteger("priority"), p1.getInteger("priority"))
-						.append(p2.getString("twitter_task_status"), p1.getString("twitter_task_status"))
-						.append(p2.getString("task_text").length(), p1.getString("task_text").length()).toComparison();
+				return new CompareToBuilder()
+						.append(p2.getInteger("priority"),
+								p1.getInteger("priority"))
+						.append(p2.getString("twitter_task_status"),
+								p1.getString("twitter_task_status"))
+						.append(p2.getString("task_text").length(),
+								p1.getString("task_text").length())
+						.toComparison();
 			}
 		});
 		Queue<Document> queue = new LinkedList<Document>(tasksToBePushed);
