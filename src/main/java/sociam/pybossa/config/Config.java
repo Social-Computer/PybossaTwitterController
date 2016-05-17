@@ -49,6 +49,7 @@ public class Config {
 	public static String Facebook_permissions;
 	
 	public static String domainURI;
+	public static String pushinglimit;
 
 	public static void reload() {
 
@@ -114,6 +115,7 @@ public class Config {
 		Facebook_permissions = p.getProperty("Facebook_permissions");
 		
 		domainURI = p.getProperty("domainURI");
+		pushinglimit = p.getProperty("pushinglimit");
 
 	}
 
@@ -180,6 +182,7 @@ public class Config {
 		Facebook_permissions = p.getProperty("Facebook_permissions");
 
 		domainURI = p.getProperty("domainURI");
+		pushinglimit = p.getProperty("pushinglimit");
 	}
 
 }

@@ -36,7 +36,7 @@ public class Backup {
 
 	public static void main(String[] args) {
 
-		processBackup();
+		// processBackup();
 	}
 
 	public static void processBackup() {
@@ -47,27 +47,25 @@ public class Backup {
 		String platformData = "platforms";
 		String facebook = "facebook";
 		String twitter = "twitter";
-		String facbookPath = root + dateString + "/" + platformData + "/"
-				+ facebook;
-		String twitterPath = root + dateString + "/" + platformData + "/"
-				+ twitter;
+		String facbookPath = root + dateString + "/" + platformData + "/" + facebook;
+		String twitterPath = root + dateString + "/" + platformData + "/" + twitter;
 
 		String mongodbPath = root + dateString + "/" + "MongodbBackups";
 		logger.debug("Starting the cleaning process");
 
-		// logger.debug("==============================");
-		// logger.debug("Removing posts from Facebook!");
-		// JSONObject facebookJson = removeFacebookPosts();
-		// if (facebookJson != null) {
-		// logger.debug("posts were successfuly deelted!");
-		// logger.debug("Storing data from facebook to " + facbookPath);
-		// Boolean result = writeJsonToFile(facbookPath, facebookJson);
-		// if (result) {
-		// logger.debug("Successful storing of facebook JSON to file");
-		// } else {
-		// logger.error("Error in storing facebook JSON to file");
-		// }
-		// }
+		logger.debug("==============================");
+		logger.debug("Removing posts from Facebook!");
+		JSONObject facebookJson = removeFacebookPosts();
+		if (facebookJson != null) {
+			logger.debug("posts were successfuly deelted!");
+			logger.debug("Storing data from facebook to " + facbookPath);
+			Boolean result = writeJsonToFile(facbookPath, facebookJson);
+			if (result) {
+				logger.debug("Successful storing of facebook JSON to file");
+			} else {
+				logger.error("Error in storing facebook JSON to file");
+			}
+		}
 
 		logger.debug("==============================");
 		logger.debug("Removing tweets from Twitter!");
@@ -139,8 +137,7 @@ public class Backup {
 				for (Status status : statuses) {
 					try {
 						long id = status.getId();
-						String rawJSON = TwitterObjectFactory
-								.getRawJSON(status);
+						String rawJSON = TwitterObjectFactory.getRawJSON(status);
 						json.put(String.valueOf(id), rawJSON);
 						logger.debug("Id " + id + " " + rawJSON);
 						twitter.destroyStatus(id);
@@ -183,8 +180,7 @@ public class Backup {
 			Facebook facebook = FacebookAccount.setFacebookAccount(1);
 			ArrayList<Post> posts;
 			int errorCounter = 0;
-			loop1: while ((posts = FacebookMethods
-					.getLatestPostsEvenWithoutComments(facebook)) != null) {
+			loop1: while ((posts = FacebookMethods.getLatestPostsEvenWithoutComments(facebook)) != null) {
 				logger.debug("post size " + posts.size());
 				if (errorCounter > 5) {
 					break loop1;
@@ -197,9 +193,7 @@ public class Backup {
 						String rawJSON = DataObjectFactory.getRawJSON(post);
 						json.put(String.valueOf(post.getId()), rawJSON);
 						logger.debug("ID " + post.getId() + " " + rawJSON);
-						logger.debug("Post with id "
-								+ facebook.deletePost(post.getId())
-								+ " is deleted");
+						logger.debug("Post with id " + facebook.deletePost(post.getId()) + " is deleted");
 						errorCounter = 0;
 					} catch (Exception e) {
 						errorCounter++;
@@ -220,23 +214,16 @@ public class Backup {
 	public static Boolean mongodbDump(String dateString) {
 
 		try {
-			Process process = Runtime.getRuntime().exec(
-					new String[] {
-							"/bin/sh",
-							"-c",
-							"/usr/bin/mongodump --db "
-									+ Config.binsDatabaseName + " --out "
-									+ dateString });
+			Process process = Runtime.getRuntime().exec(new String[] { "/bin/sh", "-c",
+					"/usr/bin/mongodump --db " + Config.binsDatabaseName + " --out " + dateString });
 			process.waitFor();
 			int exitCode = process.exitValue();
 			StringBuffer output = new StringBuffer();
 			BufferedReader reader = null;
 			if (exitCode == 0) {
-				reader = new BufferedReader(new InputStreamReader(
-						process.getInputStream()));
+				reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			} else {
-				reader = new BufferedReader(new InputStreamReader(
-						process.getErrorStream()));
+				reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 			}
 			String line = "";
 			while ((line = reader.readLine()) != null) {
@@ -246,21 +233,14 @@ public class Backup {
 
 			if (exitCode == 0) {
 				output = new StringBuffer();
-				Process process2 = Runtime.getRuntime().exec(
-						new String[] {
-								"/bin/sh",
-								"-c",
-								"/usr/bin/mongodump --db "
-										+ Config.projectsDatabaseName
-										+ " --out " + dateString });
+				Process process2 = Runtime.getRuntime().exec(new String[] { "/bin/sh", "-c",
+						"/usr/bin/mongodump --db " + Config.projectsDatabaseName + " --out " + dateString });
 				process2.waitFor();
 				exitCode = process2.exitValue();
 				if (exitCode == 0) {
-					reader = new BufferedReader(new InputStreamReader(
-							process.getInputStream()));
+					reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 				} else {
-					reader = new BufferedReader(new InputStreamReader(
-							process.getErrorStream()));
+					reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 				}
 				line = "";
 				while ((line = reader.readLine()) != null) {
@@ -279,16 +259,14 @@ public class Backup {
 	}
 
 	public static Boolean deleteCollections(String databaseName) {
-		MongoClient mongoClient = new MongoClient(Config.mongoHost,
-				Config.mongoPort);
+		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 			MongoDatabase database = mongoClient.getDatabase(databaseName);
 			MongoIterable<String> iterable = database.listCollectionNames();
 			if (iterable.first() != null) {
 				for (String string : iterable) {
 					database.getCollection(string).drop();
-					logger.debug("Deleted Collection " + string
-							+ " from Database " + databaseName);
+					logger.debug("Deleted Collection " + string + " from Database " + databaseName);
 				}
 			}
 			mongoClient.close();

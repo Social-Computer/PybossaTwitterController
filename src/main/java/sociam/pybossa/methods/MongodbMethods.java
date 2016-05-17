@@ -337,8 +337,8 @@ public class MongodbMethods {
 									.append("task_status", task_status).append("twitter_task_status", task_status)
 									.append("facebook_task_status", task_status).append("task_status", task_status)
 									.append("task_text", task_text).append("twitter_url", tweet_url)
-									.append("task_type", task_type).append("priority", 0).append("embed", doc1)
-									.append("embed_nomedia", doc2));
+									.append("task_type", task_type).append("priority", 0).append("pushing_times", 0)
+									.append("embed", doc1).append("embed_nomedia", doc2));
 					logger.debug("One task is inserted into MongoDB");
 
 				} else {
@@ -710,16 +710,19 @@ public class MongodbMethods {
 		return hashtags;
 	}
 
-	public static Boolean updateTaskToPushedInMongoDB(ObjectId _id, String twitter_task_status) {
+	public static Boolean updateTaskToPushedInMongoDB(ObjectId _id, String twitter_task_status, Integer pushing_times) {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			Date date = new Date();
 			String lastPushAt = MongoDBformatter.format(date);
-			UpdateResult result = database.getCollection(Config.taskCollection).updateOne(new Document("_id", _id),
-					new Document().append("$set", new Document("twitter_task_status", twitter_task_status)
-							.append("twitter_lastPushAt", lastPushAt)));
+			UpdateResult result = database.getCollection(Config.taskCollection)
+					.updateOne(new Document("_id", _id),
+							new Document().append("$set",
+									new Document("twitter_task_status", twitter_task_status)
+											.append("twitter_lastPushAt", lastPushAt).append("pushing_times",
+													pushing_times++)));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
