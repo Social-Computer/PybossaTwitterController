@@ -182,18 +182,27 @@ public class Backup {
 		try {
 			Facebook facebook = FacebookAccount.setFacebookAccount(1);
 			ArrayList<Post> posts;
-			while ((posts = FacebookMethods
+			int errorCounter = 0;
+			loop1: while ((posts = FacebookMethods
 					.getLatestPostsEvenWithoutComments(facebook)) != null) {
 				logger.debug("post size " + posts.size());
+				if (errorCounter > 5) {
+					break loop1;
+				}
 				for (Post post : posts) {
 					try {
+						if (errorCounter > 5) {
+							break loop1;
+						}
 						String rawJSON = DataObjectFactory.getRawJSON(post);
 						json.put(String.valueOf(post.getId()), rawJSON);
 						logger.debug("ID " + post.getId() + " " + rawJSON);
 						logger.debug("Post with id "
 								+ facebook.deletePost(post.getId())
 								+ " is deleted");
+						errorCounter = 0;
 					} catch (Exception e) {
+						errorCounter++;
 						logger.error("Error", e);
 					}
 				}
