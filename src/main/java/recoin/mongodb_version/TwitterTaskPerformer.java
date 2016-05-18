@@ -144,6 +144,9 @@ public class TwitterTaskPerformer {
 			logger.error("Error ", e);
 		}
 	}
+	
+	
+	
 
 	public static Queue<Document> stackTwitterQueue(ArrayList<Document> tasksToBePushed) {
 
