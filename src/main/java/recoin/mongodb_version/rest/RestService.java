@@ -7,6 +7,13 @@ import org.apache.log4j.PropertyConfigurator;
 
 import sociam.pybossa.config.Config;
 
+/**
+ * 
+ * @author user Saud Aljaloud
+ * @author email sza1g10@ecs.soton.ac.uk
+ *
+ */
+
 public class RestService {
 
 	public static void main(String[] args) {

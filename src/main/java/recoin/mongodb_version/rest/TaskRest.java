@@ -8,6 +8,13 @@ import sociam.pybossa.methods.MongodbMethods;
 import spark.Request;
 import spark.Response;
 
+/**
+ * 
+ * @author user Saud Aljaloud
+ * @author email sza1g10@ecs.soton.ac.uk
+ *
+ */
+
 public class TaskRest {
 	final static Logger logger = Logger.getLogger(TaskRest.class);
 

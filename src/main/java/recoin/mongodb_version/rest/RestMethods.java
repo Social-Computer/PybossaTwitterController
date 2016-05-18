@@ -2,6 +2,13 @@ package recoin.mongodb_version.rest;
 
 import spark.Request;
 
+/**
+ * 
+ * @author user Saud Aljaloud
+ * @author email sza1g10@ecs.soton.ac.uk
+ *
+ */
+
 public class RestMethods {
 
 	public static final int port = 3344;

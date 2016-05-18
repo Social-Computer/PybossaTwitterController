@@ -20,6 +20,13 @@ import sociam.pybossa.methods.MongodbMethods;
 import twitter4j.Status;
 import twitter4j.TwitterObjectFactory;
 
+/**
+ * 
+ * @author user Saud Aljaloud
+ * @author email sza1g10@ecs.soton.ac.uk
+ *
+ */
+
 public class Activate {
 	final static Logger logger = Logger.getLogger(Activate.class);
 

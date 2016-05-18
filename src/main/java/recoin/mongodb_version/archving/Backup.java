@@ -30,6 +30,13 @@ import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.TwitterObjectFactory;
 
+/**
+ * 
+ * @author user Saud Aljaloud
+ * @author email sza1g10@ecs.soton.ac.uk
+ *
+ */
+
 public class Backup {
 	final static Logger logger = Logger.getLogger(Backup.class);
 	static DateFormat dateFormat = new SimpleDateFormat("dd_MM_yyyy");

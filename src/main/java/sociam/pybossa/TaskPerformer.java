@@ -73,8 +73,20 @@ public class TaskPerformer {
 					Document document = tasksToBePushed.get(genertatedTaskID);
 					String twitter_task_status = document
 							.getString("twitter_task_status");
+					Integer pushing_times = document.getInteger("pushing_times");
 					String task_text = document.getString("task_text");
+					Integer task_id = document.getInteger("task_id");
 					if (twitter_task_status.equals("pushed")) {
+						if (pushing_times > Integer.valueOf(Config.pushinglimit)) {
+							// move task to zombie state
+							Boolean result = MongodbMethods.updateTaskToBeCompleted(task_id);
+							if (result) {
+								logger.debug("Moved task to be completed " + document.toString());
+							} else {
+								logger.error("Task was not being updated to be completed " + document.toString());
+							}
+							continue;
+						}
 						String twitter_lastPushAtString = document.getString("twitter_lastPushAt");
 						Date twitter_lastPushAt = MongoDBformatter.parse(twitter_lastPushAtString);
 						if (!GeneralMethods.rePush(twitter_lastPushAt)) {
@@ -84,7 +96,7 @@ public class TaskPerformer {
 						}
 					}
 					ObjectId _id = document.getObjectId("_id");
-					Integer task_id = _id.getCounter();
+					// Integer task_id = _id.getCounter();
 					int project_id = document.getInteger("project_id");
 					String media_url = document.getString("media_url");
 					ArrayList<String> hashtags = MongodbMethods
@@ -93,7 +105,7 @@ public class TaskPerformer {
 					int responseCode = TwitterMethods.sendTaskToTwitter(
 							task_text, media_url, taskTag, hashtags, 2, null);
 					if (responseCode == 1) {
-						if (MongodbMethods.updateTaskToPushedInMongoDB(_id, "pushed")) {
+						if (MongodbMethods.updateTaskToPushedInMongoDB(_id, "pushed",pushing_times)) {
 							logger.info("Task with text " + task_text
 									+ " has been sucessfully pushed to Twitter");
 							wasPushed = true;
@@ -104,13 +116,13 @@ public class TaskPerformer {
 						}
 					} else if (responseCode == 0) {
 						if (MongodbMethods.updateTaskToPushedInMongoDB(_id,
-								"notValied")) {
+								"notValied",pushing_times)) {
 							logger.debug("Tweeet is not valid because of length, but updated in Mongodb"
 									+ task_text);
 						}
 						logger.error("Couldn't update the task in MongoDB");
 					} else if (responseCode == 2) {
-						if (MongodbMethods.updateTaskToPushedInMongoDB(_id, "error")) {
+						if (MongodbMethods.updateTaskToPushedInMongoDB(_id, "error",pushing_times)) {
 							logger.debug("pushing tweet has encountered an error, but has been updated into MongoDB "
 									+ task_text);
 						} else {
