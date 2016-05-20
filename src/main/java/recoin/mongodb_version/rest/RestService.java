@@ -19,23 +19,24 @@ public class RestService {
 	public static void main(String[] args) {
 		port(Integer.valueOf(Config.restPort));
 		PropertyConfigurator.configure("log4j.properties");
+		String domain = "/RecoinRestController";
 		Config.reload();
-		get("/Project", "application/json", (request, response) -> ProjectRest.getAllProjects(request, response));
-		get("/Project/:id/", "application/json",
+		get(domain +"/Project", "application/json", (request, response) -> ProjectRest.getAllProjects(request, response));
+		get(domain +"/Project/:id/", "application/json",
 				(request, response) -> ProjectRest.getProjectWithID(request, response));
-		get("/Task", "application/json", (request, response) -> TaskRest.getAllTasks(request, response));
-		get("/Task/:id", "application/json", (request, response) -> TaskRest.getTaskWithID(request, response));
-		get("/Task/:id/Responses", "application/json",
+		get(domain +"/Task", "application/json", (request, response) -> TaskRest.getAllTasks(request, response));
+		get(domain +"/Task/:id", "application/json", (request, response) -> TaskRest.getTaskWithID(request, response));
+		get(domain +"/Task/:id/Responses", "application/json",
 				(request, response) -> TaskRest.getTaskRunswithTask(request, response));
-		get("/Task/project", "application/json",
+		get(domain +"/Task/project", "application/json",
 				(request, response) -> TaskRest.getTaskWithProjectID(request, response));
-		get("/TaskRun", "application/json", (request, response) -> TaskRunRest.getAllTaskRuns(request, response));
-		get("/TaskRun/:id", "application/json", (request, response) -> TaskRunRest.getTaskWithID(request, response));
-		get("/TaskRun/task", "application/json",
+		get(domain +"/TaskRun", "application/json", (request, response) -> TaskRunRest.getAllTaskRuns(request, response));
+		get(domain +"/TaskRun/:id", "application/json", (request, response) -> TaskRunRest.getTaskWithID(request, response));
+		get(domain +"/TaskRun/task", "application/json",
 				(request, response) -> TaskRunRest.getTaskRunsWithTask(request, response));
-		get("/TaskRun/project", "application/json",
+		get(domain +"/TaskRun/project", "application/json",
 				(request, response) -> TaskRunRest.getTaskRunswithProject(request, response));
-		get("/getTasks", "application/json", (request, response) -> GetTasks.getSomeTasks(request, response));
+		get(domain +"/getTasks", "application/json", (request, response) -> GetTasks.getSomeTasks(request, response));
 
 	}
 }
