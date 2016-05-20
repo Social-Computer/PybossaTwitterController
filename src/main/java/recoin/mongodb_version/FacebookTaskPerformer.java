@@ -113,11 +113,28 @@ public class FacebookTaskPerformer {
 					}
 					// TODO: add lastPushAt when updating tasks
 
+					
+					//TODO: merge this code with twitter one into a gneral method with two arguments representing
+					//facebook_task_status or twitter_task_status and source to be either Facebook or Twitter.
 					if (wasPushed) {
 						wasPushed = false;
-						logger.debug("waiting for " + Config.TaskPerformerPushRate
-								+ " ms before pushing another post to facebook");
-						Thread.sleep(Integer.valueOf(Config.TaskPerformerPushRate));
+						ArrayList<Document> pushedTasks = MongodbMethods
+								.getPushedTasks("facebook_task_status",
+										"pushed", Config.taskCollection);
+						Integer pushedTasksNo = pushedTasks.size();
+						ArrayList<Document> collectedTaskRuns = MongodbMethods
+								.getPushedTasks("source", "Facebook",
+										Config.taskRunCollection);
+						Integer collectedTaskRunsNo = collectedTaskRuns.size();
+						float calcuatedWaitingTime = GeneralMethods
+								.getPusingTime(
+										Float.parseFloat(Config.topSpeed),
+										Float.parseFloat(Config.lowestSpeed),
+										Float.parseFloat(Config.firstLimit),
+										pushedTasksNo, collectedTaskRunsNo);
+						logger.debug("waiting for " + calcuatedWaitingTime
+								+ " minutes before pushing another post");
+						Thread.sleep((long) (calcuatedWaitingTime * 60 * 1000));
 					}
 				}
 			}
