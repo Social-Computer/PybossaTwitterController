@@ -50,6 +50,12 @@ public class Config {
 	
 	public static String domainURI;
 	public static String pushinglimit;
+	
+	public static String lowestSpeed;
+	public static String topSpeed;
+	public static String firstLimit;
+	
+	public static String twitterToDismissStatusesbeforeDate;
 
 	public static void reload() {
 
@@ -116,7 +122,12 @@ public class Config {
 		
 		domainURI = p.getProperty("domainURI");
 		pushinglimit = p.getProperty("pushinglimit");
+		
+		lowestSpeed = p.getProperty("lowestSpeed");
+		topSpeed = p.getProperty("topSpeed");
+		firstLimit = p.getProperty("firstLimit");
 
+		twitterToDismissStatusesbeforeDate= p.getProperty("twitterToDismissStatusesbeforeDate");
 	}
 
 	static {
@@ -183,6 +194,12 @@ public class Config {
 
 		domainURI = p.getProperty("domainURI");
 		pushinglimit = p.getProperty("pushinglimit");
+		
+		lowestSpeed = p.getProperty("lowestSpeed");
+		topSpeed = p.getProperty("topSpeed");
+		firstLimit = p.getProperty("firstLimit");
+
+		twitterToDismissStatusesbeforeDate= p.getProperty("twitterToDismissStatusesbeforeDate");
 	}
 
 }
