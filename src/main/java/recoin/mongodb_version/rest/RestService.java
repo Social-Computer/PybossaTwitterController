@@ -22,7 +22,7 @@ public class RestService {
 		String domain = "/RecoinRestController";
 		Config.reload();
 		get(domain +"/Project", "application/json", (request, response) -> ProjectRest.getAllProjects(request, response));
-		get(domain +"/Project/:id/", "application/json",
+		get(domain +"/Project/:id", "application/json",
 				(request, response) -> ProjectRest.getProjectWithID(request, response));
 		get(domain +"/Task", "application/json", (request, response) -> TaskRest.getAllTasks(request, response));
 		get(domain +"/Task/:id", "application/json", (request, response) -> TaskRest.getTaskWithID(request, response));
