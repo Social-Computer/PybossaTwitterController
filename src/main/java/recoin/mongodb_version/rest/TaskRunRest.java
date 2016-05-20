@@ -62,7 +62,7 @@ public class TaskRunRest {
 			response.type("application/json");
 			Integer offset = RestMethods.setOffset(request);
 			Integer limit = RestMethods.setLimit(request);
-			Integer task_id = Integer.valueOf(request.params("task_id"));
+			Integer task_id = Integer.valueOf(request.queryParams("task_id"));
 			jsonResponse = MongodbMethods
 					.getStatsFroRest(Config.taskRunCollection, "task_id",
 							task_id, offset, limit);
@@ -86,7 +86,7 @@ public class TaskRunRest {
 			response.type("application/json");
 			Integer offset = RestMethods.setOffset(request);
 			Integer limit = RestMethods.setLimit(request);
-			Integer project_id = Integer.valueOf(request.params("project_id"));
+			Integer project_id = Integer.valueOf(request.queryParams("project_id"));
 			jsonResponse = MongodbMethods.getStatsFroRest(
 					Config.taskRunCollection, "project_id", project_id, offset,
 					limit);
@@ -128,11 +128,11 @@ public class TaskRunRest {
 		JSONObject data = new JSONObject();
 		JSONObject status = new JSONObject();
 		try {
-			String text = request.params("text");
-			Integer task_id = Integer.valueOf(request.params("task_id"));
-			Integer project_id = Integer.valueOf(request.params("project_id"));
-			String contributor_name = request.params("contributor_name");
-			String source = request.params("source");
+			String text = request.queryParams("text");
+			Integer task_id = Integer.valueOf(request.queryParams("task_id"));
+			Integer project_id = Integer.valueOf(request.queryParams("project_id"));
+			String contributor_name = request.queryParams("contributor_name");
+			String source = request.queryParams("source");
 
 			if (text != null && task_id != null && project_id != null
 					&& contributor_name != null && source != null) {

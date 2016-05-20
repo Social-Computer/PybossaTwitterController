@@ -80,7 +80,7 @@ public class TaskRest {
 			response.type("application/json");
 			Integer offset = RestMethods.setOffset(request);
 			Integer limit = RestMethods.setLimit(request);
-			Integer project_id = Integer.valueOf(request.params("project_id"));
+			Integer project_id = Integer.valueOf(request.queryParams("project_id"));
 			jsonResponse = MongodbMethods.getStatsFroRest(Config.taskCollection, "project_id", project_id, offset,
 					limit);
 			response.status(200);
