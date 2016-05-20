@@ -25,7 +25,7 @@ public class RestService {
 		get(domain +"/Project/:id", "application/json",
 				(request, response) -> ProjectRest.getProjectWithID(request, response));
 		get(domain +"/Task", "application/json", (request, response) -> TaskRest.getAllTasks(request, response));
-		get(domain +"/Task/:id", "application/json", (request, response) -> TaskRest.getTaskWithID(request, response));
+		get(domain +"/Task/project/:id", "application/json", (request, response) -> TaskRest.getTaskWithID(request, response));
 		get(domain +"/Task/:id/Responses", "application/json",
 				(request, response) -> TaskRest.getTaskRunswithTask(request, response));
 		get(domain +"/Task/project", "application/json",
