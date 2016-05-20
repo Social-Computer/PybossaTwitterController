@@ -56,6 +56,8 @@ public class Config {
 	public static String firstLimit;
 	
 	public static String twitterToDismissStatusesbeforeDate;
+	
+	public static String restPort;
 
 	public static void reload() {
 
@@ -128,6 +130,10 @@ public class Config {
 		firstLimit = p.getProperty("firstLimit");
 
 		twitterToDismissStatusesbeforeDate= p.getProperty("twitterToDismissStatusesbeforeDate");
+		
+		restPort= p.getProperty("restPort");
+		
+		
 	}
 
 	static {
@@ -200,6 +206,8 @@ public class Config {
 		firstLimit = p.getProperty("firstLimit");
 
 		twitterToDismissStatusesbeforeDate= p.getProperty("twitterToDismissStatusesbeforeDate");
+		
+		restPort= p.getProperty("restPort");
 	}
 
 }

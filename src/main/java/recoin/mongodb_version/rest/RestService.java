@@ -17,7 +17,7 @@ import sociam.pybossa.config.Config;
 public class RestService {
 
 	public static void main(String[] args) {
-		port(RestMethods.port);
+		port(Integer.valueOf(Config.restPort));
 		PropertyConfigurator.configure("log4j.properties");
 		Config.reload();
 		get("/Project", "application/json", (request, response) -> ProjectRest.getAllProjects(request, response));

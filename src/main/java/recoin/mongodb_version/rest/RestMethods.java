@@ -11,7 +11,6 @@ import spark.Request;
 
 public class RestMethods {
 
-	public static final int port = 3344;
 
 	public static Integer setOffset(Request request) {
 		Integer offset = 0;
