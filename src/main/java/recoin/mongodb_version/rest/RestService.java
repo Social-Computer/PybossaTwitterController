@@ -31,11 +31,11 @@ public class RestService {
 		get(domain +"/Task/:id/Responses", "application/json",
 				(request, response) -> TaskRest.getTaskRunswithTask(request, response));
 		get(domain +"/TaskRun", "application/json", (request, response) -> TaskRunRest.getAllTaskRuns(request, response));
+		get(domain +"/TaskRun/project", "application/json",
+				(request, response) -> TaskRunRest.getTaskRunswithProject(request, response));
 		get(domain +"/TaskRun/:id", "application/json", (request, response) -> TaskRunRest.getTaskWithID(request, response));
 		get(domain +"/TaskRun/task", "application/json",
 				(request, response) -> TaskRunRest.getTaskRunsWithTask(request, response));
-		get(domain +"/TaskRun/project", "application/json",
-				(request, response) -> TaskRunRest.getTaskRunswithProject(request, response));
 		get(domain +"/getTasks", "application/json", (request, response) -> GetTasks.getSomeTasks(request, response));
 		get(domain +"/sendTaskRun", "application/json", (request, response) -> TaskRunRest.insertTaskRun(request, response));
 
