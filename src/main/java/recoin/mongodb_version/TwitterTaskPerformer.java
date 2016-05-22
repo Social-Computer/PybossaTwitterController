@@ -28,21 +28,18 @@ import sociam.pybossa.methods.TwitterMethods;
 public class TwitterTaskPerformer {
 
 	final static Logger logger = Logger.getLogger(TwitterTaskPerformer.class);
-	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat(
-			"yyyy-MM-dd HH:mm:ss");
+	final static SimpleDateFormat MongoDBformatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	static Boolean wasPushed = false;
 
 	public static void main(String[] args) {
 		PropertyConfigurator.configure("log4j.properties");
-		logger.info("TaskPerformer will be repeated every "
-				+ Config.TaskCreatorTrigger + " ms");
+		logger.info("TaskPerformer will be repeated every " + Config.TaskCreatorTrigger + " ms");
 		try {
 			while (true) {
 				Config.reload();
 				run();
-				logger.info("Sleeping for " + Config.TaskPerformerTrigger
-						+ " ms");
+				logger.info("Sleeping for " + Config.TaskPerformerTrigger + " ms");
 				Thread.sleep(Integer.valueOf(Config.TaskPerformerTrigger));
 			}
 		} catch (InterruptedException e) {
@@ -182,20 +179,14 @@ public class TwitterTaskPerformer {
 		}
 	}
 
-	public static Queue<Document> stackTwitterQueue(
-			ArrayList<Document> tasksToBePushed) {
+	public static Queue<Document> stackTwitterQueue(ArrayList<Document> tasksToBePushed) {
 
 		Collections.sort(tasksToBePushed, new Comparator<Document>() {
 			@Override
 			public int compare(Document p1, Document p2) {
-				return new CompareToBuilder()
-						.append(p2.getInteger("priority"),
-								p1.getInteger("priority"))
-						.append(p2.getString("twitter_task_status"),
-								p1.getString("twitter_task_status"))
-						.append(p2.getString("task_text").length(),
-								p1.getString("task_text").length())
-						.toComparison();
+				return new CompareToBuilder().append(p2.getInteger("priority"), p1.getInteger("priority"))
+						.append(p2.getString("twitter_task_status"), p1.getString("twitter_task_status"))
+						.append(p2.getString("task_text").length(), p1.getString("task_text").length()).toComparison();
 			}
 		});
 		Queue<Document> queue = new LinkedList<Document>(tasksToBePushed);

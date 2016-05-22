@@ -853,7 +853,7 @@ public class MongodbMethods {
 		MongoClient mongoClient = new MongoClient(Config.mongoHost,
 				Config.mongoPort);
 		try {
-
+			pushing_times++;
 			MongoDatabase database = mongoClient
 					.getDatabase(Config.projectsDatabaseName);
 			Date date = new Date();
@@ -864,7 +864,7 @@ public class MongodbMethods {
 							new Document().append("$set", new Document(
 									"twitter_task_status", twitter_task_status)
 									.append("twitter_lastPushAt", lastPushAt)
-									.append("pushing_times", pushing_times++)));
+									.append("pushing_times", pushing_times)));
 			logger.debug(result.toString());
 			if (result.wasAcknowledged()) {
 				if (result.getMatchedCount() > 0) {
