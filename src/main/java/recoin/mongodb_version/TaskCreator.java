@@ -86,26 +86,23 @@ public class TaskCreator {
 						} else {
 							continue;
 						}
-						int tasksPerProjectCounter = tasksTexts.size();
-						if (tasksPerProjectCounter >= tasksPerProjectlimit) {
-							logger.info("tasksPerProjectlimit was reached "
-									+ tasksPerProjectCounter);
-							MongodbMethods
-									.updateProjectToInsertedInMongoDB(project_id);
-							logger.debug("changing to another project");
-							continue;
 
-						}
-						// TODO: don't retrieve ones which have already been
-						// pushed
-						// to
-						// crowd and not completed by crowd, from Ramine
 						HashSet<Document> bins = getNominatedbins(bin_id);
 						HashSet<String> originalBinText = new HashSet<>();
 						logger.info("There are \"" + bins.size()
 								+ "\" tweets for projectID " + project_id);
 						for (Document bin : bins) {
+							tasksTexts = getAllTasksTextsFromMongodb(project_id);
+							int tasksPerProjectCounter = tasksTexts.size();
+							if (tasksPerProjectCounter >= tasksPerProjectlimit) {
+								logger.info("tasksPerProjectlimit was reached "
+										+ tasksPerProjectCounter);
+								MongodbMethods
+										.updateProjectToInsertedInMongoDB(project_id);
+								logger.debug("changing to another project");
+								break;
 
+							}
 							logger.debug("Processing a new task");
 							// for each bin, get the text/tweet
 							String text = bin.getString("text");
