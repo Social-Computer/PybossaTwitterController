@@ -9,26 +9,27 @@ import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.WriteResult;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoIterable;
 import com.mongodb.client.result.UpdateResult;
 
 public class TestDeleteField {
-	static MongoClient mongoClient = new MongoClient(Config.mongoHost,
-			Config.mongoPort);
-	static MongoDatabase database = mongoClient
-			.getDatabase(Config.projectsDatabaseName);
+	static MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
+	static MongoDatabase database = mongoClient.getDatabase(Config.binsDatabaseName);
 
 	public static void main(String[] args) {
 
-		
-		UpdateResult result = database.getCollection(Config.projectCollection).updateMany(new Document(),
-				new Document().append("$unset", new Document("project_started", "ready")));
-		System.out.println(result.toString());
-
-		
-		
-		
+		MongoIterable<String> iterable = database.listCollectionNames();
+		for (String string : iterable) {
+			if (!string.contains("indexes")) {
+				System.out.println("Collection " + string);
+				UpdateResult result = database.getCollection(string).updateMany(new Document(),
+						new Document().append("$set", new Document("wasProcessed", false)));
+				System.out.println(result.toString());
+			}
+		}
 
 	}
 }
