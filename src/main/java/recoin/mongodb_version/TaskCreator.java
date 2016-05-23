@@ -2,12 +2,20 @@ package recoin.mongodb_version;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.carrot2.clustering.kmeans.BisectingKMeansClusteringAlgorithm;
+import org.carrot2.core.Cluster;
+import org.carrot2.core.Controller;
+import org.carrot2.core.ControllerFactory;
+import org.carrot2.core.ProcessingResult;
 
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
@@ -92,8 +100,7 @@ public class TaskCreator {
 						// pushed
 						// to
 						// crowd and not completed by crowd, from Ramine
-						HashSet<Document> bins = MongodbMethods
-								.getTweetsFromBinInMongoDB(bin_id);
+						HashSet<Document> bins = getNominatedbins(bin_id);
 						HashSet<String> originalBinText = new HashSet<>();
 						logger.info("There are \"" + bins.size()
 								+ "\" tweets for projectID " + project_id);
@@ -119,6 +126,16 @@ public class TaskCreator {
 														tweet_id, "ready",
 														"validate")) {
 											tasksPerProjectCounter++;
+											if (MongodbMethods
+													.updateBinToBeProcessed(
+															_id, bin_id))
+												;
+											{
+												logger.debug("Bin with id "
+														+ _id.toString()
+														+ " has been sucssfully updated in bins to be processed");
+											}
+
 										} else {
 											logger.error("Task was not inserted Into MongoDB");
 										}
@@ -207,5 +224,40 @@ public class TaskCreator {
 			mongoClient.close();
 			return tasks;
 		}
+	}
+
+	public static HashSet<Document> getNominatedbins(String collectionName) {
+		HashSet<Document> returnedBins = new HashSet<Document>();
+		HashSet<Document> bins = MongodbMethods
+				.getTweetsFromBinInMongoDB(collectionName);
+		logger.debug("Bins size is: " + bins.size());
+		ArrayList<org.carrot2.core.Document> documents = new ArrayList<org.carrot2.core.Document>();
+		for (Document bin : bins) {
+			documents.add(new org.carrot2.core.Document(bin.getString("text"))
+					.setField("id", bin));
+		}
+		Map<String, Object> attributes = new HashMap<String, Object>();
+		attributes.put("BisectingKMeansClusteringAlgorithm.clusterCount",
+				Integer.valueOf(Config.TasksPerProject));
+		attributes.put("documents", documents);
+		Controller controller = ControllerFactory.createSimple();
+		ProcessingResult byDomainClusters = controller.process(attributes,
+				BisectingKMeansClusteringAlgorithm.class);
+		List<Cluster> clustersByDomain = byDomainClusters.getClusters();
+		logger.debug("Clusters size is: " + clustersByDomain.size());
+		int clusterNo = 1;
+		for (Cluster cluster : clustersByDomain) {
+			logger.debug("===============");
+			logger.debug("Cluster number: " + clusterNo);
+			clusterNo++;
+			logger.debug("Cluster label is: " + cluster.getLabel());
+			List<org.carrot2.core.Document> docs = cluster.getAllDocuments();
+			returnedBins.add(docs.get(0).getField("id"));
+			for (org.carrot2.core.Document document : docs) {
+				logger.debug("bin text: " + document.getTitle());
+			}
+		}
+		logger.debug("===============");
+		return returnedBins;
 	}
 }

@@ -255,9 +255,8 @@ public class MongodbMethods {
 		try {
 			MongoDatabase binsDatabase = mongoClient
 					.getDatabase(Config.binsDatabaseName);
-			FindIterable<Document> iterable = binsDatabase
-					.getCollection(collectionName).find()
-					.limit(Integer.valueOf(Config.TasksPerProject));
+			FindIterable<Document> iterable = binsDatabase.getCollection(
+					collectionName).find(ne("wasProcessed", true));
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
 					// JSONObject app2 = new JSONObject(document);
@@ -991,23 +990,21 @@ public class MongodbMethods {
 		}
 	}
 
-	public static ArrayList<Document> getPushedTasks(
-			String fieldName,String fieldValue, String collection) {
+	public static ArrayList<Document> getPushedTasks(String fieldName,
+			String fieldValue, String collection) {
 		ArrayList<Document> NotPushedTasksjsons = new ArrayList<Document>();
 		MongoClient mongoClient = new MongoClient(Config.mongoHost,
 				Config.mongoPort);
 		try {
 			MongoDatabase database = mongoClient
 					.getDatabase(Config.projectsDatabaseName);
-			FindIterable<Document> iterable = null ;
-			if (collection.equals(Config.taskCollection)){
-				iterable = database
-						.getCollection(collection).find(
-								new Document(fieldName, fieldValue));
-			}else if (collection.equals(Config.taskRunCollection)){
-				iterable = database
-						.getCollection(collection).find(
-								new Document(fieldName, fieldValue));
+			FindIterable<Document> iterable = null;
+			if (collection.equals(Config.taskCollection)) {
+				iterable = database.getCollection(collection).find(
+						new Document(fieldName, fieldValue));
+			} else if (collection.equals(Config.taskRunCollection)) {
+				iterable = database.getCollection(collection).find(
+						new Document(fieldName, fieldValue));
 			}
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
@@ -1561,6 +1558,33 @@ public class MongodbMethods {
 		}
 	}
 
+	public static Boolean updateBinToBeProcessed(ObjectId _id, String collection) {
+		MongoClient mongoClient = new MongoClient(Config.mongoHost,
+				Config.mongoPort);
+		try {
+			MongoDatabase database = mongoClient
+					.getDatabase(Config.binsDatabaseName);
+			UpdateResult result = database.getCollection(collection).updateOne(
+					new Document("_id", _id),
+					new Document().append("$set", new Document("wasProcessed",
+							true)));
+			logger.debug(result.toString());
+			if (result.wasAcknowledged()) {
+				if (result.getMatchedCount() > 0) {
+					logger.debug(collection
+							+ " Collection within Bins database was updated with wasProcessed: true");
+					mongoClient.close();
+					return true;
+				}
+			}
+			mongoClient.close();
+			return false;
+		} catch (Exception e) {
+			logger.error("Error ", e);
+			mongoClient.close();
+			return false;
+		}
+	}
 	// public static Document getTaskRunsFromMongoDB(String contribution_id) {
 	// MongoClient mongoClient = new MongoClient(Config.mongoHost,
 	// Config.mongoPort);
