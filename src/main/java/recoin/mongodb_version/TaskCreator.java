@@ -1,5 +1,7 @@
 package recoin.mongodb_version;
 
+import static com.mongodb.client.model.Filters.ne;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -150,7 +152,7 @@ public class TaskCreator {
 		try {
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
-					.find(new Document("project_status", "ready"));
+					.find(ne("project_status", "completed"));
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
 					startedProjectsJsons.add(document);
