@@ -56,7 +56,7 @@ public class TaskCreator {
 	public static void run() {
 		try {
 			// Check for started projects
-			HashSet<Document> projectsAsJsons = getReadyProjects();
+			HashSet<Document> projectsAsJsons = getReadyOrInsertedProjects();
 			if (projectsAsJsons != null) {
 				logger.info("There are " + projectsAsJsons.size()
 						+ " projects that have tasks ready to be inserted into Mongodb");
@@ -144,14 +144,14 @@ public class TaskCreator {
 
 	}
 
-	public static HashSet<Document> getReadyProjects() {
+	public static HashSet<Document> getReadyOrInsertedProjects() {
 		logger.debug("getting projects from collection " + Config.projectCollection);
 		HashSet<Document> startedProjectsJsons = new HashSet<Document>();
 		MongoClient mongoClient = new MongoClient(Config.mongoHost, Config.mongoPort);
 		try {
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
-					.find(new Document("project_status", "ready"));
+					.find(or(new Document("project_status", "ready"),new Document("project_status", "inserted")));
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
 					startedProjectsJsons.add(document);
