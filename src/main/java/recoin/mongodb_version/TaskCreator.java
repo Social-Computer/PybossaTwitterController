@@ -1,8 +1,7 @@
 package recoin.mongodb_version;
 
-import static com.mongodb.client.model.Filters.ne;
+import static com.mongodb.client.model.Filters.*;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,9 +35,7 @@ public class TaskCreator {
 
 	final static Logger logger = Logger.getLogger(TaskCreator.class);
 
-	public final static SimpleDateFormat PyBossaformatter = new SimpleDateFormat("yyyy-mm-dd'T'hh:mm:ss.SSSSSS");
 
-	static String url = Config.PyBossahost + Config.taskDir + Config.api_key;
 
 	public static void main(String[] args) {
 		PropertyConfigurator.configure("log4j.properties");
@@ -62,7 +59,7 @@ public class TaskCreator {
 			HashSet<Document> projectsAsJsons = getReadyProjects();
 			if (projectsAsJsons != null) {
 				logger.info("There are " + projectsAsJsons.size()
-						+ " projects that have tasks ready to be inserted into PyBossa, then to MongoDB");
+						+ " projects that have tasks ready to be inserted into Mongodb");
 				if (!projectsAsJsons.isEmpty()) {
 
 					// Get project name and id for these started projects
@@ -76,6 +73,8 @@ public class TaskCreator {
 							tasksPerProjectCounter = tasks.size();
 							logger.debug("Processing Project " + bin_id + " that has " + tasksPerProjectCounter
 									+ " tasks already!!");
+							logger.debug("TaskPerProject is: " + tasksPerProjectlimit);
+							logger.debug("tasksPerProjectCounter is: " + tasksPerProjectCounter);
 							if (tasksPerProjectCounter >= tasksPerProjectlimit) {
 								logger.debug("Project with id " + project_id + " has already got "
 										+ tasksPerProjectlimit + " tasks");
@@ -152,7 +151,7 @@ public class TaskCreator {
 		try {
 			MongoDatabase database = mongoClient.getDatabase(Config.projectsDatabaseName);
 			FindIterable<Document> iterable = database.getCollection(Config.projectCollection)
-					.find(ne("project_status", "completed"));
+					.find(new Document("project_status", "ready"));
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
 					startedProjectsJsons.add(document);
@@ -173,7 +172,7 @@ public class TaskCreator {
 		try {
 			MongoDatabase binsDatabase = mongoClient.getDatabase(Config.projectsDatabaseName);
 			FindIterable<Document> iterable = binsDatabase.getCollection(Config.taskCollection)
-					.find(new Document("project_id", project_id));
+					.find(and(ne("task_status", "completed"),new Document("project_id",project_id)));
 			if (iterable.first() != null) {
 				for (Document document : iterable) {
 					tasks.add(document);
