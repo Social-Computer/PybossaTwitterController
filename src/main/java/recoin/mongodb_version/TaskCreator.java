@@ -209,7 +209,8 @@ public class TaskCreator {
 			clusterNo++;
 			logger.debug("Cluster label is: " + cluster.getLabel());
 			List<org.carrot2.core.Document> docs = cluster.getAllDocuments();
-			returnedBins.add(docs.get(0).getField("id"));
+			Document chosenDoc = docs.get(0).getField("id");
+			returnedBins.add(chosenDoc);
 			for (org.carrot2.core.Document document : docs) {
 				logger.debug("bin text: " + document.getTitle());
 			}

@@ -104,7 +104,7 @@ public class FacebookTaskCollector {
 			} else {
 				logger.error("facebook is not returning any posts!");
 			}
-			logger.debug("Adding task_id field to collection " + Config.taskRunCollection);
+			logger.debug("Adding task_run_id field to collection " + Config.taskRunCollection);
 			MongodbMethods.updateTaskRunsByAddingCounters();
 
 		} catch (Exception e) {

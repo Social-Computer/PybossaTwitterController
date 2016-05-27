@@ -209,7 +209,7 @@ public class TwitterTaskCollector {
 				logger.info("Time line was null");
 			}
 
-			logger.debug("Adding task_id field to collection "
+			logger.debug("Adding task_run_id field to collection "
 					+ Config.taskRunCollection);
 			MongodbMethods.updateTaskRunsByAddingCounters();
 		} catch (Exception e) {

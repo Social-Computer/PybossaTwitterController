@@ -27,6 +27,7 @@ public class Config {
 	public static String TaskPerformerPushRate;
 
 	public static String RePushTaskToTwitter;
+	public static String SimulatorTime;
 
 	public static String TasksPerProject;
 	public static String ProjectLimit;
@@ -58,6 +59,9 @@ public class Config {
 	public static String twitterToDismissStatusesbeforeDate;
 	
 	public static String restPort;
+	
+	public static String yandexKey;
+	
 
 	public static void reload() {
 
@@ -133,7 +137,9 @@ public class Config {
 		
 		restPort= p.getProperty("restPort");
 		
+		SimulatorTime= p.getProperty("SimulatorTime");
 		
+		yandexKey= p.getProperty("yandexKey");
 	}
 
 	static {
@@ -208,6 +214,10 @@ public class Config {
 		twitterToDismissStatusesbeforeDate= p.getProperty("twitterToDismissStatusesbeforeDate");
 		
 		restPort= p.getProperty("restPort");
+		
+		SimulatorTime= p.getProperty("SimulatorTime");
+		
+		yandexKey= p.getProperty("yandexKey");
 	}
 
 }
