@@ -57,6 +57,7 @@ public class Config {
 	public static String firstLimit;
 	
 	public static String twitterToDismissStatusesbeforeDate;
+	public static String bingKey;
 	
 	public static String restPort;
 	
@@ -140,6 +141,7 @@ public class Config {
 		SimulatorTime= p.getProperty("SimulatorTime");
 		
 		yandexKey= p.getProperty("yandexKey");
+		bingKey= p.getProperty("bingKey");
 	}
 
 	static {
@@ -218,6 +220,7 @@ public class Config {
 		SimulatorTime= p.getProperty("SimulatorTime");
 		
 		yandexKey= p.getProperty("yandexKey");
+		bingKey= p.getProperty("bingKey");
 	}
 
 }

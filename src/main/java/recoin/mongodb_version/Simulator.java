@@ -16,6 +16,9 @@ import org.bson.Document;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import net.billylieurance.azuresearch.AzureSearchResultSet;
+import net.billylieurance.azuresearch.AzureSearchWebQuery;
+import net.billylieurance.azuresearch.AzureSearchWebResult;
 import sociam.pybossa.config.Config;
 import sociam.pybossa.methods.MongodbMethods;
 
@@ -37,8 +40,7 @@ public class Simulator {
 
 		PropertyConfigurator.configure("log4j.properties");
 		logger.info("Starting the Simulator process");
-		logger.info("Simulator will be repeated every " + Config.SimulatorTime
-				+ " ms");
+		logger.info("Simulator will be repeated every " + Config.SimulatorTime + " ms");
 		try {
 			while (true) {
 				Config.reload();
@@ -53,8 +55,7 @@ public class Simulator {
 
 	public static void run() {
 		try {
-			ArrayList<Document> tasks = MongodbMethods
-					.getIncompletedTasksFromMongoDB("task_status");
+			ArrayList<Document> tasks = MongodbMethods.getIncompletedTasksFromMongoDB("task_status");
 			if (tasks != null) {
 				if (!tasks.isEmpty()) {
 					Random random1 = new Random();
@@ -77,7 +78,7 @@ public class Simulator {
 						text = insert_Share_instrctionSet();
 						break;
 					case "ENRICH":
-						text = insert_Enrich_instrctionSet();
+						text = insert_Enrich_instrctionSet(task_text);
 						break;
 					case "TRANS":
 						text = insert_Trans_instrctionSet(task_text);
@@ -85,12 +86,10 @@ public class Simulator {
 					}
 					if (text != null) {
 						logger.debug("About to insert a task");
-						logger.debug("task_id " + task_id + " " + "project_id "
-								+ project_id + " contributor_name "
-								+ contributor_name + " source" + source
-								+ " text " + text);
-						Boolean isInserted = MongodbMethods.insertTaskRun(text,
-								task_id, project_id, contributor_name, source);
+						logger.debug("task_id " + task_id + " " + "project_id " + project_id + " contributor_name "
+								+ contributor_name + " source" + source + " text " + text);
+						Boolean isInserted = MongodbMethods.insertTaskRun(text, task_id, project_id, contributor_name,
+								source);
 						if (isInserted) {
 							logger.info("TaskRun was inserted");
 						} else {
@@ -105,8 +104,7 @@ public class Simulator {
 				}
 			}
 
-			logger.debug("Adding task_run_id field to collection "
-					+ Config.taskRunCollection);
+			logger.debug("Adding task_run_id field to collection " + Config.taskRunCollection);
 			MongodbMethods.updateTaskRunsByAddingCounters();
 			counter++;
 		} catch (Exception e) {
@@ -134,12 +132,22 @@ public class Simulator {
 		}
 	}
 
-	public static String insert_Enrich_instrctionSet() {
-		String enrich = getLineFromFile(EnrichFile);
-		if (enrich != null) {
-			return "ENRICH " + enrich;
+	public static String insert_Enrich_instrctionSet(String task_text) {
+		task_text = removeHashtagsAndLinks(task_text);
+		ArrayList<String> results = getEnriches(task_text);
+		if (!results.isEmpty()) {
+			Random random1 = new Random();
+			int randomNum = random1.nextInt(results.size());
+			String chosenUrl = results.get(randomNum);
+			return "ENRICH " + chosenUrl;
 		} else {
-			return "ENRICH random" + counter;
+
+			String enrich = getLineFromFile(EnrichFile);
+			if (enrich != null) {
+				return "ENRICH " + enrich;
+			} else {
+				return "ENRICH random" + counter;
+			}
 		}
 	}
 
@@ -148,14 +156,26 @@ public class Simulator {
 		Random random1 = new Random();
 		int randomNum = random1.nextInt(yandexLanguages.length);
 		String chosenLanguage = yandexLanguages[randomNum];
-		JSONObject translationJSON = getTranslation(task_text, chosenLanguage,
-				"plain", 1);
+		JSONObject translationJSON = getTranslation(task_text, chosenLanguage, "plain", 1);
 		JSONArray transaltionArray = translationJSON.getJSONArray("text");
 		String translationText = transaltionArray.getString(0);
 		logger.debug("Translating text from " + task_text);
 		logger.debug("Translating text to " + translationText);
 
 		return "TRANS " + translationText;
+	}
+
+	public static ArrayList<String> getEnriches(String query) {
+		ArrayList<String> urls = new ArrayList<>();
+		AzureSearchWebQuery aq = new AzureSearchWebQuery();
+		aq.setAppid(Config.bingKey);
+		aq.setQuery(query);
+		aq.doQuery();
+		AzureSearchResultSet<AzureSearchWebResult> ars = aq.getQueryResult();
+		for (AzureSearchWebResult anr : ars) {
+			urls.add(anr.getUrl());
+		}
+		return urls;
 	}
 
 	public static String getLineFromFile(String file) {
@@ -178,12 +198,10 @@ public class Simulator {
 		return text;
 	}
 
-	public static JSONObject getTranslation(String text, String lang,
-			String format, int options) {
+	public static JSONObject getTranslation(String text, String lang, String format, int options) {
 
-		String url = yandexUrl + "key=" + Config.yandexKey + "&text=" + text
-				+ "&lang=" + lang + "&format=" + format + "&options=" + options
-				+ "";
+		String url = yandexUrl + "key=" + Config.yandexKey + "&text=" + text + "&lang=" + lang + "&format=" + format
+				+ "&options=" + options + "";
 
 		try {
 			URL obj = new URL(url);
@@ -196,8 +214,7 @@ public class Simulator {
 			logger.debug("\nSending 'GET' request to URL : " + url);
 			logger.debug("Response Code : " + responseCode);
 
-			BufferedReader in = new BufferedReader(new InputStreamReader(
-					con.getInputStream()));
+			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
 			String inputLine;
 			StringBuffer response = new StringBuffer();
 
