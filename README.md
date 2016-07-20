@@ -3,6 +3,21 @@ A middleware for ad-hoc real-time crowdsourcing via social media. Bridges betwee
 
 There are three main components of TwitterCrowdSourcingController: Project - Task and TaskRun that are modelled within the database.
 
+##Get Started
+
+Add your config to the file "configExample.properties"
+Rename the file to "config.properties" then move it to src/main/resources
+Then run the following commands
+
+```
+mvn clean package
+sh RunAllProcesses.sh # to run all processes
+sh stopAllProcesses.sh # to stop all processes
+```
+
+## logging
+Loggging is done with log4j. For each process, go to script/{processname}. There are logging.log and nohub.out which contains the logging info.
+
 ## Documentation
 This project have different processes that keep taking to eachother through the database.
 
