@@ -11,7 +11,7 @@ Then run the following commands
 
 ```
 mvn clean package
-sh RunAllProcesses.sh # to run all processes
+sh RunAllProcesses.sh # to run all processes in background
 sh stopAllProcesses.sh # to stop all processes
 ```
 
