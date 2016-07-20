@@ -1,4 +1,4 @@
-package recoin.mongodb_version.rest;
+package recoin.mongodb_version;
 
 import static spark.Spark.get;
 import static spark.Spark.port;
