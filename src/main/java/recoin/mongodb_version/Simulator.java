@@ -40,7 +40,8 @@ public class Simulator {
 
 		PropertyConfigurator.configure("log4j.properties");
 		logger.info("Starting the Simulator process");
-		logger.info("Simulator will be repeated every " + Config.SimulatorTime + " ms");
+		logger.info("Simulator will be repeated every " + Config.SimulatorTime
+				+ " ms");
 		try {
 			while (true) {
 				Config.reload();
@@ -55,7 +56,8 @@ public class Simulator {
 
 	public static void run() {
 		try {
-			ArrayList<Document> tasks = MongodbMethods.getIncompletedTasksFromMongoDB("task_status");
+			ArrayList<Document> tasks = MongodbMethods
+					.getIncompletedTasksFromMongoDB("task_status");
 			if (tasks != null) {
 				if (!tasks.isEmpty()) {
 					Random random1 = new Random();
@@ -86,10 +88,12 @@ public class Simulator {
 					}
 					if (text != null) {
 						logger.debug("About to insert a task");
-						logger.debug("task_id " + task_id + " " + "project_id " + project_id + " contributor_name "
-								+ contributor_name + " source" + source + " text " + text);
-						Boolean isInserted = MongodbMethods.insertTaskRun(text, task_id, project_id, contributor_name,
-								source);
+						logger.debug("task_id " + task_id + " " + "project_id "
+								+ project_id + " contributor_name "
+								+ contributor_name + " source" + source
+								+ " text " + text);
+						Boolean isInserted = MongodbMethods.insertTaskRun(text,
+								task_id, project_id, contributor_name, source);
 						if (isInserted) {
 							logger.info("TaskRun was inserted");
 						} else {
@@ -104,7 +108,8 @@ public class Simulator {
 				}
 			}
 
-			logger.debug("Adding task_run_id field to collection " + Config.taskRunCollection);
+			logger.debug("Adding task_run_id field to collection "
+					+ Config.taskRunCollection);
 			MongodbMethods.updateTaskRunsByAddingCounters();
 			counter++;
 		} catch (Exception e) {
@@ -156,13 +161,18 @@ public class Simulator {
 		Random random1 = new Random();
 		int randomNum = random1.nextInt(yandexLanguages.length);
 		String chosenLanguage = yandexLanguages[randomNum];
-		JSONObject translationJSON = getTranslation(task_text, chosenLanguage, "plain", 1);
-		JSONArray transaltionArray = translationJSON.getJSONArray("text");
-		String translationText = transaltionArray.getString(0);
-		logger.debug("Translating text from " + task_text);
-		logger.debug("Translating text to " + translationText);
+		JSONObject translationJSON = getTranslation(task_text, chosenLanguage,
+				"plain", 1);
+		if (translationJSON != null) {
+			JSONArray transaltionArray = translationJSON.getJSONArray("text");
+			String translationText = transaltionArray.getString(0);
+			logger.debug("Translating text from " + task_text);
+			logger.debug("Translating text to " + translationText);
 
-		return "TRANS " + translationText;
+			return "TRANS " + translationText;
+		} else {
+			return null;
+		}
 	}
 
 	public static ArrayList<String> getEnriches(String query) {
@@ -198,10 +208,12 @@ public class Simulator {
 		return text;
 	}
 
-	public static JSONObject getTranslation(String text, String lang, String format, int options) {
+	public static JSONObject getTranslation(String text, String lang,
+			String format, int options) {
 
-		String url = yandexUrl + "key=" + Config.yandexKey + "&text=" + text + "&lang=" + lang + "&format=" + format
-				+ "&options=" + options + "";
+		String url = yandexUrl + "key=" + Config.yandexKey + "&text=" + text
+				+ "&lang=" + lang + "&format=" + format + "&options=" + options
+				+ "";
 
 		try {
 			URL obj = new URL(url);
@@ -214,7 +226,8 @@ public class Simulator {
 			logger.debug("\nSending 'GET' request to URL : " + url);
 			logger.debug("Response Code : " + responseCode);
 
-			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+			BufferedReader in = new BufferedReader(new InputStreamReader(
+					con.getInputStream()));
 			String inputLine;
 			StringBuffer response = new StringBuffer();
 
