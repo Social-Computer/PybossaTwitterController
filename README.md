@@ -46,7 +46,7 @@ Note that "project_status" : "empty" which will be kick started by the ProjectCr
 
 - RECOIN_bins: this database will have collections as bins. Each bin represents a proejct. Each bin have all raw tasks to be retrived by the TaskCreator later.
 
-```json
+```
 {
   "_source": "twitter",
   "id": "733316451554197504",
@@ -177,7 +177,7 @@ keep watching the "RECOIN\_projects" for any empty projects to be instantiated w
 For any "ready" project, retreive a number of tasks from "bins" in the database "RECOIN\_bins" based on a limit set by the config file to be added to a new collection named "tasks" within database "RECOIN\_projects".
 
 
-```json
+```
 {
   "publishedAt": "2016-06-17 14:47:30",
   "project_id": 4069159, 
