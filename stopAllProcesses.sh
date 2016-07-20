@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
-read -p "Are you sure you want to KILL all processes related to TwitterCrowdSourcingController (Y/n) : " answer
+ps -ef | grep "recoin.mongodb_version"
+read -p "Are you sure you want to KILL the above processes? (Y/n) : " answer
 if [ "$answer" == "Y" ]; then
 	echo "Preperting to kill these processes: "
-	ps -ef | grep "recoin.mongodb_version"
 	numberProcess=($(ps -ef | grep "recoin.mongodb_version" | wc -l))
 	echo "There are $numberProcess Processes"
 	if (($numberProcess > 1)); then
